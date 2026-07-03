@@ -1,6 +1,8 @@
 # Phase 3 Specification: The Canvas Becomes the Context Window
 
-> **Status: DRAFT for discussion.**
+> **Status: agreed as the next phase** (moved from phase 2 on 2026-07-03 when
+> knowledge took that slot). Workstream 4 (`update.sh`) already done. Open
+> questions at the bottom still need decisions before building.
 
 ## Goal
 

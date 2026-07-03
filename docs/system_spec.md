@@ -4,7 +4,8 @@ What the living agentic environment does **today**. The long-term vision lives
 in [original_spec.md](original_spec.md). This document is kept in sync with the
 code; when behavior changes, change this file in the same commit.
 
-*Last updated: 2026-07-03 (phase 2: knowledge on the canvas).*
+*Last updated: 2026-07-03 (phase 2 achieved; update.sh; budget notes and
+network policy).*
 
 ## One-paragraph summary
 
@@ -92,7 +93,7 @@ The contract every generated widget subclasses:
 
 ### AgentFact (UI)
 
-Sticky-note memory ([phase2_spec.md](phase2_spec.md)): a small pale-yellow
+Sticky-note memory: a small pale-yellow
 widget holding one durable fact. The body is editable in place (`ToAlbum` —
 editing the text IS editing the memory); the `x` button deletes (forgetting
 is a physical act). An optional key gives identity: `AgentFact key: #city
@@ -154,7 +155,7 @@ packages.
 |---|---|
 | `./build.sh` | FRESH `pharo/Agent.image` from `src/` — destroys the world (`core` arg skips UI) |
 | `./update.sh` | reload tooling from `src/` into the LIVING image; widgets/facts survive. Diffs via TonelReader + `MCPackageLoader updatePackage:withSnapshot:`, so removed definitions unload too. Backs up the image first (keeps 5). Does not update Bloc/Toplo — use `build.sh` for dependency changes |
-| `./test.sh` | SUnit suite headless (currently 32 tests) |
+| `./test.sh` | SUnit suite headless (currently 34 tests) |
 | `./run.sh` | open the canvas UI |
 
 Headless acceptance scripts (`pharo ... st scripts/<name>.st`):
@@ -176,6 +177,8 @@ Each prints the loop transcript for post-mortems.
   optimization.
 - **Log growth**: `logs/gateway.log` includes full payloads (system prompt
   every round); no rotation yet.
+- **Memory rides the prompt**: every remembered fact is sent to the
+  Anthropic API on every request — inherent to the architecture.
 - **Reliability is anecdotal**: cold runs have been consistently green, but
   the demo-1 "8 of 10" bar was never formally measured.
 - Single user, single space, no multiplayer.
