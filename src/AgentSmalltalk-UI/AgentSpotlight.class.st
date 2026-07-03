@@ -1,17 +1,16 @@
 "
 I am the floating prompt bar. Summoned with Cmd/Ctrl+Return on the canvas,
-I collect a request, run the AgentGateway in a background process, and show
-its status line ('thinking… / evaluating… / repairing…') while the loop runs.
-Text input is handled manually (BlTextInputEvent + backspace) to avoid a
-widget-set dependency.
+I collect a request in a ToTextField (real cursor, selection, clipboard),
+run the AgentGateway in a background process, and show its status line
+('thinking... / evaluating... / working...') while the loop runs.
+Enter/Esc are attached as event filters so they win over the field's editor.
 "
 Class {
 	#name : 'AgentSpotlight',
 	#superclass : 'BlElement',
 	#instVars : [
 		'canvas',
-		'inputText',
-		'inputLabel',
+		'inputField',
 		'statusLabel'
 	],
 	#category : 'AgentSmalltalk-UI',
@@ -25,36 +24,29 @@ AgentSpotlight class >> openOn: aCanvas [
 	bar canvas: aCanvas.
 	aCanvas space root addChild: bar.
 	bar position: ((aCanvas space extent x - 620) / 2) @ 120.
-	bar requestFocus.
+	bar focusInput.
 	^ bar
 ]
 
 { #category : 'initialization' }
 AgentSpotlight >> initialize [
 	super initialize.
-	inputText := ''.
-	self extent: 620 @ 92.
+	self extent: 620 @ 96.
 	self background: (Color white alpha: 0.97).
 	self border: (BlBorder paint: (Color gray alpha: 0.5) width: 1).
 	self geometry: (BlRoundedRectangleGeometry cornerRadius: 12).
 	self layout: BlLinearLayout vertical.
 	self padding: (BlInsets all: 14).
-	inputLabel := BlTextElement new.
-	statusLabel := BlTextElement new.
-	self refreshInput.
-	self showStatusNow: 'type a request, Return to run, Esc to close'.
-	self addChild: inputLabel.
+	inputField := ToTextField new.
+	inputField placeholderText: 'ask the agent...'.
+	inputField extent: 590 @ 34.
+	statusLabel := ToLabel new text: 'Return to run, Esc to close'.
+	statusLabel margin: (BlInsets top: 8).
+	self addChild: inputField.
 	self addChild: statusLabel.
-	self addEventHandlerOn: BlTextInputEvent do: [ :evt |
-		inputText := inputText , evt text asString.
-		self refreshInput ].
-	self addEventHandlerOn: BlKeyDownEvent do: [ :evt |
-		evt key = KeyboardKey backspace ifTrue: [
-			inputText ifNotEmpty: [
-				inputText := inputText allButLast.
-				self refreshInput ] ].
-		evt key = KeyboardKey escape ifTrue: [ self close ].
-		evt key = KeyboardKey enter ifTrue: [ self submit ] ]
+	inputField addEventFilterOn: BlKeyDownEvent do: [ :evt |
+		evt key = KeyboardKey enter ifTrue: [ evt consume. self submit ].
+		evt key = KeyboardKey escape ifTrue: [ evt consume. self close ] ]
 ]
 
 { #category : 'accessing' }
@@ -62,19 +54,14 @@ AgentSpotlight >> canvas: aCanvas [
 	canvas := aCanvas
 ]
 
-{ #category : 'private' }
-AgentSpotlight >> refreshInput [
-	inputLabel text: ((inputText , '▏') asRopedText fontSize: 20)
-]
-
-{ #category : 'private' }
-AgentSpotlight >> showStatusNow [
-	^ self
+{ #category : 'actions' }
+AgentSpotlight >> focusInput [
+	inputField requestFocus
 ]
 
 { #category : 'private' }
 AgentSpotlight >> showStatusNow: aString [
-	statusLabel text: ((aString asRopedText fontSize: 12) foreground: Color gray)
+	statusLabel text: aString
 ]
 
 { #category : 'private' }
@@ -86,7 +73,7 @@ AgentSpotlight >> showStatus: aString [
 { #category : 'actions' }
 AgentSpotlight >> submit [
 	| request gateway |
-	request := inputText trimBoth.
+	request := inputField text asString trimBoth.
 	request isEmpty ifTrue: [ ^ self ].
 	gateway := AgentGateway new.
 	gateway statusBlock: [ :msg | self showStatus: msg ].
