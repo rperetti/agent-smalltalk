@@ -60,11 +60,12 @@ spotlight request:
 
 ### 4. Reload without losing the world
 
-- `./update.sh`: runs the Metacello load of `src/` **against the existing
-  image** (no pristine copy) and saves. Our tooling classes recompile in
-  place; generated widget classes and live instances are untouched.
-- `./build.sh` remains for genuinely fresh starts.
-- The sandbox backup rotation covers the failure case.
+> **Done early (2026-07-03).** Built as `./update.sh` via TonelReader +
+> `MCPackageLoader updatePackage:withSnapshot:` (Metacello's registry no-ops
+> on unchanged baseline versions, so it loads through Monticello directly).
+> Verified: a method added and then removed across two updates while the
+> live canvas — widgets, facts, state — survived both. `./build.sh` remains
+> for fresh starts and dependency changes.
 
 ## Acceptance script
 

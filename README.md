@@ -21,7 +21,8 @@ parking lot.
 
 | command | what it does |
 |---|---|
-| `./build.sh` | build `pharo/Agent.image` from `src/` (loads Bloc; `./build.sh core` skips UI) |
+| `./build.sh` | build a FRESH `pharo/Agent.image` from `src/` — destroys existing widgets/facts |
+| `./update.sh` | reload tooling from `src/` into the LIVING image — world preserved; use this one |
 | `./test.sh` | run the SUnit suite headless |
 | `./run.sh` | open the Agent canvas (Cmd/Ctrl+Enter summons the spotlight bar) |
 

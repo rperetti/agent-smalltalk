@@ -70,6 +70,8 @@ Singleton owning the Bloc space (`AgentCanvas open`, 1280×840, `ToBeeTheme`).
   `enqueueTask:` when the space is open.
 - **Headless mode**: with no space open, widgets attach to a detached content
   element, so the full generation loop runs (and is tested) without a display.
+  In non-interactive sessions `addWidget:` adds directly instead of enqueuing
+  (a GUI-saved space never pulses headless, so its task queue never drains).
 - `contextDescription` renders the widget list for the system prompt.
 - Cmd/Ctrl+Enter summons the spotlight.
 - Not yet spatial beyond free placement: no pan, no zoom, no lasso.
@@ -150,7 +152,8 @@ packages.
 
 | command | what it does |
 |---|---|
-| `./build.sh` | fresh `pharo/Agent.image` from `src/` (`core` arg skips UI/Bloc/Toplo) |
+| `./build.sh` | FRESH `pharo/Agent.image` from `src/` — destroys the world (`core` arg skips UI) |
+| `./update.sh` | reload tooling from `src/` into the LIVING image; widgets/facts survive. Diffs via TonelReader + `MCPackageLoader updatePackage:withSnapshot:`, so removed definitions unload too. Backs up the image first (keeps 5). Does not update Bloc/Toplo — use `build.sh` for dependency changes |
 | `./test.sh` | SUnit suite headless (currently 32 tests) |
 | `./run.sh` | open the canvas UI |
 
@@ -162,10 +165,11 @@ Each prints the loop transcript for post-mortems.
 
 ## Known limitations / accepted risks
 
-- **Rebuild destroys the world**: `build.sh` starts from a pristine image, so
-  tooling upgrades currently discard existing widgets. The product thesis
-  (image = persistent world) will eventually require migrating tooling into
-  a living image instead. Interim: `pharo/backups/` rotation.
+- **`build.sh` destroys the world** — but routine tooling upgrades no longer
+  need it: `update.sh` reloads our packages into the living image with
+  widgets and facts intact (verified: method added and removed across two
+  updates while the canvas survived). Fresh builds remain necessary only
+  for dependency (Bloc/Toplo) changes.
 - **No capability sandbox**: generated code runs with full image authority.
 - **Latency**: a widget takes roughly 15–60s depending on rounds; the status
   line keeps it honest. Crib-sheet prompt caching is the obvious next

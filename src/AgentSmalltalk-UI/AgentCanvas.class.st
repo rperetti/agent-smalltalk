@@ -75,10 +75,19 @@ AgentCanvas >> open [
 
 { #category : 'widgets' }
 AgentCanvas >> addWidget: aWidget [
+	"In a live GUI the add must happen on the UI thread (enqueue). In a
+	non-interactive session (headless scripts against a GUI-saved image)
+	the space never pulses, so the queue would never drain — and with no
+	competing UI thread, adding directly is safe."
 	self ensureContent.
-	space
-		ifNil: [ content addChild: aWidget ]
-		ifNotNil: [ space enqueueTask: (BlTaskAction new action: [ content addChild: aWidget ]) ]
+	(space isNil or: [ self isHeadlessSession ])
+		ifTrue: [ content addChild: aWidget ]
+		ifFalse: [ space enqueueTask: (BlTaskAction new action: [ content addChild: aWidget ]) ]
+]
+
+{ #category : 'testing' }
+AgentCanvas >> isHeadlessSession [
+	^ UIManager default isKindOf: NonInteractiveUIManager
 ]
 
 { #category : 'widgets' }
