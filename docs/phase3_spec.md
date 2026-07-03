@@ -1,8 +1,12 @@
 # Phase 3 Specification: The Canvas Becomes the Context Window
 
-> **Status: agreed as the next phase** (moved from phase 2 on 2026-07-03 when
-> knowledge took that slot). Workstream 4 (`update.sh`) already done. Open
-> questions at the bottom still need decisions before building.
+> **Status: BUILT (2026-07-03); visual pass pending.** Headless acceptance
+> green (`scripts/smoke-selection.st`): selection-scoped prompt verified,
+> sum widget built against live `SelectionAll` references, mutation through
+> `Selection1` + Refresh read the new total. Open questions resolved as
+> recommended: Refresh button, Shift+drag lasso, globals persist until the
+> next selection. Remaining: the interactive half of the acceptance script
+> (pan/zoom feel, lasso gesture, highlights) needs the human pass.
 
 ## Goal
 

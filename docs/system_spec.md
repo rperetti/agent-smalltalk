@@ -4,8 +4,8 @@ What the living agentic environment does **today**. The long-term vision lives
 in [vision.md](vision.md). This document is kept in sync with the
 code; when behavior changes, change this file in the same commit.
 
-*Last updated: 2026-07-03 (phase 2 achieved; update.sh; budget notes and
-network policy).*
+*Last updated: 2026-07-03 (phase 3: spatial canvas — pan/zoom, lasso
+selection, selection-scoped context with live Selection globals).*
 
 ## One-paragraph summary
 
@@ -73,9 +73,20 @@ Singleton owning the Bloc space (`AgentCanvas open`, 1280×840, `ToBeeTheme`).
   element, so the full generation loop runs (and is tested) without a display.
   In non-interactive sessions `addWidget:` adds directly instead of enqueuing
   (a GUI-saved space never pulses headless, so its task queue never drains).
-- `contextDescription` renders the widget list for the system prompt.
+- **Pan & zoom**: drag on empty background pans; mouse wheel zooms around the
+  cursor (clamped 0.25–3×), via a top-left-origin transform on the content
+  element (screen = pan + world×zoom).
+- **Lasso selection**: Shift+drag draws a selection rectangle; intersecting
+  widgets (facts included) highlight with an accent border. Click on empty
+  background clears the selection. Selection state is lazy-initialized —
+  singletons in user images are migrated with nil slots, never re-initialized.
+- **Selection-scoped context**: with a selection, `contextDescription` lists
+  ONLY the selected widgets, in rich form (describe, slots, selectors), and
+  binds them to live globals `Selection1..N` and `SelectionAll` so generated
+  code operates on the actual objects. Globals persist until the next
+  selection (follow-up requests keep working). No selection → full canvas,
+  as before.
 - Cmd/Ctrl+Enter summons the spotlight.
-- Not yet spatial beyond free placement: no pan, no zoom, no lasso.
 
 ### AgentWidget (UI)
 
@@ -148,6 +159,11 @@ packages.
   updated (no duplicate) *and the model retuned the existing clock widget's
   timezone unprompted*; a name stated in passing was captured implicitly
   and used by the requested widget.
+- **Select and operate** (phase 3): three counters (3, 5, 7) selected, "make
+  a widget that shows the sum of these selected counters" → SumCounterWidget
+  built against `SelectionAll` holding live references; system prompt
+  contained only the selected widgets; mutating a counter through
+  `Selection1` and pressing Refresh read 25.
 
 ## Operations
 
@@ -155,13 +171,14 @@ packages.
 |---|---|
 | `./build.sh` | FRESH `pharo/Agent.image` from `src/` — destroys the world (`core` arg skips UI) |
 | `./update.sh` | reload tooling from `src/` into the LIVING image; widgets/facts survive. Diffs via TonelReader + `MCPackageLoader updatePackage:withSnapshot:`, so removed definitions unload too. Backs up the image first (keeps 5). Does not update Bloc/Toplo — use `build.sh` for dependency changes |
-| `./test.sh` | SUnit suite headless (currently 34 tests) |
+| `./test.sh` | SUnit suite headless (currently 42 tests) |
 | `./run.sh` | open the canvas UI |
 
 Headless acceptance scripts (`pharo ... st scripts/<name>.st`):
 `smoke-widget.st` (cold counter generation), `smoke-modify.st` (live
 modification with state preservation), `smoke-textfield.st` (text-input
-widget), `smoke-facts.st` (remember / use / update / implicit capture).
+widget), `smoke-facts.st` (remember / use / update / implicit capture),
+`smoke-selection.st` (selection-scoped context + live Selection globals).
 Each prints the loop transcript for post-mortems.
 
 ## Known limitations / accepted risks

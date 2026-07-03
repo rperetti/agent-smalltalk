@@ -36,7 +36,7 @@ AgentWidget >> initialize [
 	super initialize.
 	self extent: 240 @ 160.
 	self background: Color white.
-	self border: (BlBorder paint: (Color gray alpha: 0.4) width: 1).
+	self border: self defaultBorder.
 	self geometry: (BlRoundedRectangleGeometry cornerRadius: 10).
 	self layout: BlLinearLayout vertical.
 	self padding: (BlInsets all: 12).
@@ -56,4 +56,19 @@ AgentWidget >> describe [
 { #category : 'actions' }
 AgentWidget >> browseSource [
 	self class browse
+]
+
+{ #category : 'selection' }
+AgentWidget >> defaultBorder [
+	^ BlBorder paint: (Color gray alpha: 0.4) width: 1
+]
+
+{ #category : 'selection' }
+AgentWidget >> highlightSelected [
+	self border: (BlBorder paint: (Color fromHexString: '4A90D9') width: 3)
+]
+
+{ #category : 'selection' }
+AgentWidget >> unhighlight [
+	self border: self defaultBorder
 ]

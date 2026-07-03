@@ -184,6 +184,25 @@ AgentFact key: #city body: 'Rodrigo lives in Porto Alegre'
 - Facts are stickies, not widgets: never create a widget class to store a
   fact, and never store secrets (passwords, API keys).
 
+## The user's selection (lasso)
+
+The user can Shift+drag a lasso on the canvas to select widgets. When the
+context contains `## Selected widgets`, the request is about THOSE widgets
+specifically. They are bound to **live globals** you can use directly in
+code: `Selection1`, `Selection2`, ... and `SelectionAll` (an Array of the
+selected widgets, in selection order). Examples:
+
+```
+SelectionAll inject: 0 into: [ :sum :w | sum + w count ]
+TotalWidget new watch: SelectionAll
+Selection1 background: Color lightBlue
+```
+
+Hold onto these references in widgets you build from them (store them in a
+slot at creation) so your widget stays connected to the live objects. The
+globals stay valid after your reply until the user makes a new selection, so
+follow-up requests may keep using them.
+
 ## Modifying an existing widget
 
 The system prompt lists the widgets currently on the canvas with their class

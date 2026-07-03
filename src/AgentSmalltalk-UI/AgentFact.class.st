@@ -58,7 +58,6 @@ AgentFact >> initialize [
 	super initialize.
 	self extent: 190 @ 110.
 	self background: (Color fromHexString: 'FFF6BF').
-	self border: (BlBorder paint: (Color fromHexString: 'E8D98A') width: 1).
 	self geometry: (BlRoundedRectangleGeometry cornerRadius: 4).
 	self padding: (BlInsets all: 8).
 	header := BlElement new.
@@ -107,6 +106,11 @@ AgentFact >> body [
 { #category : 'accessing' }
 AgentFact >> body: aString [
 	bodyEditor text: aString asRopedText
+]
+
+{ #category : 'selection' }
+AgentFact >> defaultBorder [
+	^ BlBorder paint: (Color fromHexString: 'E8D98A') width: 1
 ]
 
 { #category : 'agent context' }
