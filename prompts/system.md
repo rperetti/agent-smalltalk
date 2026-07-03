@@ -94,6 +94,11 @@ box checkAction: [ :event :checkable :isChecked | self toggled: isChecked ].
 "progress bar"
 bar := ToProgressBar new.
 bar valueInPercentage: 40.
+
+"multi-line wrapping text area (notes, paragraphs)"
+area := ToAlbum new placeholderText: 'notes...'.
+area extent: 200 @ 80.
+"read:"  area text asString
 ```
 
 For big styled text (e.g. a counter's number) use raw Bloc text:

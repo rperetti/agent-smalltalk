@@ -1,9 +1,10 @@
 "
 I am the floating prompt bar. Summoned with Cmd/Ctrl+Return on the canvas,
-I collect a request in a ToTextField (real cursor, selection, clipboard),
-run the AgentGateway in a background process, and show its status line
-('thinking... / evaluating... / working...') while the loop runs.
-Enter/Esc are attached as event filters so they win over the field's editor.
+I collect a request in a ToAlbum (multi-line, wrapping text editor: cursor,
+selection, clipboard), run the AgentGateway in a background process, and show
+its status line ('thinking... / evaluating... / working...') while the loop
+runs. Enter/Esc are attached as event filters so they win over the editor —
+Enter submits instead of inserting a newline.
 "
 Class {
 	#name : 'AgentSpotlight',
@@ -31,15 +32,20 @@ AgentSpotlight class >> openOn: aCanvas [
 { #category : 'initialization' }
 AgentSpotlight >> initialize [
 	super initialize.
-	self extent: 620 @ 96.
 	self background: (Color white alpha: 0.97).
 	self border: (BlBorder paint: (Color gray alpha: 0.5) width: 1).
 	self geometry: (BlRoundedRectangleGeometry cornerRadius: 12).
 	self layout: BlLinearLayout vertical.
 	self padding: (BlInsets all: 14).
-	inputField := ToTextField new.
+	self constraintsDo: [ :c |
+		c horizontal exact: 620.
+		c vertical fitContent ].
+	inputField := ToAlbum new.
 	inputField placeholderText: 'ask the agent...'.
-	inputField extent: 590 @ 34.
+	inputField constraintsDo: [ :c |
+		c horizontal exact: 590.
+		c vertical fitContent.
+		c minHeight: 34 ].
 	statusLabel := ToLabel new text: 'Return to run, Esc to close'.
 	statusLabel margin: (BlInsets top: 8).
 	self addChild: inputField.
