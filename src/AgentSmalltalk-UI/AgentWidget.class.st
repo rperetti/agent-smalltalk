@@ -11,6 +11,17 @@ Class {
 	#package : 'AgentSmalltalk-UI'
 }
 
+{ #category : 'class creation' }
+AgentWidget class >> defineNamed: aSymbol slots: slotSymbols [
+	"Blessed entry point for the LLM to create widget classes, insulating it
+	from class-builder API drift. Re-running with more slots migrates
+	existing instances (new slots start as nil)."
+	^ self << aSymbol asSymbol
+		slots: slotSymbols;
+		package: 'AgentSmalltalk-Generated';
+		install
+]
+
 { #category : 'instance creation' }
 AgentWidget class >> summonAt: aPoint [
 	| widget |

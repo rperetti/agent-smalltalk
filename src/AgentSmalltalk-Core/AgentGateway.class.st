@@ -91,7 +91,7 @@ AgentGateway >> statusBlock: aBlock [
 { #category : 'running' }
 AgentGateway >> run: userText [
 	| messages |
-	self status: 'thinking…'.
+	self status: 'thinking...'.
 	sandbox backupImage.
 	messages := OrderedCollection with:
 		{ 'role' -> 'user'. 'content' -> userText } asDictionary.
@@ -103,8 +103,8 @@ AgentGateway >> run: userText [
 		toolUses := content select: [ :block | (block at: 'type') = 'tool_use' ].
 		toolUses isEmpty ifTrue: [ ^ self finalTextFrom: content ].
 		self status: (round = 1
-			ifTrue: [ 'evaluating…' ]
-			ifFalse: [ 'repairing (round ' , round printString , ')…' ]).
+			ifTrue: [ 'evaluating...' ]
+			ifFalse: [ 'repairing (round ' , round printString , ')...' ]).
 		messages add: { 'role' -> 'user'.
 			'content' -> ((toolUses collect: [ :tu | self runTool: tu ]) asArray) } asDictionary ].
 	self error: 'Gave up after ' , maxRounds printString

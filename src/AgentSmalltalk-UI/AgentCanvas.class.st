@@ -94,6 +94,6 @@ AgentCanvas >> contextDescription [
 			ifNotEmpty: [ :ws |
 				ws do: [ :w |
 					s << '- ' << w class name << ' at ' << w position printString
-						<< ' — ' << w describe.
+						<< ' -- ' << w describe.
 					s cr ] ] ]
 ]

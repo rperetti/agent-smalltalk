@@ -18,13 +18,11 @@ methods you compile exist the moment your tool call returns.
 
 Work in small verified steps:
 
-1. **Define the class** (one call):
+1. **Define the class** (one call) — always via the blessed helper, never with
+`subclass:` or the class builder directly:
 
 ```
-AgentWidget subclass: #CounterWidget
-	instanceVariableNames: 'count countLabel'
-	classVariableNames: ''
-	package: 'AgentSmalltalk-Generated'
+AgentWidget defineNamed: #CounterWidget slots: #(count countLabel)
 ```
 
 2. **Compile methods, one per call**, using `compile:`. The argument is a string:
@@ -131,6 +129,6 @@ You can read any existing source first:
 - Blocks: `[ :each | each * 2 ]`. Conditionals take blocks: `x > 0 ifTrue: [ ... ] ifFalse: [ ... ]`.
 - In method source strings passed to `compile:`, double the single-quotes: `'it''s'`.
 - `^` returns from a method; in a plain tool-call expression the value of the last statement is the RESULT — you can also use `^` at top level to be explicit.
-- Instance variables are declared in the class definition, not on first use. To add one later, re-evaluate the full `subclass:` definition with the extended `instanceVariableNames:` — existing instances keep working (new vars are nil).
+- Instance variables (slots) are declared in the class definition, not on first use. To add one later, re-run `AgentWidget defineNamed: #TheClass slots: #(all slots including new ones)` — existing instances migrate and keep working (new slots are nil).
 - Symbols: `#increment`. Strings: `'text'`. Characters: `$a`.
 - Integer division: `//`, fraction: `/` (answers a Fraction, use `asFloat` to display).

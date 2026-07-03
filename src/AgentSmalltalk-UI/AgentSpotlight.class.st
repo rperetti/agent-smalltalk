@@ -91,7 +91,7 @@ AgentSpotlight >> submit [
 	gateway := AgentGateway new.
 	gateway statusBlock: [ :msg | self showStatus: msg ].
 	[ [ gateway run: request.
-		self showStatus: 'done ✓'.
+		self showStatus: 'done'.
 		self closeSoon ]
 		on: Error
 		do: [ :e | self showStatus: 'FAILED: ' , e messageText ] ]
