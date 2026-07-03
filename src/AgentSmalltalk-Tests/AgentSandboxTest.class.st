@@ -43,6 +43,30 @@ AgentSandboxTest >> testSyntaxErrorIsReported [
 ]
 
 { #category : 'tests' }
+AgentSandboxTest >> testLinefeedCodeStillEvaluates [
+	| code |
+	code := '| a |' , String lf , 'a := 3.' , String lf , 'a + 4'.
+	self assert: (sandbox evaluate: code) equals: 'RESULT: 7'
+]
+
+{ #category : 'tests' }
+AgentSandboxTest >> testCompiledSourceContainsNoLinefeeds [
+	"Method source compiled through the sandbox must end up CR-only, or the
+	code browser complains: 'Pharo code should not contain linefeed characters.'"
+	| cls source |
+	[
+		sandbox evaluate: '(Object << #AgentSandboxLfProbe) package: ''AgentSmalltalk-Tests''; install'.
+		sandbox evaluate: 'AgentSandboxLfProbe compile: ''probe' , String lf , String tab , '^ 42'''.
+		cls := Smalltalk globals at: #AgentSandboxLfProbe.
+		source := (cls >> #probe) sourceCode.
+		self deny: (source includes: Character lf).
+		self assert: cls new probe equals: 42 ]
+	ensure: [
+		(Smalltalk globals at: #AgentSandboxLfProbe ifAbsent: [ nil ])
+			ifNotNil: [ :c | c removeFromSystem ] ]
+]
+
+{ #category : 'tests' }
 AgentSandboxTest >> testTimeoutIsReported [
 	| report |
 	sandbox timeoutSeconds: 1.

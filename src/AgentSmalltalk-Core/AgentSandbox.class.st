@@ -31,8 +31,11 @@ AgentSandbox >> timeoutSeconds: aNumber [
 
 { #category : 'evaluating' }
 AgentSandbox >> evaluate: aString [
-	"Evaluate Pharo source and answer a text report for the LLM."
-	^ [ self basicEvaluate: aString ]
+	"Evaluate Pharo source and answer a text report for the LLM.
+	LLM code arrives with LF line endings (JSON); Pharo source must use CR,
+	otherwise the code browser and other tools complain about linefeeds.
+	Normalizing here also cleans string literals passed to compile:."
+	^ [ self basicEvaluate: aString withInternalLineEndings ]
 		valueWithin: timeoutSeconds seconds
 		onTimeout: [
 			'ERROR: evaluation timed out after ' , timeoutSeconds printString
