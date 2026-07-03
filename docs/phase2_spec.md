@@ -1,8 +1,12 @@
 # Phase 2 Specification: Knowledge on the Canvas
 
-> **Status: agreed scope** (brainstorm decisions, 2026-07-03): sticky notes,
-> not a single knowledge card; implicit capture on by default; preferences
-> and the variables system parked — see [ideas.md](ideas.md).
+> **Status: ACHIEVED (2026-07-03).** Headless acceptance green
+> (`scripts/smoke-facts.st`: remember, use-without-asking, keyed update,
+> implicit capture — plus the model retuning a dependent clock widget
+> unprompted when the city changed) and the visual pass verified by hand.
+> Original decisions: sticky notes, not a single knowledge card; implicit
+> capture on by default; preferences and variables parked — see
+> [ideas.md](ideas.md).
 
 ## Goal
 
