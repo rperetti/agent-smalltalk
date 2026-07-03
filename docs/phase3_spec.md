@@ -15,7 +15,7 @@ read about them.
 Demo 1 proved English → living widget. This phase proves widgets → material for
 the next request.
 
-## What phase 2 proves
+## What this phase proves
 
 1. **Selection is the context window**: with many widgets on the canvas, a
    request about "these" sees only the lassoed ones — verifiable in the
@@ -90,17 +90,17 @@ spotlight request:
 
 - Semantic clustering, force-directed layout, camera automation, wormholes,
   breadcrumbs (the "spatial gardener" — needs a populated canvas to be worth
-  anything, which phase 2 creates).
+  anything, which this phase creates).
 - Direct manipulation rewriting source.
 - Multiplayer; file/PDF ingestion; capability sandboxing.
 
 ## Open questions (to settle before building)
 
 1. **Live-update semantics for derived widgets**: is a Refresh button enough
-   for phase 2, or do we want the total to update automatically (polling on
+   for this phase, or do we want the total to update automatically (polling on
    the space pulse vs. widgets announcing changes)? Recommendation: Refresh
-   button now; announcements are a phase 3 idea (it starts the "visual
-   programming" thread from the original spec).
+   button now; announcements are a later-phase idea (it starts the "visual
+   programming" thread from the vision).
 2. **Selection ergonomics**: modifier-drag lasso vs. a selection-mode toggle
    button? Recommendation: modifier-drag (Shift), no mode state.
 3. **Should `SelectionN` globals persist after the request?** Recommendation:
