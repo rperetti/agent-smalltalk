@@ -34,3 +34,7 @@ Headless one-shot ask:
 - `prompts/system.md` — the crib sheet: the system prompt that teaches the model
   Pharo/Bloc and the AgentWidget contract. Treat it as code.
 - `scripts/` — image build/test scripts run by the shell wrappers
+- `logs/gateway.log` (gitignored) — append-only transcript of every agent
+  request: loop events, evaluated code, results/errors, and full HTTP
+  request/response JSON. In-image: `AgentGateway last log` for the most
+  recent run. The API key is never logged.

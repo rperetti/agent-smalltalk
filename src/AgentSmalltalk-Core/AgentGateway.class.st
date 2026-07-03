@@ -15,6 +15,9 @@ Class {
 		'log',
 		'statusBlock'
 	],
+	#classInstVars : [
+		'last'
+	],
 	#category : 'AgentSmalltalk-Core',
 	#package : 'AgentSmalltalk-Core'
 }
@@ -23,6 +26,29 @@ Class {
 AgentGateway class >> ask: aString [
 	"Entry point: AgentGateway ask: 'make me a counter widget'."
 	^ self new run: aString
+]
+
+{ #category : 'accessing' }
+AgentGateway class >> last [
+	"The most recently run gateway, for post-mortem inspection:
+	AgentGateway last log."
+	^ last
+]
+
+{ #category : 'accessing' }
+AgentGateway class >> noteLast: aGateway [
+	last := aGateway
+]
+
+{ #category : 'accessing' }
+AgentGateway class >> logFile [
+	"Append-only transcript of every request: loop events plus full HTTP
+	request/response JSON payloads. The API key lives in headers and is
+	never written here."
+	| dir |
+	dir := FileLocator image asFileReference parent parent / 'logs'.
+	dir ensureCreateDirectory.
+	^ dir / 'gateway.log'
 ]
 
 { #category : 'accessing' }
@@ -91,6 +117,8 @@ AgentGateway >> statusBlock: aBlock [
 { #category : 'running' }
 AgentGateway >> run: userText [
 	| messages |
+	self class noteLast: self.
+	self logAdd: '===== USER REQUEST: ' , userText.
 	self status: 'thinking...'.
 	sandbox backupImage.
 	messages := OrderedCollection with:
@@ -133,6 +161,7 @@ AgentGateway >> post: messages [
 		'tools' -> (Array with: self toolDefinition).
 		'messages' -> messages asArray } asDictionary.
 	client := ZnClient new.
+	self logAdd: 'HTTP REQUEST: ' , (STONJSON toString: payload).
 	client
 		url: 'https://api.anthropic.com/v1/messages';
 		headerAt: 'x-api-key' put: self apiKey;
@@ -140,6 +169,7 @@ AgentGateway >> post: messages [
 		entity: (ZnEntity with: (STONJSON toString: payload) type: ZnMimeType applicationJson);
 		timeout: 180.
 	body := client post.
+	self logAdd: 'HTTP RESPONSE: ' , (body ifNil: [ '<no body>' ]).
 	client isSuccess ifFalse: [
 		self error: 'Anthropic API error: ' , client response statusLine printString
 			, ' — ' , (body ifNil: [ '<no body>' ]) printString ].
@@ -190,5 +220,15 @@ AgentGateway >> status: aString [
 
 { #category : 'private' }
 AgentGateway >> logAdd: aString [
-	log add: aString
+	log add: aString.
+	[ | stream |
+		stream := self class logFile writeStream.
+		stream setToEnd.
+		stream nextPutAll: DateAndTime now printString.
+		stream nextPutAll: ' | '.
+		stream nextPutAll: aString.
+		stream lf.
+		stream close ]
+		on: Error
+		do: [ :e | "logging must never break the loop" ]
 ]

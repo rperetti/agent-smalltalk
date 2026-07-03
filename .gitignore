@@ -6,3 +6,4 @@ pharo/
 pharo-local/
 backups/
 PharoDebug.log
+logs/

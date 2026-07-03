@@ -65,6 +65,15 @@ AgentGatewayTest >> testRunToolFeedsErrorBack [
 ]
 
 { #category : 'tests' }
+AgentGatewayTest >> testLogLinesArePersistedToFile [
+	| marker |
+	marker := 'test-marker-' , DateAndTime now asUnixTime printString.
+	gateway logAdd: marker.
+	self assert: (gateway log includes: marker).
+	self assert: (AgentGateway logFile contents includesSubstring: marker)
+]
+
+{ #category : 'tests' }
 AgentGatewayTest >> testSystemPromptIncludesCribSheet [
 	self assert: (gateway systemPrompt includesSubstring: 'AgentWidget')
 ]
