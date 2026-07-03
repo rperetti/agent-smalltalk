@@ -5,3 +5,4 @@ pharo/
 *.sources
 pharo-local/
 backups/
+PharoDebug.log
