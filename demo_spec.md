@@ -1,5 +1,11 @@
 # Demo 1 Specification: Summon a Living Widget
 
+> **Status (2026-07-02): ACHIEVED.** All acceptance criteria pass — cold widget
+> generation with self-repair (headless: `scripts/smoke-widget.st`), live
+> behavior modification with state preserved (`scripts/smoke-modify.st`), and
+> the visual pass (spotlight, dragging, source browsing, image persistence)
+> verified by hand. Reliability measurement (the 8-of-10 bar) not yet run.
+
 ## Goal
 
 Prove the core thesis of the Living Agentic Environment ([original_spec.md](original_spec.md)) with the smallest possible slice:
