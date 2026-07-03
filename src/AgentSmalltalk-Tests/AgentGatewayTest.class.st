@@ -19,17 +19,41 @@ AgentGatewayTest >> setUp [
 ]
 
 { #category : 'tests' }
-AgentGatewayTest >> testToolDefinitionShape [
-	| tool |
-	tool := gateway toolDefinition.
-	self assert: (tool at: 'name') equals: 'evaluate_smalltalk'.
-	self assert: (((tool at: 'input_schema') at: 'properties') includesKey: 'code').
-	self assert: ((tool at: 'input_schema') at: 'required') equals: #('code')
+AgentGatewayTest >> testToolDefinitionShapes [
+	| tools |
+	tools := gateway toolDefinitions.
+	self assert: (tools collect: [ :t | t at: 'name' ])
+		equals: { 'evaluate_smalltalk'. 'search_image' }.
+	self assert: (((tools first at: 'input_schema') at: 'properties') includesKey: 'code').
+	self assert: ((tools first at: 'input_schema') at: 'required') equals: #('code').
+	self assert: (((tools second at: 'input_schema') at: 'properties') includesKey: 'action')
 ]
 
 { #category : 'tests' }
-AgentGatewayTest >> testToolDefinitionIsJsonSerializable [
-	self shouldnt: [ STONJSON toString: gateway toolDefinition ] raise: Error
+AgentGatewayTest >> testToolDefinitionsAreJsonSerializable [
+	self shouldnt: [ STONJSON toString: gateway toolDefinitions ] raise: Error
+]
+
+{ #category : 'tests' }
+AgentGatewayTest >> testRunToolDispatchesToImageSearch [
+	| toolUse result |
+	toolUse := {
+		'id' -> 'tu_s1'.
+		'name' -> 'search_image'.
+		'input' -> ({ 'action' -> 'find_classes'. 'query' -> 'AgentGateway' } asDictionary) } asDictionary.
+	result := gateway runTool: toolUse.
+	self assert: ((result at: 'content') includesSubstring: 'AgentGateway')
+]
+
+{ #category : 'tests' }
+AgentGatewayTest >> testRunToolRejectsUnknownTool [
+	| toolUse result |
+	toolUse := {
+		'id' -> 'tu_u1'.
+		'name' -> 'launch_missiles'.
+		'input' -> Dictionary new } asDictionary.
+	result := gateway runTool: toolUse.
+	self assert: ((result at: 'content') beginsWith: 'ERROR: unknown tool')
 ]
 
 { #category : 'tests' }

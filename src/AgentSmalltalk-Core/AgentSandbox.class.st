@@ -62,6 +62,7 @@ AgentSandbox >> errorReportFor: anError [
 		s << 'ERROR: ' << anError class name << ': '
 			<< (anError messageText ifNil: [ 'no message text' ]).
 		s cr.
+		self appendDnuSuggestionsFor: anError on: s.
 		s << 'Stack (top frames):'.
 		s cr.
 		[ | stack |
@@ -71,6 +72,27 @@ AgentSandbox >> errorReportFor: anError [
 				s cr ] ]
 			on: Error
 			do: [ :e2 | s << '  (stack unavailable)' ] ]
+]
+
+{ #category : 'evaluating' }
+AgentSandbox >> appendDnuSuggestionsFor: anError on: s [
+	"For doesNotUnderstand, list similar selectors the receiver does understand."
+	(anError isKindOf: MessageNotUnderstood) ifFalse: [ ^ self ].
+	[ | receiverClass sel fragment candidates |
+		receiverClass := anError receiver class.
+		sel := anError message selector asString.
+		fragment := (sel copyUpTo: $:) asLowercase.
+		fragment := fragment copyFrom: 1 to: (fragment size min: 5).
+		fragment isEmpty ifTrue: [ ^ self ].
+		candidates := (receiverClass allSelectors
+			select: [ :each | each asString asLowercase includesSubstring: fragment ])
+			asSortedCollection asArray.
+		candidates isEmpty ifTrue: [ ^ self ].
+		s << 'Similar selectors ' << receiverClass name << ' does understand: '
+			<< (candidates first: (8 min: candidates size)) printString.
+		s cr ]
+		on: Error
+		do: [ :ignored |  ]
 ]
 
 { #category : 'safety' }

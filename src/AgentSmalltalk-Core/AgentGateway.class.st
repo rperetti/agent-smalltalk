@@ -70,7 +70,7 @@ AgentGateway class >> cribSheet [
 AgentGateway >> initialize [
 	super initialize.
 	model := 'claude-sonnet-5'.
-	maxRounds := 8.
+	maxRounds := 20.
 	sandbox := AgentSandbox new.
 	log := OrderedCollection new.
 	statusBlock := [ :msg |  ]
@@ -132,7 +132,7 @@ AgentGateway >> run: userText [
 		toolUses isEmpty ifTrue: [ ^ self finalTextFrom: content ].
 		self status: (round = 1
 			ifTrue: [ 'evaluating...' ]
-			ifFalse: [ 'repairing (round ' , round printString , ')...' ]).
+			ifFalse: [ 'working (round ' , round printString , ' of ' , maxRounds printString , ')...' ]).
 		messages add: { 'role' -> 'user'.
 			'content' -> ((toolUses collect: [ :tu | self runTool: tu ]) asArray) } asDictionary ].
 	self error: 'Gave up after ' , maxRounds printString
@@ -141,10 +141,21 @@ AgentGateway >> run: userText [
 
 { #category : 'running' }
 AgentGateway >> runTool: aToolUse [
-	| code result |
-	code := (aToolUse at: 'input') at: 'code' ifAbsent: [ '' ].
-	self logAdd: '>>> ' , code.
-	result := sandbox evaluate: code.
+	| name input result |
+	name := aToolUse at: 'name' ifAbsent: [ 'evaluate_smalltalk' ].
+	input := aToolUse at: 'input' ifAbsent: [ Dictionary new ].
+	name = 'evaluate_smalltalk'
+		ifTrue: [
+			| code |
+			code := input at: 'code' ifAbsent: [ '' ].
+			self logAdd: '>>> ' , code.
+			result := sandbox evaluate: code ]
+		ifFalse: [
+			name = 'search_image'
+				ifTrue: [
+					self logAdd: '??? ' , (STONJSON toString: input).
+					result := AgentImageSearch handle: input ]
+				ifFalse: [ result := 'ERROR: unknown tool ' , name ] ].
 	self logAdd: result.
 	^ { 'type' -> 'tool_result'.
 		'tool_use_id' -> (aToolUse at: 'id').
@@ -158,7 +169,7 @@ AgentGateway >> post: messages [
 		'model' -> model.
 		'max_tokens' -> 8192.
 		'system' -> self systemPrompt.
-		'tools' -> (Array with: self toolDefinition).
+		'tools' -> self toolDefinitions.
 		'messages' -> messages asArray } asDictionary.
 	client := ZnClient new.
 	self logAdd: 'HTTP REQUEST: ' , (STONJSON toString: payload).
@@ -177,7 +188,31 @@ AgentGateway >> post: messages [
 ]
 
 { #category : 'running' }
-AgentGateway >> toolDefinition [
+AgentGateway >> toolDefinitions [
+	^ { self evaluateToolDefinition. self searchToolDefinition }
+]
+
+{ #category : 'running' }
+AgentGateway >> searchToolDefinition [
+	^ {
+		'name' -> 'search_image'.
+		'description' -> ('Cheaply explore the live image instead of writing reflection code. '
+			, 'Actions: find_classes (query = class-name fragment), '
+			, 'find_selectors (class_name, optional query = selector fragment; empty query lists own selectors), '
+			, 'method_source (class_name, query = exact selector; use ''Foo class'' for class-side).').
+		'input_schema' -> {
+			'type' -> 'object'.
+			'properties' -> {
+				'action' -> {
+					'type' -> 'string'.
+					'enum' -> #('find_classes' 'find_selectors' 'method_source') } asDictionary.
+				'query' -> { 'type' -> 'string' } asDictionary.
+				'class_name' -> { 'type' -> 'string' } asDictionary } asDictionary.
+			'required' -> #('action') } asDictionary } asDictionary
+]
+
+{ #category : 'running' }
+AgentGateway >> evaluateToolDefinition [
 	^ {
 		'name' -> 'evaluate_smalltalk'.
 		'description' -> ('Evaluate raw Pharo Smalltalk source code in the live image. '

@@ -63,6 +63,7 @@ AgentCanvas >> open [
 	space ifNotNil: [ ^ self ].
 	self ensureContent.
 	space := BlSpace new.
+	space toTheme: ToBeeTheme new.
 	space title: 'Agent Canvas'.
 	space extent: 1280 @ 840.
 	space root addChild: content.

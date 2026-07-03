@@ -13,8 +13,11 @@ BaselineOfAgentSmalltalk >> baseline: spec [
 			baseline: 'Bloc'
 			with: [ spec repository: 'github://pharo-graphics/Bloc:master/src' ].
 		spec
+			baseline: 'Toplo'
+			with: [ spec repository: 'github://pharo-graphics/Toplo:master/src' ].
+		spec
 			package: 'AgentSmalltalk-Core';
-			package: 'AgentSmalltalk-UI' with: [ spec requires: #('AgentSmalltalk-Core' 'Bloc') ];
+			package: 'AgentSmalltalk-UI' with: [ spec requires: #('AgentSmalltalk-Core' 'Bloc' 'Toplo') ];
 			package: 'AgentSmalltalk-Tests' with: [ spec requires: #('AgentSmalltalk-Core') ].
 		spec
 			group: 'Core' with: #('AgentSmalltalk-Core' 'AgentSmalltalk-Tests');

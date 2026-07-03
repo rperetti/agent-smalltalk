@@ -28,6 +28,14 @@ AgentSandboxTest >> testEvaluateKeepsStateInImage [
 ]
 
 { #category : 'tests' }
+AgentSandboxTest >> testDnuReportSuggestsSimilarSelectors [
+	| report |
+	report := sandbox evaluate: 'OrderedCollection new addAl: 3'.
+	self assert: (report beginsWith: 'ERROR:').
+	self assert: (report includesSubstring: 'addAll:')
+]
+
+{ #category : 'tests' }
 AgentSandboxTest >> testRuntimeErrorIsReported [
 	| report |
 	report := sandbox evaluate: '1 zork'.

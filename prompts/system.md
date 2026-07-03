@@ -65,35 +65,53 @@ Widget skeleton conventions:
 - Keep a reference to each text element you will need to update.
 - Write a `refresh` method that updates labels from state; call it after every state change.
 
-## Blessed Bloc UI vocabulary (use ONLY these)
+## Blessed widget vocabulary (Toplo first, raw Bloc for custom visuals)
 
-Labels:
+The image has the **Toplo** widget set loaded (classes prefixed `To`). Prefer
+these ready-made widgets over hand-building:
+
+```
+"label (plain strings are fine; update the same way)"
+label := ToLabel new text: 'Total:'.
+
+"button"
+button := ToButton new labelText: 'Go'.
+button clickAction: [ :event | self doTheThing ].
+
+"single-line text input"
+field := ToTextField new placeholderText: 'type here...'.
+field extent: 180 @ 30.
+"read what the user typed:"  field text asString
+"react to Enter:"
+field addEventHandlerOn: BlKeyDownEvent do: [ :evt |
+	evt key = KeyboardKey enter ifTrue: [ self submit ] ].
+
+"checkbox"
+box := ToCheckbox new labelText: 'done'.
+box checkAction: [ :event :checkable :isChecked | self toggled: isChecked ].
+"state:"  box isChecked
+
+"progress bar"
+bar := ToProgressBar new.
+bar valueInPercentage: 40.
+```
+
+For big styled text (e.g. a counter's number) use raw Bloc text:
 
 ```
 countLabel := BlTextElement new.
-countLabel text: ('0' asRopedText fontSize: 32).
-self addChild: countLabel
+countLabel text: (count printString asRopedText fontSize: 32).
 ```
 
-Update a label: `countLabel text: (count printString asRopedText fontSize: 32)`
-
-Buttons — a small element with a click handler (there is no button class; make one):
-
-```
-| plus |
-plus := BlElement new.
-plus extent: 36 @ 28.
-plus background: (Color fromHexString: 'E8E4D8').
-plus geometry: (BlRoundedRectangleGeometry cornerRadius: 6).
-plus addChild: (BlTextElement new text: ('+' asRopedText fontSize: 18); yourself).
-plus addEventHandlerOn: BlClickEvent do: [ :evt | evt consume. self increment ].
-self addChild: plus
-```
+For custom visuals, build raw `BlElement`s: `background:`, `extent: w @ h`,
+`geometry: (BlRoundedRectangleGeometry cornerRadius: 6)`,
+`border: (BlBorder paint: Color gray width: 1)`, `margin:`/`padding:` with
+`BlInsets`, `Color fromHexString:`, click via
+`addEventHandlerOn: BlClickEvent do: [ :evt | evt consume. ... ]`.
 
 Horizontal rows of children:
 
 ```
-| row |
 row := BlElement new.
 row layout: BlLinearLayout horizontal.
 row constraintsDo: [ :c | c horizontal fitContent. c vertical fitContent ].
@@ -101,13 +119,20 @@ row addChild: aThing. row addChild: anotherThing.
 self addChild: row
 ```
 
-Spacing: `element margin: (BlInsets all: 4)`. Sizing: `element extent: w @ h` or
-`constraintsDo:` with `fitContent` / `matchParent`. (`size:` is deprecated — never use it.)
+Sizing: `extent: w @ h` or `constraintsDo:` with `fitContent`/`matchParent`
+(`size:` is deprecated — never use it).
 
-Also fine: `Color` (e.g. `Color white`, `Color fromHexString: '336699'`),
-`BlInsets`, `BlBorder paint:width:`, `BlRoundedRectangleGeometry cornerRadius:`.
-Do **not** invent other Bl* classes or selectors; if you need something outside
-this list, build it from these primitives.
+## When you need an API this sheet does not cover
+
+Use the `search_image` tool — one call per question, structured results:
+
+- `find_classes` with a name fragment (e.g. query `Slider`)
+- `find_selectors` with a class_name and a fragment (e.g. `ToTextField` + `text`)
+- `method_source` with class_name and the exact selector to read an implementation
+
+Do NOT write reflection snippets (`Smalltalk allClasses select: ...`) via
+evaluate_smalltalk — search_image is cheaper and cannot fail. You have a budget
+of about 20 tool rounds per request; spend them on building, not spelunking.
 
 ## Modifying an existing widget
 
