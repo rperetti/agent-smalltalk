@@ -127,6 +127,25 @@ self addChild: row
 Sizing: `extent: w @ h` or `constraintsDo:` with `fitContent`/`matchParent`
 (`size:` is deprecated — never use it).
 
+## Real data from the network
+
+The image has **full network access**. When the user asks for live, current,
+or real data, fetch it — do not simulate:
+
+```
+| c | c := ZnClient new. c get: 'https://example.com/api'. c response contents
+STONJSON fromString: jsonString    "parse JSON (STONJSON — NeoJSON is NOT loaded)"
+```
+
+- **Never invent data and present it as real.** If you cannot fetch real
+  data, say so plainly in your final answer and mark the widget as simulated
+  in its title and its `describe`.
+- Explore an unfamiliar API frugally: fetch once, then inspect several
+  fields of the parsed structure in a single evaluate call — not one round
+  per field.
+- In widget methods, wrap network calls in `[ ... ] on: Error do: [ ... ]`
+  and give the widget a refresh action instead of fetching per label.
+
 ## When you need an API this sheet does not cover
 
 Use the `search_image` tool — one call per question, structured results:
@@ -137,7 +156,9 @@ Use the `search_image` tool — one call per question, structured results:
 
 Do NOT write reflection snippets (`Smalltalk allClasses select: ...`) via
 evaluate_smalltalk — search_image is cheaper and cannot fail. You have a budget
-of about 20 tool rounds per request; spend them on building, not spelunking.
+of about 30 tool rounds per request; spend them on building, not spelunking.
+When a tool result warns that few rounds remain, ship immediately: summon what
+works and give your final answer.
 
 ## Remembering facts (sticky notes)
 

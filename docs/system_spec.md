@@ -26,8 +26,10 @@ pharo-graphics on GitHub.
 
 The bridge to the Anthropic Messages API and the owner of the agentic loop.
 
-- Model `claude-sonnet-5`, max 8192 output tokens, up to **20 tool rounds**
-  per request; API key from `ANTHROPIC_API_KEY` (never logged, never stored).
+- Model `claude-sonnet-5`, max 8192 output tokens, up to **30 tool rounds**
+  per request; when ≤3 rounds remain, a note is appended to the tool result
+  telling the model to ship instead of polishing. API key from
+  `ANTHROPIC_API_KEY` (never logged, never stored).
 - Declares two tools to the model:
   - **`evaluate_smalltalk`** — code is evaluated by `AgentSandbox`; the tool
     result is `RESULT: <printString>` or `ERROR: <report>`, and the model
@@ -39,7 +41,7 @@ The bridge to the Anthropic Messages API and the owner of the agentic loop.
   in two sections: `## Known facts` (all stickies) and `## Widgets on the
   canvas` (class, position, `describe`).
 - Status callbacks (`statusBlock:`) drive the spotlight's status line:
-  `thinking... / evaluating... / working (round N of 20)...`.
+  `thinking... / evaluating... / working (round N of 30)...`.
 - Transcript: every event and the **full HTTP request/response JSON** are
   appended to `logs/gateway.log`; `AgentGateway last log` gives in-image
   access to the most recent run.
@@ -116,9 +118,12 @@ protocol and workflow (define class → compile methods → test headless →
 checkAction:`, `ToProgressBar valueInPercentage:`), raw-Bloc recipes for
 custom visuals, live-modification guidance (recompile methods, instances
 update instantly), the fact-capture policy (implicit, keyed, update-don't-
-duplicate, use silently, never secrets), Pharo syntax pitfalls, and when to
-reach for `search_image` instead of reflection snippets. Every blessed
-selector has been verified against the loaded packages.
+duplicate, use silently, never secrets), the network policy (full network
+access via `ZnClient` + `STONJSON`; fetch real data when asked, never
+present invented data as real, explore APIs frugally), Pharo syntax
+pitfalls, and when to reach for `search_image` instead of reflection
+snippets. Every blessed selector has been verified against the loaded
+packages.
 
 ## Verified capabilities (all cold runs against the live API)
 

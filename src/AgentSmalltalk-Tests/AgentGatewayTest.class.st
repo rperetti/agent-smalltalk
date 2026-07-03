@@ -98,6 +98,31 @@ AgentGatewayTest >> testLogLinesArePersistedToFile [
 ]
 
 { #category : 'tests' }
+AgentGatewayTest >> testBudgetNoteAppendedWhenRoundsRunLow [
+	| results |
+	gateway maxRounds: 20.
+	results := gateway
+		appendBudgetNoteTo: { { 'content' -> 'RESULT: ok' } asDictionary }
+		afterRound: 18.
+	self assert: ((results last at: 'content') includesSubstring: 'only 2 tool round').
+	self assert: ((results last at: 'content') beginsWith: 'RESULT: ok')
+]
+
+{ #category : 'tests' }
+AgentGatewayTest >> testNoBudgetNoteEarlyOrAtEnd [
+	| early atEnd |
+	gateway maxRounds: 20.
+	early := gateway
+		appendBudgetNoteTo: { { 'content' -> 'RESULT: ok' } asDictionary }
+		afterRound: 5.
+	atEnd := gateway
+		appendBudgetNoteTo: { { 'content' -> 'RESULT: ok' } asDictionary }
+		afterRound: 20.
+	self assert: (early last at: 'content') equals: 'RESULT: ok'.
+	self assert: (atEnd last at: 'content') equals: 'RESULT: ok'
+]
+
+{ #category : 'tests' }
 AgentGatewayTest >> testSystemPromptIncludesCribSheet [
 	self assert: (gateway systemPrompt includesSubstring: 'AgentWidget')
 ]

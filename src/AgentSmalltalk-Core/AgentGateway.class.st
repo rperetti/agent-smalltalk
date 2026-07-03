@@ -70,7 +70,7 @@ AgentGateway class >> cribSheet [
 AgentGateway >> initialize [
 	super initialize.
 	model := 'claude-sonnet-5'.
-	maxRounds := 20.
+	maxRounds := 30.
 	sandbox := AgentSandbox new.
 	log := OrderedCollection new.
 	statusBlock := [ :msg |  ]
@@ -134,7 +134,9 @@ AgentGateway >> run: userText [
 			ifTrue: [ 'evaluating...' ]
 			ifFalse: [ 'working (round ' , round printString , ' of ' , maxRounds printString , ')...' ]).
 		messages add: { 'role' -> 'user'.
-			'content' -> ((toolUses collect: [ :tu | self runTool: tu ]) asArray) } asDictionary ].
+			'content' -> (self
+				appendBudgetNoteTo: (toolUses collect: [ :tu | self runTool: tu ]) asArray
+				afterRound: round) } asDictionary ].
 	self error: 'Gave up after ' , maxRounds printString
 		, ' tool rounds. Inspect the gateway log for the attempts.'
 ]
@@ -185,6 +187,20 @@ AgentGateway >> post: messages [
 		self error: 'Anthropic API error: ' , client response statusLine printString
 			, ' — ' , (body ifNil: [ '<no body>' ]) printString ].
 	^ STONJSON fromString: body
+]
+
+{ #category : 'running' }
+AgentGateway >> appendBudgetNoteTo: toolResults afterRound: round [
+	"When the round budget is nearly spent, tell the model so it ships
+	instead of polishing. Appended to the last tool result's content."
+	| remaining last |
+	remaining := maxRounds - round.
+	(remaining between: 1 and: 3) ifFalse: [ ^ toolResults ].
+	last := toolResults last.
+	last at: 'content' put: ((last at: 'content') , String cr
+		, '[system: only ' , remaining printString
+		, ' tool round(s) remain. Finish now: summon the widget and give your final answer; skip polish.]').
+	^ toolResults
 ]
 
 { #category : 'running' }
