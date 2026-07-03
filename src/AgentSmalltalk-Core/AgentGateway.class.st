@@ -241,9 +241,7 @@ AgentGateway >> systemPrompt [
 	canvasClass := Smalltalk globals at: #AgentCanvas ifAbsent: [ nil ].
 	dynamic := canvasClass
 		ifNil: [ '' ]
-		ifNotNil: [ :cls |
-			String cr , '## Widgets currently on the canvas' , String cr
-				, cls current contextDescription ].
+		ifNotNil: [ :cls | String cr , cls current contextDescription ].
 	^ crib , dynamic
 ]
 

@@ -4,7 +4,7 @@ What the living agentic environment does **today**. The long-term vision lives
 in [original_spec.md](original_spec.md). This document is kept in sync with the
 code; when behavior changes, change this file in the same commit.
 
-*Last updated: 2026-07-03 (demo 1 achieved, Toplo adopted).*
+*Last updated: 2026-07-03 (phase 2: knowledge on the canvas).*
 
 ## One-paragraph summary
 
@@ -35,8 +35,9 @@ The bridge to the Anthropic Messages API and the owner of the agentic loop.
   - **`search_image`** — structured image exploration via `AgentImageSearch`:
     `find_classes` (name fragment), `find_selectors` (class + fragment),
     `method_source` (class + selector, `'Foo class'` for class side).
-- System prompt = the crib sheet (`prompts/system.md`) + a dynamic listing of
-  the widgets currently on the canvas (class, position, `describe`).
+- System prompt = the crib sheet (`prompts/system.md`) + the canvas context
+  in two sections: `## Known facts` (all stickies) and `## Widgets on the
+  canvas` (class, position, `describe`).
 - Status callbacks (`statusBlock:`) drive the spotlight's status line:
   `thinking... / evaluating... / working (round N of 20)...`.
 - Transcript: every event and the **full HTTP request/response JSON** are
@@ -85,6 +86,18 @@ The contract every generated widget subclasses:
   the model from Pharo class-builder API drift. Generated classes go to the
   `AgentSmalltalk-Generated` package.
 
+### AgentFact (UI)
+
+Sticky-note memory ([phase2_spec.md](phase2_spec.md)): a small pale-yellow
+widget holding one durable fact. The body is editable in place (`ToAlbum` —
+editing the text IS editing the memory); the `x` button deletes (forgetting
+is a physical act). An optional key gives identity: `AgentFact key: #city
+body: '...'` creates **or updates** — one sticky per key, ever. New stickies
+pile near the top-left. Facts are instances of this hand-written class,
+never generated classes. Capture is implicit and loud: the crib instructs
+the model to save durable facts stated even in passing, and the sticky
+visibly appearing on the canvas is the announcement.
+
 ### AgentSpotlight (UI)
 
 The floating prompt bar: a wrapping multi-line `ToAlbum` editor (cursor,
@@ -102,9 +115,10 @@ protocol and workflow (define class → compile methods → test headless →
 (`ToLabel`, `ToButton clickAction:`, `ToTextField`, `ToAlbum`, `ToCheckbox
 checkAction:`, `ToProgressBar valueInPercentage:`), raw-Bloc recipes for
 custom visuals, live-modification guidance (recompile methods, instances
-update instantly), Pharo syntax pitfalls, and when to reach for
-`search_image` instead of reflection snippets. Every blessed selector has
-been verified against the loaded packages.
+update instantly), the fact-capture policy (implicit, keyed, update-don't-
+duplicate, use silently, never secrets), Pharo syntax pitfalls, and when to
+reach for `search_image` instead of reflection snippets. Every blessed
+selector has been verified against the loaded packages.
 
 ## Verified capabilities (all cold runs against the live API)
 
@@ -120,19 +134,26 @@ been verified against the loaded packages.
   interactively.
 - **Persist**: save image, quit, reopen — widgets, positions, and state
   intact; behavior still works.
+- **Remember** (phase 2): "remember that I live in Porto Alegre" → sticky
+  appears; "widget showing the current time in my city" → built with no
+  clarifying question; "actually I moved to Madrid" → the same sticky
+  updated (no duplicate) *and the model retuned the existing clock widget's
+  timezone unprompted*; a name stated in passing was captured implicitly
+  and used by the requested widget.
 
 ## Operations
 
 | command | what it does |
 |---|---|
 | `./build.sh` | fresh `pharo/Agent.image` from `src/` (`core` arg skips UI/Bloc/Toplo) |
-| `./test.sh` | SUnit suite headless (currently 25 tests) |
+| `./test.sh` | SUnit suite headless (currently 32 tests) |
 | `./run.sh` | open the canvas UI |
 
 Headless acceptance scripts (`pharo ... st scripts/<name>.st`):
 `smoke-widget.st` (cold counter generation), `smoke-modify.st` (live
 modification with state preservation), `smoke-textfield.st` (text-input
-widget). Each prints the loop transcript for post-mortems.
+widget), `smoke-facts.st` (remember / use / update / implicit capture).
+Each prints the loop transcript for post-mortems.
 
 ## Known limitations / accepted risks
 

@@ -87,11 +87,35 @@ AgentCanvas >> widgets [
 	^ content children asArray select: [ :c | c isKindOf: AgentWidget ]
 ]
 
+{ #category : 'widgets' }
+AgentCanvas >> facts [
+	^ self widgets select: [ :w | w isKindOf: AgentFact ]
+]
+
+{ #category : 'widgets' }
+AgentCanvas >> toolWidgets [
+	^ self widgets reject: [ :w | w isKindOf: AgentFact ]
+]
+
+{ #category : 'widgets' }
+AgentCanvas >> factWithKey: aSymbol [
+	^ self facts detect: [ :f | f key = aSymbol ] ifNone: [ nil ]
+]
+
 { #category : 'agent context' }
 AgentCanvas >> contextDescription [
 	^ String streamContents: [ :s |
-		self widgets
-			ifEmpty: [ s << '(the canvas is empty)' ]
+		s << '## Known facts'.
+		s cr.
+		self facts
+			ifEmpty: [ s << '(none yet)'. s cr ]
+			ifNotEmpty: [ :fs |
+				fs do: [ :f | s << '- ' << f describe. s cr ] ].
+		s cr.
+		s << '## Widgets on the canvas'.
+		s cr.
+		self toolWidgets
+			ifEmpty: [ s << '(the canvas is empty)'. s cr ]
 			ifNotEmpty: [ :ws |
 				ws do: [ :w |
 					s << '- ' << w class name << ' at ' << w position printString

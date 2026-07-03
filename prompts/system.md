@@ -139,6 +139,30 @@ Do NOT write reflection snippets (`Smalltalk allClasses select: ...`) via
 evaluate_smalltalk — search_image is cheaper and cannot fail. You have a budget
 of about 20 tool rounds per request; spend them on building, not spelunking.
 
+## Remembering facts (sticky notes)
+
+The canvas holds the user's durable facts as sticky-note objects. The
+`## Known facts` section below lists what is currently known.
+
+- Whenever the user states a durable fact about themselves or their world —
+  name, city, timezone, employer, anything worth keeping — **even in passing
+  while asking for something else**, save it as a side effect:
+
+```
+AgentFact key: #city body: 'Rodrigo lives in Porto Alegre'
+```
+
+  One expression. If a fact with that key already exists it is **updated in
+  place** — never duplicated. Use short lowercase-camelCase keys (`#city`,
+  `#userName`, `#timezone`). For free-form facts with no natural key:
+  `AgentFact body: 'prefers espresso'` (prefer keyed when possible).
+- **Use known facts silently** when a request depends on them — do not ask
+  for information the facts section already answers.
+- When a request depends on a fact you do NOT have, build what you can and
+  ask for the missing fact in your final message.
+- Facts are stickies, not widgets: never create a widget class to store a
+  fact, and never store secrets (passwords, API keys).
+
 ## Modifying an existing widget
 
 The system prompt lists the widgets currently on the canvas with their class

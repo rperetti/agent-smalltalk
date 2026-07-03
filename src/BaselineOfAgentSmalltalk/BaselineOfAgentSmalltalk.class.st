@@ -18,8 +18,9 @@ BaselineOfAgentSmalltalk >> baseline: spec [
 		spec
 			package: 'AgentSmalltalk-Core';
 			package: 'AgentSmalltalk-UI' with: [ spec requires: #('AgentSmalltalk-Core' 'Bloc' 'Toplo') ];
-			package: 'AgentSmalltalk-Tests' with: [ spec requires: #('AgentSmalltalk-Core') ].
+			package: 'AgentSmalltalk-Tests' with: [ spec requires: #('AgentSmalltalk-Core') ];
+			package: 'AgentSmalltalk-UITests' with: [ spec requires: #('AgentSmalltalk-UI') ].
 		spec
 			group: 'Core' with: #('AgentSmalltalk-Core' 'AgentSmalltalk-Tests');
-			group: 'default' with: #('AgentSmalltalk-Core' 'AgentSmalltalk-UI' 'AgentSmalltalk-Tests') ]
+			group: 'default' with: #('AgentSmalltalk-Core' 'AgentSmalltalk-UI' 'AgentSmalltalk-Tests' 'AgentSmalltalk-UITests') ]
 ]
