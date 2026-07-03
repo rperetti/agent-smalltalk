@@ -2,7 +2,7 @@
 
 A living agentic environment: an LLM writes Pharo Smalltalk that is compiled
 live into a running image, materializing widgets on a spatial canvas.
-See [docs/original_spec.md](docs/original_spec.md) for the vision,
+See [docs/vision.md](docs/vision.md) for the vision,
 [docs/system_spec.md](docs/system_spec.md) for what is built and working
 today, [docs/phase3_spec.md](docs/phase3_spec.md) for the next phase
 (spatial context), and [docs/ideas.md](docs/ideas.md) for the parking lot.

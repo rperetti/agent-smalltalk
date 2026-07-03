@@ -1,7 +1,7 @@
 # System Specification (as built)
 
 What the living agentic environment does **today**. The long-term vision lives
-in [original_spec.md](original_spec.md). This document is kept in sync with the
+in [vision.md](vision.md). This document is kept in sync with the
 code; when behavior changes, change this file in the same commit.
 
 *Last updated: 2026-07-03 (phase 2 achieved; update.sh; budget notes and

@@ -6,7 +6,7 @@
 
 ## Goal
 
-Prove the second core thesis of [original_spec.md](original_spec.md): **spatial
+Prove the second core thesis of [vision.md](vision.md): **spatial
 arrangement is context management**. The user selects widgets by drawing around
 them, and the agent's context is exactly what's selected — including live
 references, so generated code can *operate on* the selected objects, not just
