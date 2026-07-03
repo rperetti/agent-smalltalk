@@ -1,0 +1,7 @@
+# Pharo VM, images and build artifacts — the image is a build product, code lives in src/
+pharo/
+*.image
+*.changes
+*.sources
+pharo-local/
+backups/
