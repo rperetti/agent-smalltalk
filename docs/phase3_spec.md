@@ -1,4 +1,4 @@
-# Phase 2 Specification: The Canvas Becomes the Context Window
+# Phase 3 Specification: The Canvas Becomes the Context Window
 
 > **Status: DRAFT for discussion.**
 
@@ -10,7 +10,7 @@ them, and the agent's context is exactly what's selected — including live
 references, so generated code can *operate on* the selected objects, not just
 read about them.
 
-Demo 1 proved English → living widget. Phase 2 proves widgets → material for
+Demo 1 proved English → living widget. This phase proves widgets → material for
 the next request.
 
 ## What phase 2 proves
