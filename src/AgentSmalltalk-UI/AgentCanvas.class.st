@@ -25,7 +25,8 @@ Class {
 		'lassoElement',
 		'navWired',
 		'rootWired',
-		'undoStack'
+		'undoStack',
+		'topElevation'
 	],
 	#classInstVars : [
 		'current'
@@ -163,7 +164,7 @@ AgentCanvas >> migrateAfterUpdate [
 	self wireKeyboard.
 	self wireNavigation.
 	self notes do: [ :n | n repairHeader ].
-	self widgets do: [ :w | w ensureResizeGrip ].
+	self widgets do: [ :w | w ensureResizeGrip. w ensureRaisesOnClick ].
 	AgentRemote ensureRunning
 ]
 
@@ -191,6 +192,13 @@ AgentCanvas >> handleKeyDown: evt [
 	(evt key = KeyboardKey Z and: [ evt modifiers isShift not ]) ifTrue: [
 		evt consume.
 		self undoDeletion ]
+]
+
+{ #category : 'z order' }
+AgentCanvas >> nextTopElevation [
+	"Monotonic: the most recently pressed widget paints on top. Lazy for
+	migrated singletons."
+	^ topElevation := (topElevation ifNil: [ 0 ]) + 1
 ]
 
 { #category : 'undo' }

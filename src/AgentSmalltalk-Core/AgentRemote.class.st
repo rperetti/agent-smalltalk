@@ -5,7 +5,10 @@ refusing (update.sh) or requiring a Playground paste. Endpoints:
   GET  /ping    -- liveness check
   POST /update  -- AgentUpdater updateFromSrc (reload our packages, migrate
                    on the UI thread, save)
-No arbitrary eval is exposed; /update only loads this repository's own src/.
+  POST /eval    -- evaluate the request body via AgentSandbox; answers the
+                   RESULT:/ERROR: report. Operator diagnostics for the live
+                   session (localhost-only; same trust level as the gateway,
+                   which already executes generated code).
 I never start in non-interactive sessions.
 "
 Class {
@@ -52,5 +55,7 @@ AgentRemote class >> handleRequest: request [
 			ZnResponse ok: (ZnEntity text: 'updated') ]
 			on: Error
 			do: [ :e | ZnResponse serverError: e messageText ] ].
+	(request uri path = 'eval' and: [ request method = #POST ]) ifTrue: [
+		^ ZnResponse ok: (ZnEntity text: (AgentSandbox new evaluate: request contents)) ].
 	^ ZnResponse notFound: request uri
 ]

@@ -105,6 +105,8 @@ The contract every generated widget subclasses:
   `AgentSmalltalk-Generated` package.
 - **Resize grip**: bottom-right corner of every widget (facts and notes
   included), drag-event based, zoom-aware, clamped to 120×80 minimum.
+- **Click-to-front**: pressing anywhere on a widget raises it (monotonic
+  elevation counter on the canvas), so overlapping cards behave like paper.
 - **Deletion undo**: `removeFromParent` on a canvas widget records it on the
   canvas undo stack (capped at 50, survives image save/reopen); Cmd/Ctrl+Z
   restores the most recent deletion. Unrestorable entries (instances of
@@ -222,7 +224,7 @@ packages.
 |---|---|
 | `./build.sh` | FRESH `pharo/Agent.image` from `src/` — destroys the world (`core` arg skips UI) |
 | `./update.sh` | reload tooling from `src/`; widgets/facts survive. If a session is RUNNING it updates that session in place via `AgentRemote` (localhost:8807, `/update`); otherwise it patches the image file headless. Diffs via TonelReader + `MCPackageLoader updatePackage:withSnapshot:`, so removed definitions unload too. Backs up the image first (keeps 5). Does not update Bloc/Toplo — use `build.sh` for dependency changes |
-| `./test.sh` | SUnit suite headless (currently 69 tests) |
+| `./test.sh` | SUnit suite headless (currently 72 tests) |
 | `./run.sh` | open the canvas UI |
 
 Headless acceptance scripts (`pharo ... st scripts/<name>.st`):
@@ -250,12 +252,16 @@ Each prints the loop transcript for post-mortems.
 - **One writer at a time, automated**: a running GUI session holds tooling
   in memory; saving it would overwrite a file-level update. `update.sh`
   therefore updates a running session *through* it: `AgentRemote`, a
-  localhost-only listener on port 8807 (`GET /ping`, `POST /update` — no
-  arbitrary eval; it only loads this repo's own `src/`). Started at canvas
-  open and at image startup; never in headless sessions. Pre-remote images
-  need one Playground paste of `scripts/heal-in-image.st`, which also
-  repairs stale-SSL-poisoned images (the `AgentSandbox class>>startUp:`
-  hook prevents that poisoning going forward).
+  localhost-only listener on port 8807 (`GET /ping`, `POST /update`, and
+  `POST /eval` — operator diagnostics through AgentSandbox; same trust
+  level as the gateway, which already executes generated code). Started at
+  canvas open and on both sides of every snapshot; never in headless
+  sessions. Lifecycle lessons encoded in the hooks: the listener STOPS
+  before every save (a snapshotted live socket crashes the next boot) and
+  restarts after; snapshots must not run inside Bloc pulse tasks (they die
+  silently there) — the updater migrates on the UI thread but always saves
+  from the calling thread. `scripts/heal-in-image.st` remains the repair
+  kit for wedged images.
 - **Reliability is anecdotal**: cold runs have been consistently green, but
   the demo-1 "8 of 10" bar was never formally measured.
 - Single user, single space, no multiplayer.

@@ -14,6 +14,16 @@ AgentRemoteTest >> testPingResponds [
 ]
 
 { #category : 'tests' }
+AgentRemoteTest >> testEvalEvaluatesBody [
+	| request response |
+	request := ZnRequest post: '/eval'.
+	request entity: (ZnEntity text: '3 + 4').
+	response := AgentRemote handleRequest: request.
+	self assert: response status equals: 200.
+	self assert: response entity contents equals: 'RESULT: 7'
+]
+
+{ #category : 'tests' }
 AgentRemoteTest >> testUnknownPathIsNotFound [
 	self assert: (AgentRemote handleRequest: (ZnRequest get: '/nope')) status equals: 404
 ]

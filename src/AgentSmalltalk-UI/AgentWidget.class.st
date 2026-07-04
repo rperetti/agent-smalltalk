@@ -10,7 +10,8 @@ Class {
 	#instVars : [
 		'resizeGrip',
 		'resizeStart',
-		'resizeStartExtent'
+		'resizeStartExtent',
+		'raiseWired'
 	],
 	#category : 'AgentSmalltalk-UI',
 	#package : 'AgentSmalltalk-UI'
@@ -50,7 +51,23 @@ AgentWidget >> initialize [
 		evt button = BlMouseButton secondary ifTrue: [
 			evt consume.
 			self browseSource ] ].
-	self ensureResizeGrip
+	self ensureResizeGrip.
+	self ensureRaisesOnClick
+]
+
+{ #category : 'z order' }
+AgentWidget >> ensureRaisesOnClick [
+	"Any press anywhere on the widget (including inside its editors) brings
+	it to the front. Not consumed: dragging, clicking, editing all proceed.
+	Idempotent for the update migration."
+	raiseWired == true ifTrue: [ ^ self ].
+	self addEventHandlerOn: BlMouseDownEvent do: [ :evt | self raise ].
+	raiseWired := true
+]
+
+{ #category : 'z order' }
+AgentWidget >> raise [
+	self elevation: AgentCanvas current nextTopElevation
 ]
 
 { #category : 'resizing' }

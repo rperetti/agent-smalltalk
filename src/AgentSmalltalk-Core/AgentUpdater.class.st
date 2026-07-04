@@ -48,14 +48,29 @@ AgentUpdater class >> runMigrations [
 	canvasClass := Smalltalk globals at: #AgentCanvas ifAbsent: [ ^ self ].
 	canvas := canvasClass current.
 	(canvas isOpen and: [ self isInteractive ])
-		ifTrue: [
-			canvas space enqueueTask: ((Smalltalk globals at: #BlTaskAction) new action: [
-				canvas migrateAfterUpdate.
-				self postUpdateMessage.
-				Smalltalk snapshot: true andQuit: false ]) ]
+		ifTrue: [ self migrateOnUiThreadOf: canvas ]
 		ifFalse: [
 			canvas migrateAfterUpdate.
 			self postUpdateMessage ]
+]
+
+{ #category : 'updating' }
+AgentUpdater class >> migrateOnUiThreadOf: canvas [
+	"Migrate + announce on the UI thread (request a pulse; fall back to
+	direct execution if none comes -- an idle window cannot contend). The
+	snapshot ALWAYS runs here on the calling thread: snapshotting inside a
+	Bloc pulse task fails silently (observed: five migrations ran on the UI
+	thread, zero saves reached disk)."
+	| done |
+	done := Semaphore new.
+	canvas space enqueueTask: ((Smalltalk globals at: #BlTaskAction) new action: [
+		[ canvas migrateAfterUpdate.
+		self postUpdateMessage ] ensure: [ done signal ] ]).
+	canvas space requestNextPulse.
+	(done waitTimeoutSeconds: 10) ifTrue: [
+		canvas migrateAfterUpdate.
+		self postUpdateMessage ].
+	Smalltalk snapshot: true andQuit: false
 ]
 
 { #category : 'updating' }

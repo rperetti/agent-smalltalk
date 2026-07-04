@@ -21,6 +21,14 @@ AgentSandbox class >> initialize [
 ]
 
 { #category : 'system startup' }
+AgentSandbox class >> shutDown: quitting [
+	"Never snapshot a live server socket: a saved ZnServer resurrects with
+	a dead socket and crashes the next session's accept loop (observed:
+	headless boots dying in SocketError). startUp: restarts the listener."
+	AgentRemote stop
+]
+
+{ #category : 'system startup' }
 AgentSandbox class >> startUp: resuming [
 	"Stale SSL sessions saved with the image hold dead platform handles;
 	their finalizers raise PrimitiveFailed and abort non-interactive
@@ -30,8 +38,10 @@ AgentSandbox class >> startUp: resuming [
 		(Smalltalk globals at: #ZdcPluginSSLSession ifAbsent: [ nil ])
 			ifNotNil: [ :cls |
 				cls allInstancesDo: [ :s |
-					[ s instVarNamed: #handle put: nil ] on: Error do: [ :e |  ] ] ].
-		AgentRemote ensureRunning ]
+					[ s instVarNamed: #handle put: nil ] on: Error do: [ :e |  ] ] ] ].
+	"Restart the listener on BOTH sides of a snapshot: when saving,
+	startUp: fires with resuming=false, and shutDown: just stopped it."
+	AgentRemote ensureRunning
 ]
 
 { #category : 'initialization' }

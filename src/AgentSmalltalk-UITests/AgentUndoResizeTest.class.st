@@ -69,6 +69,27 @@ AgentUndoResizeTest >> testRemovalOutsideCanvasIsNotRecorded [
 ]
 
 { #category : 'tests' }
+AgentUndoResizeTest >> testRaiseIsMonotonicAcrossWidgets [
+	| a b |
+	a := AgentWidget new.
+	b := AgentWidget new.
+	a raise.
+	b raise.
+	self assert: b elevation > a elevation.
+	a raise.
+	self assert: a elevation > b elevation
+]
+
+{ #category : 'tests' }
+AgentUndoResizeTest >> testRaiseWiringIsIdempotent [
+	| w |
+	w := AgentWidget new.
+	w ensureRaisesOnClick.
+	w ensureRaisesOnClick.
+	self assert: true
+]
+
+{ #category : 'tests' }
 AgentUndoResizeTest >> testResizeGripIsIdempotent [
 	| w n |
 	w := AgentWidget new.
