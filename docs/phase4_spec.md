@@ -28,13 +28,21 @@ need their own trust/interaction design pass.
 
 ## Workstreams
 
-### 1. AgentKnowledge — the lookup facade
+### 1. AgentKnowledge — the lookup facade (Core package)
 
-- `AgentKnowledge at: #city` / `at:ifAbsent:` — reads the fact sticky's
-  body (the canvas remains the single source of truth).
+- `AgentKnowledge at: #city` reads the fact sticky's body (the canvas
+  remains the single source of truth). Keys are Symbols (`#city`):
+  interned names compared by identity, the Smalltalk idiom for
+  identifiers as opposed to content strings.
+- Missing fact → an **`AgentUnknown`** (null-object, also Core), never a
+  magic string: it carries the missing `key`, answers `isUnknown` (true —
+  with `Object>>isUnknown` answering false, so ANY value can be tested),
+  and renders safely (`asString` → `'unknown (city)'`). Deliberately
+  minimal protocol: anything beyond testing/printing fails loudly, so
+  unknowns cannot propagate invisibly through computations.
 - Convenience: `numberAt:` for numeric bodies.
-- Crib: blessed as THE way generated code reads user facts at build time
-  or run time.
+- Crib: blessed as THE way generated code reads user facts; widgets check
+  `isUnknown` before computing and render `asString` when unknown.
 
 ### 2. Fact change announcements
 
@@ -58,9 +66,10 @@ need their own trust/interaction design pass.
 
 ### 4. Graceful degradation
 
-- A widget whose fact is deleted shows an explicit unknown state (crib
-  convention: `AgentKnowledge at: #city ifAbsent: [ '?' ]`) rather than
-  erroring; asking about it prompts the agent to request the missing fact.
+- A widget whose fact is deleted receives an `AgentUnknown` and shows its
+  `asString` rather than erroring; asking about it prompts the agent to
+  request the missing fact (the unknown's key tells it exactly what to
+  ask for).
 
 ## Acceptance script
 
@@ -90,6 +99,7 @@ need their own trust/interaction design pass.
    stickies? Recommendation: probe events first; focus-loss fallback.
 2. **Announcement granularity**: one canvas-wide announcer with typed events
    (recommended: simple, one place to look) vs. per-object announcers?
-3. **Should `AgentKnowledge` be in the Core package** (usable headless,
-   gateway could consult it) **or UI?** Recommendation: Core, with the
-   canvas lookup behind a guard, same pattern as the gateway's canvas use.
+3. ~~Core or UI for `AgentKnowledge`?~~ **Resolved: Core** (with the canvas
+   lookup behind a globals guard, the gateway's established pattern), so
+   headless code and the gateway share the same vocabulary — `AgentUnknown`
+   lives there too.
