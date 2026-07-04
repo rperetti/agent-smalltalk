@@ -104,7 +104,14 @@ AgentCanvas >> ensureContent [
 
 { #category : 'opening' }
 AgentCanvas >> open [
-	space ifNotNil: [ ^ self ].
+	space ifNotNil: [
+		space isOpened ifTrue: [ ^ self ].
+		"Stale space: the image was saved from a headless session (update.sh),
+		so the space object outlived its OS window. Rebuild the window around
+		the existing content -- widgets and their handlers all survive."
+		[ space close ] on: Error do: [ :e |  ].
+		content ifNotNil: [ content removeFromParent ].
+		space := nil ].
 	self ensureContent.
 	space := BlSpace new.
 	space toTheme: ToBeeTheme new.
