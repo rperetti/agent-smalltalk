@@ -206,12 +206,17 @@ AgentCanvas >> handleMouseUp: evt [
 { #category : 'navigation' }
 AgentCanvas >> handleWheel: evt [
 	"Zoom only with Shift held: the plain wheel stays free for scrolling
-	text inside widgets."
+	text inside widgets. macOS converts Shift+vertical scroll into a
+	HORIZONTAL scroll, so read whichever axis actually moved."
+	| delta |
 	evt isConsumed ifTrue: [ ^ self ].
 	evt modifiers isShift ifFalse: [ ^ self ].
 	evt consume.
-	evt isScrollUp ifTrue: [ self zoomAt: evt position by: 1.1 ].
-	evt isScrollDown ifTrue: [ self zoomAt: evt position by: 1 / 1.1 ]
+	delta := evt vector y abs >= evt vector x abs
+		ifTrue: [ evt vector y ]
+		ifFalse: [ evt vector x ].
+	delta > 0 ifTrue: [ self zoomAt: evt position by: 1.1 ].
+	delta < 0 ifTrue: [ self zoomAt: evt position by: 1 / 1.1 ]
 ]
 
 { #category : 'navigation' }
