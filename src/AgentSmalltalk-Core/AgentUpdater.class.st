@@ -1,0 +1,55 @@
+"
+I reload the AgentSmalltalk packages from src/ into the running image --
+the single implementation behind scripts/update.st (headless), the
+heal-in-image script, and AgentRemote's /update endpoint (live GUI session).
+In an interactive session, migrations and the snapshot are enqueued onto the
+UI thread; headless callers handle saving themselves.
+"
+Class {
+	#name : 'AgentUpdater',
+	#superclass : 'Object',
+	#category : 'AgentSmalltalk-Core',
+	#package : 'AgentSmalltalk-Core'
+}
+
+{ #category : 'accessing' }
+AgentUpdater class >> packageNames [
+	^ #('AgentSmalltalk-Core' 'AgentSmalltalk-UI' 'AgentSmalltalk-Tests' 'AgentSmalltalk-UITests' 'BaselineOfAgentSmalltalk')
+]
+
+{ #category : 'accessing' }
+AgentUpdater class >> srcDirectory [
+	^ FileLocator image asFileReference parent parent / 'src'
+]
+
+{ #category : 'testing' }
+AgentUpdater class >> isInteractive [
+	^ (UIManager default isKindOf: NonInteractiveUIManager) not
+]
+
+{ #category : 'updating' }
+AgentUpdater class >> updateFromSrc [
+	"Load the packages (diff semantics: removed definitions unload), then
+	migrate -- on the UI thread when a live space is pulsing."
+	| src |
+	src := self srcDirectory.
+	self packageNames do: [ :pkgName |
+		| reader |
+		reader := TonelReader on: src fileName: pkgName.
+		reader loadDefinitions.
+		MCPackageLoader updatePackage: (MCPackage named: pkgName) withSnapshot: reader snapshot ].
+	self runMigrations
+]
+
+{ #category : 'updating' }
+AgentUpdater class >> runMigrations [
+	| canvasClass canvas |
+	canvasClass := Smalltalk globals at: #AgentCanvas ifAbsent: [ ^ self ].
+	canvas := canvasClass current.
+	(canvas isOpen and: [ self isInteractive ])
+		ifTrue: [
+			canvas space enqueueTask: ((Smalltalk globals at: #BlTaskAction) new action: [
+				canvas migrateAfterUpdate.
+				Smalltalk snapshot: true andQuit: false ]) ]
+		ifFalse: [ canvas migrateAfterUpdate ]
+]

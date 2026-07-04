@@ -1,11 +1,8 @@
-"HEAL -- paste and run (select all, Do it) in a Playground inside the RUNNING
-Agent image. Use when the image file got poisoned (stale SSL sessions) or a
-GUI save overwrote an update:
-1) neutralizes stale SSL sessions whose finalizers crash headless startup
-   (ZdcPluginSSLSession>>destroy is a no-op once handle is nil);
-2) pulls the latest tooling from src/ into THIS session -- no file swapping,
-   so nothing can be clobbered by a later save;
-3) runs migrations and saves."
+"HEAL / BOOTSTRAP -- paste and run (select all, Do it) in a Playground inside
+the RUNNING Agent image. Needed at most once per image: after it runs, the
+image listens on localhost:8807 and update.sh reaches live sessions
+automatically. Also repairs an image whose stale SSL sessions crash headless
+startup."
 | src |
 (Smalltalk globals at: #ZdcPluginSSLSession ifAbsent: [ nil ]) ifNotNil: [ :cls |
 	cls allInstancesDo: [ :s |
@@ -19,4 +16,4 @@ src := FileLocator image asFileReference parent parent / 'src'.
 		MCPackageLoader updatePackage: (MCPackage named: pkgName) withSnapshot: reader snapshot ].
 AgentCanvas current migrateAfterUpdate.
 Smalltalk snapshot: true andQuit: false.
-'healed + updated'
+'healed + updated + listening on :8807'

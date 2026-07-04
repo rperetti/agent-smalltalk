@@ -9,11 +9,17 @@ IMG="pharo/Agent.image"
 [ -f "$IMG" ] || { echo "No pharo/Agent.image yet — run ./build.sh first"; exit 1; }
 
 # One writer at a time: a running GUI session holds old code in memory and
-# saving it would overwrite this update. Refuse instead of racing.
+# saving it would overwrite a file-level update. If a session is running,
+# update IT over its localhost listener instead of touching the file.
 if pgrep -f "Agent.image" >/dev/null 2>&1; then
-  echo "A Pharo session is running on pharo/Agent.image."
-  echo "Either quit it first, or update the LIVE session instead:"
-  echo "  paste scripts/heal-in-image.st into a Playground and Do it."
+  echo "Live session detected — updating it in place via localhost:8807..."
+  if curl -s -f -m 180 -X POST "http://127.0.0.1:8807/update" >/dev/null 2>&1; then
+    echo "Live session updated (migrations + save run on its UI thread)."
+    exit 0
+  fi
+  echo "The session does not answer on :8807 (built before AgentRemote)."
+  echo "One-time bootstrap: paste scripts/heal-in-image.st into a Playground"
+  echo "and Do it — after that, updates reach live sessions automatically."
   exit 1
 fi
 

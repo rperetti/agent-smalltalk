@@ -27,9 +27,11 @@ AgentSandbox class >> startUp: resuming [
 	sessions at startup. Neutralize them: destroy is a no-op once the
 	handle is nil."
 	resuming ifTrue: [
-		(Smalltalk globals at: #ZdcPluginSSLSession ifAbsent: [ ^ self ])
-			allInstancesDo: [ :s |
-				[ s instVarNamed: #handle put: nil ] on: Error do: [ :e |  ] ] ]
+		(Smalltalk globals at: #ZdcPluginSSLSession ifAbsent: [ nil ])
+			ifNotNil: [ :cls |
+				cls allInstancesDo: [ :s |
+					[ s instVarNamed: #handle put: nil ] on: Error do: [ :e |  ] ] ].
+		AgentRemote ensureRunning ]
 ]
 
 { #category : 'initialization' }

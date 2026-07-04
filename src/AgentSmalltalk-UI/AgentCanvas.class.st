@@ -126,6 +126,7 @@ AgentCanvas >> open [
 	space root addChild: content.
 	self wireKeyboard.
 	self wireNavigation.
+	AgentRemote ensureRunning.
 	space show
 ]
 
@@ -160,7 +161,8 @@ AgentCanvas >> migrateAfterUpdate [
 	self wireKeyboard.
 	self wireNavigation.
 	self notes do: [ :n | n repairHeader ].
-	self widgets do: [ :w | w ensureResizeGrip ]
+	self widgets do: [ :w | w ensureResizeGrip ].
+	AgentRemote ensureRunning
 ]
 
 { #category : 'navigation' }
