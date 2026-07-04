@@ -46,6 +46,23 @@ ephemeral→durable transition a physical act, like deletion already is.
 Parked because: needs so little that it can ride along whenever sticky
 interactions next get touched.
 
+## Agent-initiated work: scheduled automations and the inbox
+
+*From the system-message brainstorm (2026-07-04).*
+
+Today every agent action is a response to a spotlight request. The next
+category: the agent acting on its own schedule — cron-like automations
+("refresh the scores widget every morning", "watch this API"), long-running
+background tasks, and follow-ups. That requires a channel where the agent
+can report without being asked and **request user input** (approve/deny,
+answer a question) — an inbox with actionable messages, not just
+notifications. The system-message widget is deliberately the seed of this:
+same objects, later docked into a tray with buttons.
+
+Parked because: scheduling needs its own design pass (what triggers runs,
+what budget, how to stop a runaway automation) and deserves the phase
+spotlight when it comes.
+
 ## Theming the canvas and widgets
 
 *From the phase 2 brainstorm.*
