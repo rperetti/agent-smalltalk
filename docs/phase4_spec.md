@@ -1,6 +1,9 @@
 # Phase 4 Specification: The Canvas Becomes Reactive
 
-> **Status: DRAFT for discussion.**
+> **Status: agreed scope (2026-07-04).** All open questions resolved:
+> Album change events with focus-loss fallback for manual edits; one
+> canvas-wide announcer with typed events; AgentKnowledge + AgentUnknown
+> in Core.
 
 ## Goal
 
@@ -94,11 +97,10 @@ need their own trust/interaction design pass.
 
 ## Open questions (to settle before building)
 
-1. **Manual-edit detection**: if Album's text-change events prove unreliable,
-   fall back to announce-on-focus-loss or a small "apply" affordance on
-   stickies? Recommendation: probe events first; focus-loss fallback.
-2. **Announcement granularity**: one canvas-wide announcer with typed events
-   (recommended: simple, one place to look) vs. per-object announcers?
+1. ~~Manual-edit detection~~ **Resolved**: probe Album's text-change
+   events first; announce-on-focus-loss as fallback.
+2. ~~Announcement granularity~~ **Resolved**: one canvas-wide announcer
+   with typed events (FactChanged, WidgetChanged).
 3. ~~Core or UI for `AgentKnowledge`?~~ **Resolved: Core** (with the canvas
    lookup behind a globals guard, the gateway's established pattern), so
    headless code and the gateway share the same vocabulary — `AgentUnknown`
