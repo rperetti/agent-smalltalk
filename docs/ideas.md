@@ -63,6 +63,35 @@ Parked because: scheduling needs its own design pass (what triggers runs,
 what budget, how to stop a runaway automation) and deserves the phase
 spotlight when it comes.
 
+## Apps on the canvas (beyond widgets)
+
+*From the apps brainstorm (2026-07-04).*
+
+When a request outgrows a card ("build me an expense tracker with views and
+forms"), the agent needs an app-grade container. Candidate paths:
+
+- **Toplo inner windows** (`ToInnerWindow`): window elements INSIDE the Bloc
+  space -- richest container available today, everything already built
+  (drag, lasso, context, persistence, live modification) keeps working.
+  Nearest-term path.
+- **Spec2 on the Toplo/Bloc backend** (in development upstream): real app
+  framework rendering onto the canvas. Two under-appreciated advantages:
+  Spec2 is deeply present in LLM training data (books, MOOC) so generation
+  reliability may be HIGHER than raw Bloc; and presenters are headless-
+  testable, letting the agent click its own app's buttons during the build
+  loop. Watch upstream maturity.
+- **Spec2 satellite windows + proxy card on canvas**: works today, no
+  bridging; the canvas holds a describable handle, the app lives in its own
+  window.
+
+The toolkit-agnostic core to design first: the **AgentApp contract** -- an
+app is a canvas citizen (describe, browsable source, selection, image
+persistence) with a model object separate from its views so features can be
+iterated against the model and views regenerated cheaply.
+
+Parked because: no user request has outgrown a card yet; revisit at the
+first real "build me an app" moment, and check Spec2-on-Toplo maturity then.
+
 ## Theming the canvas and widgets
 
 *From the phase 2 brainstorm.*
