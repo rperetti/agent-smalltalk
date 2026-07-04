@@ -49,6 +49,13 @@ methods immediately.
 CounterWidget summonAt: 300@200
 ```
 
+`summonAt:` creates a NEW instance. To place an instance you already built
+and configured (e.g. after `watch:`-ing sources), do NOT summon another one:
+
+```
+w position: 300@200. AgentCanvas current addWidget: w
+```
+
 ## The AgentWidget contract (your base class)
 
 Every widget must subclass `AgentWidget` (itself a `BlElement`). It already provides:
