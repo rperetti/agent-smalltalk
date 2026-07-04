@@ -4,8 +4,8 @@ What the living agentic environment does **today**. The long-term vision lives
 in [vision.md](vision.md). This document is kept in sync with the
 code; when behavior changes, change this file in the same commit.
 
-*Last updated: 2026-07-03 (phase 3: spatial canvas — pan/zoom, lasso
-selection, selection-scoped context with live Selection globals).*
+*Last updated: 2026-07-04 (phase 3 verified by hand; sticky family with
+system messages; deletion undo; resize grips; live remote updates).*
 
 ## One-paragraph summary
 
@@ -201,11 +201,20 @@ packages.
   updated (no duplicate) *and the model retuned the existing clock widget's
   timezone unprompted*; a name stated in passing was captured implicitly
   and used by the requested widget.
-- **Select and operate** (phase 3): three counters (3, 5, 7) selected, "make
-  a widget that shows the sum of these selected counters" → SumCounterWidget
-  built against `SelectionAll` holding live references; system prompt
-  contained only the selected widgets; mutating a counter through
-  `Selection1` and pressing Refresh read 25.
+- **Select and operate** (phase 3, verified interactively 2026-07-04): three
+  counters (3, 5, 7) selected, "make a widget that shows the sum of these
+  selected counters" → SumCounterWidget built against `SelectionAll` holding
+  live references; system prompt contained only the selected widgets;
+  mutating a counter through `Selection1` and pressing Refresh read 25.
+  Pan, Shift+wheel zoom, lasso, and selection-scoped Q&A all confirmed by
+  hand on the live canvas.
+- **Answer on paper**: pure-text answers (lookups, explanations) land as
+  blue notes with question provenance; a scoped Q&A test (facts selected,
+  score widget excluded) had the model fetch a sports API on its own and
+  answer honestly about unplayed fixtures.
+- **Update itself while running**: `./update.sh` against an open session
+  delivered code over localhost:8807, migrated on the UI thread, saved, and
+  announced itself with a gray system sticky — observed live.
 
 ## Operations
 
