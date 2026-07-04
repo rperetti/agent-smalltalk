@@ -75,9 +75,22 @@ AgentUndoResizeTest >> testRaiseIsMonotonicAcrossWidgets [
 	b := AgentWidget new.
 	a raise.
 	b raise.
-	self assert: b elevation > a elevation.
+	"Elevations must stay proper BlElevation objects (raw integers break
+	Bloc's picking sorter) and be monotonic."
+	self assert: a elevation class equals: BlRelativeElevation.
+	self assert: b elevation elevation > a elevation elevation.
 	a raise.
-	self assert: a elevation > b elevation
+	self assert: a elevation elevation > b elevation elevation
+]
+
+{ #category : 'tests' }
+AgentUndoResizeTest >> testRepairElevationHealsRawIntegers [
+	| w |
+	w := AgentWidget new.
+	w elevation: 7.
+	w repairElevation.
+	self assert: w elevation class equals: BlRelativeElevation.
+	self assert: w elevation elevation equals: 7
 ]
 
 { #category : 'tests' }

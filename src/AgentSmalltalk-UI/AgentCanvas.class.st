@@ -164,7 +164,10 @@ AgentCanvas >> migrateAfterUpdate [
 	self wireKeyboard.
 	self wireNavigation.
 	self notes do: [ :n | n repairHeader ].
-	self widgets do: [ :w | w ensureResizeGrip. w ensureRaisesOnClick ].
+	self widgets do: [ :w |
+		w ensureResizeGrip.
+		w ensureRaisesOnClick.
+		w repairElevation ].
 	AgentRemote ensureRunning
 ]
 

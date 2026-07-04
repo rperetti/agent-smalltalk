@@ -67,7 +67,16 @@ AgentWidget >> ensureRaisesOnClick [
 
 { #category : 'z order' }
 AgentWidget >> raise [
-	self elevation: AgentCanvas current nextTopElevation
+	"Must be a BlElevation object: Bloc's picking sorter sends #elevation
+	to the stored value, so a raw integer breaks every mouse move."
+	self elevation: (BlRelativeElevation elevation: AgentCanvas current nextTopElevation)
+]
+
+{ #category : 'z order' }
+AgentWidget >> repairElevation [
+	"Migration: heal widgets poisoned by the raw-integer raise bug."
+	self elevation isNumber ifTrue: [
+		self elevation: (BlRelativeElevation elevation: self elevation) ]
 ]
 
 { #category : 'resizing' }
