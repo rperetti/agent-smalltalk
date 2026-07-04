@@ -7,6 +7,11 @@ Right-click opens a browser on the generated source ('knowledge = code', visibly
 Class {
 	#name : 'AgentWidget',
 	#superclass : 'BlElement',
+	#instVars : [
+		'resizeGrip',
+		'resizeStart',
+		'resizeStartExtent'
+	],
 	#category : 'AgentSmalltalk-UI',
 	#package : 'AgentSmalltalk-UI'
 }
@@ -44,7 +49,49 @@ AgentWidget >> initialize [
 	self addEventHandlerOn: BlClickEvent do: [ :evt |
 		evt button = BlMouseButton secondary ifTrue: [
 			evt consume.
-			self browseSource ] ]
+			self browseSource ] ].
+	self ensureResizeGrip
+]
+
+{ #category : 'resizing' }
+AgentWidget >> ensureResizeGrip [
+	"A small bottom-right grip; drag it to resize (min 120x80). Idempotent,
+	so the update migration can call it on pre-grip widgets."
+	resizeGrip ifNotNil: [ ^ self ].
+	resizeGrip := BlElement new.
+	resizeGrip extent: 12 @ 12.
+	resizeGrip background: (Color gray alpha: 0.25).
+	resizeGrip geometry: (BlRoundedRectangleGeometry cornerRadius: 3).
+	resizeGrip constraintsDo: [ :c |
+		c ignoreByLayout.
+		c ignored horizontal alignRight.
+		c ignored vertical alignBottom ].
+	resizeGrip addEventHandlerOn: BlDragStartEvent do: [ :evt |
+		evt consume.
+		resizeStart := evt position.
+		resizeStartExtent := self extent ].
+	resizeGrip addEventHandlerOn: BlDragEvent do: [ :evt |
+		evt consume.
+		resizeStart ifNotNil: [
+			self resizeTo: resizeStartExtent
+				+ ((evt position - resizeStart) / AgentCanvas current zoom) ] ].
+	resizeGrip addEventHandlerOn: BlDragEndEvent do: [ :evt |
+		evt consume.
+		resizeStart := nil ].
+	self addChild: resizeGrip
+]
+
+{ #category : 'resizing' }
+AgentWidget >> resizeTo: aPoint [
+	self extent: (aPoint max: 120 @ 80)
+]
+
+{ #category : 'actions' }
+AgentWidget >> removeFromParent [
+	"Deletions are undoable: the canvas remembers removed widgets (Cmd+Z)."
+	(AgentCanvas current containsWidget: self)
+		ifTrue: [ AgentCanvas current recordDeletion: self ].
+	super removeFromParent
 ]
 
 { #category : 'agent context' }

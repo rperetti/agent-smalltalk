@@ -20,7 +20,10 @@ Class {
 
 { #category : 'instance creation' }
 AgentSpotlight class >> openOn: aCanvas [
-	| bar |
+	| bar existing |
+	existing := aCanvas space root children asArray
+		detect: [ :c | c isKindOf: self ] ifNone: [ nil ].
+	existing ifNotNil: [ existing focusInput. ^ existing ].
 	bar := self new.
 	bar canvas: aCanvas.
 	aCanvas space root addChild: bar.

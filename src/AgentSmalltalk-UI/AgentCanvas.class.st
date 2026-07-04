@@ -24,7 +24,8 @@ Class {
 		'panStart',
 		'lassoElement',
 		'navWired',
-		'rootWired'
+		'rootWired',
+		'undoStack'
 	],
 	#classInstVars : [
 		'current'
@@ -123,9 +124,7 @@ AgentCanvas >> open [
 	space extent: 1280 @ 840.
 	space root background: (Color fromHexString: 'F4F1E8').
 	space root addChild: content.
-	space root addEventHandlerOn: BlKeyDownEvent do: [ :evt |
-		(evt key = KeyboardKey enter and: [ evt modifiers isCmd or: [ evt modifiers isCtrl ] ])
-			ifTrue: [ AgentSpotlight openOn: self ] ].
+	self wireKeyboard.
 	self wireNavigation.
 	space show
 ]
@@ -158,8 +157,67 @@ AgentCanvas >> migrateAfterUpdate [
 	self isOpen ifFalse: [ ^ self ].
 	self ensureContent.
 	space root background: (Color fromHexString: 'F4F1E8').
+	self wireKeyboard.
 	self wireNavigation.
-	self notes do: [ :n | n repairHeader ]
+	self notes do: [ :n | n repairHeader ].
+	self widgets do: [ :w | w ensureResizeGrip ]
+]
+
+{ #category : 'navigation' }
+AgentCanvas >> wireKeyboard [
+	"One thin key handler on the root. Old key handlers (including inline
+	blocks from earlier versions) are removed first, so this is idempotent
+	and safe to run on every migration. The filter only matches plain
+	BlEventHandlers for key-down; listener-style handlers are untouched."
+	space ifNil: [ ^ self ].
+	space root removeEventHandlersSuchThat: [ :h |
+		(h respondsTo: #eventClass) and: [ h eventClass == BlKeyDownEvent ] ].
+	space root addEventHandlerOn: BlKeyDownEvent do: [ :evt | self handleKeyDown: evt ]
+]
+
+{ #category : 'navigation' }
+AgentCanvas >> handleKeyDown: evt [
+	| primary |
+	evt isConsumed ifTrue: [ ^ self ].
+	primary := evt modifiers isCmd or: [ evt modifiers isCtrl ].
+	primary ifFalse: [ ^ self ].
+	evt key = KeyboardKey enter ifTrue: [
+		evt consume.
+		^ AgentSpotlight openOn: self ].
+	(evt key = KeyboardKey Z and: [ evt modifiers isShift not ]) ifTrue: [
+		evt consume.
+		self undoDeletion ]
+]
+
+{ #category : 'undo' }
+AgentCanvas >> undoStack [
+	"Lazy (singletons in user images migrate with nil slots). Survives image
+	save/reopen: undoing yesterday's deletion is a living-image privilege."
+	^ undoStack ifNil: [ undoStack := OrderedCollection new ]
+]
+
+{ #category : 'undo' }
+AgentCanvas >> containsWidget: aWidget [
+	^ content notNil and: [ aWidget parent == content ]
+]
+
+{ #category : 'undo' }
+AgentCanvas >> recordDeletion: aWidget [
+	self undoStack addLast: aWidget.
+	[ self undoStack size > 50 ] whileTrue: [ self undoStack removeFirst ]
+]
+
+{ #category : 'undo' }
+AgentCanvas >> undoDeletion [
+	"Restore the most recently deleted widget. Entries whose restore fails
+	(e.g. instance of a since-removed, broken class) are discarded."
+	| w |
+	self undoStack isEmpty ifTrue: [ ^ nil ].
+	w := self undoStack removeLast.
+	[ w parent isNil ifTrue: [ self addWidget: w ] ]
+		on: Error
+		do: [ :e | ^ self undoDeletion ].
+	^ w
 ]
 
 { #category : 'navigation' }

@@ -1,7 +1,7 @@
 "Run the SUnit suite headless; exit nonzero on failure."
 | suite result |
 suite := TestSuite new.
-#(AgentSandboxTest AgentGatewayTest AgentImageSearchTest AgentFactTest AgentCanvasSelectionTest AgentNoteTest) do: [ :sym |
+#(AgentSandboxTest AgentGatewayTest AgentImageSearchTest AgentFactTest AgentCanvasSelectionTest AgentNoteTest AgentUndoResizeTest) do: [ :sym |
 	(Smalltalk globals at: sym ifAbsent: [ nil ])
 		ifNotNil: [ :cls | suite addTests: cls suite tests ] ].
 result := suite run.
