@@ -47,7 +47,9 @@ AgentSpotlight >> initialize [
 		c vertical fitContent.
 		c minHeight: 34 ].
 	statusLabel := ToLabel new text: 'Return to run, Esc to close'.
+	statusLabel beMultiLine.
 	statusLabel margin: (BlInsets top: 8).
+	statusLabel constraintsDo: [ :c | c horizontal exact: 590 ].
 	self addChild: inputField.
 	self addChild: statusLabel.
 	inputField addEventFilterOn: BlKeyDownEvent do: [ :evt |
@@ -83,9 +85,13 @@ AgentSpotlight >> submit [
 	request isEmpty ifTrue: [ ^ self ].
 	gateway := AgentGateway new.
 	gateway statusBlock: [ :msg | self showStatus: msg ].
-	[ [ gateway run: request.
-		self showStatus: 'done'.
-		self closeSoon ]
+	[ [ | answer |
+		answer := gateway run: request.
+		"Show the agent's answer; the bar stays open until Esc so
+		text-only replies are never lost."
+		self showStatus: (answer trimBoth
+			ifEmpty: [ 'done' ]
+			ifNotEmpty: [ :txt | txt ]) ]
 		on: Error
 		do: [ :e | self showStatus: 'FAILED: ' , e messageText ] ]
 		forkNamed: 'agent-spotlight-run'
@@ -94,11 +100,4 @@ AgentSpotlight >> submit [
 { #category : 'actions' }
 AgentSpotlight >> close [
 	self removeFromParent
-]
-
-{ #category : 'actions' }
-AgentSpotlight >> closeSoon [
-	[ 1.5 seconds wait.
-	self enqueueTask: (BlTaskAction new action: [ self close ]) ]
-		forkNamed: 'agent-spotlight-close'
 ]
