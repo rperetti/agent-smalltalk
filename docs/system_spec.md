@@ -4,8 +4,8 @@ What the living agentic environment does **today**. The long-term vision lives
 in [vision.md](vision.md). This document is kept in sync with the
 code; when behavior changes, change this file in the same commit.
 
-*Last updated: 2026-07-04 (phase 3 verified by hand; sticky family with
-system messages; deletion undo; resize grips; live remote updates).*
+*Last updated: 2026-07-04 (phase 4 built: reactive canvas — AgentKnowledge,
+AgentUnknown, canvas announcer; click-to-front; self-healing listener).*
 
 ## One-paragraph summary
 
@@ -62,6 +62,25 @@ Evaluates model-generated code with guardrails:
   (rotating, keeps 5) so a corrupted image is recoverable.
 - Not sandboxed in the capability sense: the model can touch anything in the
   image. Accepted risk for a single-user prototype.
+
+### AgentKnowledge + AgentUnknown (Core) — live values
+
+`AgentKnowledge at: #city` reads the fact sticky's body (the canvas is the
+only store); `at:ifAbsent:`, `numberAt:` (first number in the body). Missing
+facts answer an **`AgentUnknown`** null-object: carries the missing key,
+tests via `isUnknown` (an `Object` extension makes every value answer it),
+prints safely (`'unknown (city)'`), and fails loudly beyond that so unknowns
+cannot propagate invisibly.
+
+### Reactions (phase 4)
+
+One canvas-wide `announcer`. `AgentFactChanged` fires on agent updates
+(`AgentFact key:body:`) and manual sticky edits (announced on focus loss);
+`AgentWidgetChanged` fires via the widget convention `self announceChanged`
+in state mutators. Widgets subscribe `when:do:for: self` (the crib pattern);
+deletion auto-unsubscribes. Verified with generated code: a clock retuned on
+a pure fact edit with no request, and a total recomputed purely from a
+counter's announcement — no Refresh buttons.
 
 ### AgentCanvas (UI)
 
@@ -224,7 +243,7 @@ packages.
 |---|---|
 | `./build.sh` | FRESH `pharo/Agent.image` from `src/` — destroys the world (`core` arg skips UI) |
 | `./update.sh` | reload tooling from `src/`; widgets/facts survive. If a session is RUNNING it updates that session in place via `AgentRemote` (localhost:8807, `/update`); otherwise it patches the image file headless. Diffs via TonelReader + `MCPackageLoader updatePackage:withSnapshot:`, so removed definitions unload too. Backs up the image first (keeps 5). Does not update Bloc/Toplo — use `build.sh` for dependency changes |
-| `./test.sh` | SUnit suite headless (currently 72 tests) |
+| `./test.sh` | SUnit suite headless (currently 82 tests) |
 | `./run.sh` | open the canvas UI |
 
 Headless acceptance scripts (`pharo ... st scripts/<name>.st`):

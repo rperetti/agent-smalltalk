@@ -1,9 +1,10 @@
 # Phase 4 Specification: The Canvas Becomes Reactive
 
-> **Status: agreed scope (2026-07-04).** All open questions resolved:
-> Album change events with focus-loss fallback for manual edits; one
-> canvas-wide announcer with typed events; AgentKnowledge + AgentUnknown
-> in Core.
+> **Status: BUILT (2026-07-04); visual pass pending.** Headless acceptance
+> green across cold runs (`scripts/smoke-reactive.st`): a generated clock
+> followed a fact edit with no request, and a generated total recomputed
+> purely from a counter's announceChanged. 82 tests. Remaining: the by-hand
+> money shot -- edit the city sticky in the GUI and watch the clock follow.
 
 ## Goal
 
