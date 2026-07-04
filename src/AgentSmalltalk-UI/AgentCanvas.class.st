@@ -23,7 +23,8 @@ Class {
 		'dragStart',
 		'panStart',
 		'lassoElement',
-		'navWired'
+		'navWired',
+		'rootWired'
 	],
 	#classInstVars : [
 		'current'
@@ -95,10 +96,13 @@ AgentCanvas >> panOffset [
 AgentCanvas >> ensureContent [
 	content ifNil: [
 		content := BlElement new.
-		content background: (Color fromHexString: 'F4F1E8').
 		content constraintsDo: [ :c |
 			c horizontal matchParent.
 			c vertical matchParent ] ].
+	"Transparent, non-clipping transform layer: the visible background lives
+	on the space root so panning never reveals a differently-colored void."
+	content background: Color transparent.
+	content clipChildren: false.
 	^ content
 ]
 
@@ -117,6 +121,7 @@ AgentCanvas >> open [
 	space toTheme: ToBeeTheme new.
 	space title: 'Agent Canvas'.
 	space extent: 1280 @ 840.
+	space root background: (Color fromHexString: 'F4F1E8').
 	space root addChild: content.
 	space root addEventHandlerOn: BlKeyDownEvent do: [ :evt |
 		(evt key = KeyboardKey enter and: [ evt modifiers isCmd or: [ evt modifiers isCtrl ] ])
@@ -128,26 +133,41 @@ AgentCanvas >> open [
 { #category : 'navigation' }
 AgentCanvas >> wireNavigation [
 	"Attach THIN handlers that only delegate: behavior then updates via
-	method recompilation, no rewiring needed. Idempotent via navWired."
-	navWired == true ifTrue: [ ^ self ].
-	content addEventHandlerOn: BlMouseDownEvent do: [ :evt | self handleMouseDown: evt ].
-	content addEventHandlerOn: BlMouseMoveEvent do: [ :evt | self handleMouseMove: evt ].
-	content addEventHandlerOn: BlMouseUpEvent do: [ :evt | self handleMouseUp: evt ].
-	content addEventHandlerOn: BlMouseWheelEvent do: [ :evt | self handleWheel: evt ].
-	navWired := true
+	method recompilation, no rewiring needed. Handlers sit on the content
+	AND on the space root (panning exposes root areas outside content);
+	the isConsumed guards in the handle* methods prevent double handling.
+	Idempotent per element via navWired / rootWired."
+	navWired == true ifFalse: [
+		content addEventHandlerOn: BlMouseDownEvent do: [ :evt | self handleMouseDown: evt ].
+		content addEventHandlerOn: BlMouseMoveEvent do: [ :evt | self handleMouseMove: evt ].
+		content addEventHandlerOn: BlMouseUpEvent do: [ :evt | self handleMouseUp: evt ].
+		content addEventHandlerOn: BlMouseWheelEvent do: [ :evt | self handleWheel: evt ].
+		navWired := true ].
+	(space notNil and: [ rootWired ~~ true ]) ifTrue: [
+		space root addEventHandlerOn: BlMouseDownEvent do: [ :evt | self handleMouseDown: evt ].
+		space root addEventHandlerOn: BlMouseMoveEvent do: [ :evt | self handleMouseMove: evt ].
+		space root addEventHandlerOn: BlMouseUpEvent do: [ :evt | self handleMouseUp: evt ].
+		space root addEventHandlerOn: BlMouseWheelEvent do: [ :evt | self handleWheel: evt ].
+		rootWired := true ]
 ]
 
 { #category : 'navigation' }
 AgentCanvas >> migrateAfterUpdate [
 	"Run by scripts/update.st after reloading code into a living image:
 	setup steps that open-time wiring cannot deliver to already-open spaces."
-	self isOpen ifTrue: [ self wireNavigation ]
+	self isOpen ifFalse: [ ^ self ].
+	self ensureContent.
+	space root background: (Color fromHexString: 'F4F1E8').
+	self wireNavigation
 ]
 
 { #category : 'navigation' }
 AgentCanvas >> handleMouseDown: evt [
-	evt target == content ifFalse: [ ^ self ].
+	evt isConsumed ifTrue: [ ^ self ].
+	(evt target == content or: [ space notNil and: [ evt target == space root ] ])
+		ifFalse: [ ^ self ].
 	evt consume.
+	self removeLasso.
 	dragStart := evt position.
 	dragMoved := false.
 	evt modifiers isShift
@@ -161,6 +181,7 @@ AgentCanvas >> handleMouseDown: evt [
 
 { #category : 'navigation' }
 AgentCanvas >> handleMouseMove: evt [
+	evt isConsumed ifTrue: [ ^ self ].
 	dragMode ifNil: [ ^ self ].
 	evt consume.
 	dragMoved := true.
@@ -173,6 +194,7 @@ AgentCanvas >> handleMouseMove: evt [
 
 { #category : 'navigation' }
 AgentCanvas >> handleMouseUp: evt [
+	evt isConsumed ifTrue: [ ^ self ].
 	dragMode ifNil: [ ^ self ].
 	evt consume.
 	dragMode = #lasso
@@ -183,6 +205,7 @@ AgentCanvas >> handleMouseUp: evt [
 
 { #category : 'navigation' }
 AgentCanvas >> handleWheel: evt [
+	evt isConsumed ifTrue: [ ^ self ].
 	evt consume.
 	evt isScrollUp ifTrue: [ self zoomAt: evt position by: 1.1 ].
 	evt isScrollDown ifTrue: [ self zoomAt: evt position by: 1 / 1.1 ]
@@ -219,9 +242,19 @@ AgentCanvas >> showLassoAt: aPoint [
 	lassoElement := BlElement new.
 	lassoElement background: ((Color fromHexString: '4A90D9') alpha: 0.15).
 	lassoElement border: (BlBorder paint: (Color fromHexString: '4A90D9') width: 1).
+	"The lasso must never steal mouse events from the canvas underneath --
+	otherwise the mouse-up lands on the lasso and it is never removed."
+	lassoElement preventMouseEvents.
 	lassoElement position: aPoint.
 	lassoElement extent: 1 @ 1.
 	space ifNotNil: [ space root addChild: lassoElement ]
+]
+
+{ #category : 'selection' }
+AgentCanvas >> removeLasso [
+	lassoElement ifNotNil: [
+		lassoElement removeFromParent.
+		lassoElement := nil ]
 ]
 
 { #category : 'selection' }
@@ -234,7 +267,7 @@ AgentCanvas >> updateLassoTo: aPoint [
 { #category : 'selection' }
 AgentCanvas >> finishLassoAt: aPoint [
 	| worldRect hits |
-	lassoElement ifNotNil: [ lassoElement removeFromParent. lassoElement := nil ].
+	self removeLasso.
 	worldRect := (self worldPointFrom: (dragStart min: aPoint))
 		corner: (self worldPointFrom: (dragStart max: aPoint)).
 	hits := self widgets select: [ :w |
