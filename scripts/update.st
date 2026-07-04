@@ -15,5 +15,11 @@ src := FileLocator image asFileReference parent parent / 'src'.
 		reader loadDefinitions.
 		"Diff against the in-image package so removed definitions unload too."
 		MCPackageLoader updatePackage: (MCPackage named: pkgName) withSnapshot: reader snapshot ].
+"Migration: deliver setup steps to already-live objects (an open canvas
+never re-runs #open, so new wiring must be applied explicitly)."
+(Smalltalk globals at: #AgentCanvas ifAbsent: [ nil ]) ifNotNil: [ :cls |
+	cls isOpen ifTrue: [
+		cls current migrateAfterUpdate.
+		Stdio stdout nextPutAll: 'ran canvas migration'; lf ] ].
 Stdio stdout nextPutAll: 'update complete, saving image'; lf.
 Smalltalk snapshot: true andQuit: true

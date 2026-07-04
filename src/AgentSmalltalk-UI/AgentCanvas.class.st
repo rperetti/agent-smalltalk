@@ -22,7 +22,8 @@ Class {
 		'dragMoved',
 		'dragStart',
 		'panStart',
-		'lassoElement'
+		'lassoElement',
+		'navWired'
 	],
 	#classInstVars : [
 		'current'
@@ -119,38 +120,65 @@ AgentCanvas >> open [
 
 { #category : 'navigation' }
 AgentCanvas >> wireNavigation [
-	content addEventHandlerOn: BlMouseDownEvent do: [ :evt |
-		evt target == content ifTrue: [
-			evt consume.
-			dragStart := evt position.
-			dragMoved := false.
-			evt modifiers isShift
-				ifTrue: [
-					dragMode := #lasso.
-					self showLassoAt: evt position ]
-				ifFalse: [
-					dragMode := #pan.
-					panStart := self panOffset ] ] ].
-	content addEventHandlerOn: BlMouseMoveEvent do: [ :evt |
-		dragMode ifNotNil: [
-			evt consume.
-			dragMoved := true.
-			dragMode = #pan
-				ifTrue: [
-					panOffset := panStart + (evt position - dragStart).
-					self applyTransform ]
-				ifFalse: [ self updateLassoTo: evt position ] ] ].
-	content addEventHandlerOn: BlMouseUpEvent do: [ :evt |
-		dragMode ifNotNil: [
-			evt consume.
-			dragMode = #lasso
-				ifTrue: [ self finishLassoAt: evt position ]
-				ifFalse: [ dragMoved ifFalse: [ self clearSelection ] ].
-			dragMode := nil ] ].
-	content addEventHandlerOn: BlMouseWheelEvent do: [ :evt |
-		evt consume.
-		evt isScrollUp ifTrue: [ self zoomAt: evt position by: 1.1 ].
-		evt isScrollDown ifTrue: [ self zoomAt: evt position by: 1 / 1.1 ] ]
+	"Attach THIN handlers that only delegate: behavior then updates via
+	method recompilation, no rewiring needed. Idempotent via navWired."
+	navWired == true ifTrue: [ ^ self ].
+	content addEventHandlerOn: BlMouseDownEvent do: [ :evt | self handleMouseDown: evt ].
+	content addEventHandlerOn: BlMouseMoveEvent do: [ :evt | self handleMouseMove: evt ].
+	content addEventHandlerOn: BlMouseUpEvent do: [ :evt | self handleMouseUp: evt ].
+	content addEventHandlerOn: BlMouseWheelEvent do: [ :evt | self handleWheel: evt ].
+	navWired := true
+]
+
+{ #category : 'navigation' }
+AgentCanvas >> migrateAfterUpdate [
+	"Run by scripts/update.st after reloading code into a living image:
+	setup steps that open-time wiring cannot deliver to already-open spaces."
+	self isOpen ifTrue: [ self wireNavigation ]
+]
+
+{ #category : 'navigation' }
+AgentCanvas >> handleMouseDown: evt [
+	evt target == content ifFalse: [ ^ self ].
+	evt consume.
+	dragStart := evt position.
+	dragMoved := false.
+	evt modifiers isShift
+		ifTrue: [
+			dragMode := #lasso.
+			self showLassoAt: evt position ]
+		ifFalse: [
+			dragMode := #pan.
+			panStart := self panOffset ]
+]
+
+{ #category : 'navigation' }
+AgentCanvas >> handleMouseMove: evt [
+	dragMode ifNil: [ ^ self ].
+	evt consume.
+	dragMoved := true.
+	dragMode = #pan
+		ifTrue: [
+			panOffset := panStart + (evt position - dragStart).
+			self applyTransform ]
+		ifFalse: [ self updateLassoTo: evt position ]
+]
+
+{ #category : 'navigation' }
+AgentCanvas >> handleMouseUp: evt [
+	dragMode ifNil: [ ^ self ].
+	evt consume.
+	dragMode = #lasso
+		ifTrue: [ self finishLassoAt: evt position ]
+		ifFalse: [ dragMoved ifFalse: [ self clearSelection ] ].
+	dragMode := nil
+]
+
+{ #category : 'navigation' }
+AgentCanvas >> handleWheel: evt [
+	evt consume.
+	evt isScrollUp ifTrue: [ self zoomAt: evt position by: 1.1 ].
+	evt isScrollDown ifTrue: [ self zoomAt: evt position by: 1 / 1.1 ]
 ]
 
 { #category : 'navigation' }
