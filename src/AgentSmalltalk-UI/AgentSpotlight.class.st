@@ -85,13 +85,9 @@ AgentSpotlight >> submit [
 	request isEmpty ifTrue: [ ^ self ].
 	gateway := AgentGateway new.
 	gateway statusBlock: [ :msg | self showStatus: msg ].
-	[ [ | answer |
-		answer := gateway run: request.
-		"Show the agent's answer; the bar stays open until Esc so
-		text-only replies are never lost."
-		self showStatus: (answer trimBoth
-			ifEmpty: [ 'done' ]
-			ifNotEmpty: [ :txt | txt ]) ]
+	[ [ gateway run: request.
+		"Answers live on the canvas (widget or note) -- the bar just leaves."
+		self enqueueTask: (BlTaskAction new action: [ self close ]) ]
 		on: Error
 		do: [ :e | self showStatus: 'FAILED: ' , e messageText ] ]
 		forkNamed: 'agent-spotlight-run'

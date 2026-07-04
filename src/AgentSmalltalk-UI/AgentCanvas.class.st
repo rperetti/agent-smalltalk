@@ -205,7 +205,10 @@ AgentCanvas >> handleMouseUp: evt [
 
 { #category : 'navigation' }
 AgentCanvas >> handleWheel: evt [
+	"Zoom only with Shift held: the plain wheel stays free for scrolling
+	text inside widgets."
 	evt isConsumed ifTrue: [ ^ self ].
+	evt modifiers isShift ifFalse: [ ^ self ].
 	evt consume.
 	evt isScrollUp ifTrue: [ self zoomAt: evt position by: 1.1 ].
 	evt isScrollDown ifTrue: [ self zoomAt: evt position by: 1 / 1.1 ]

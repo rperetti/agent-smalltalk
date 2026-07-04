@@ -73,9 +73,11 @@ Singleton owning the Bloc space (`AgentCanvas open`, 1280×840, `ToBeeTheme`).
   element, so the full generation loop runs (and is tested) without a display.
   In non-interactive sessions `addWidget:` adds directly instead of enqueuing
   (a GUI-saved space never pulses headless, so its task queue never drains).
-- **Pan & zoom**: drag on empty background pans; mouse wheel zooms around the
-  cursor (clamped 0.25–3×), via a top-left-origin transform on the content
-  element (screen = pan + world×zoom).
+- **Pan & zoom**: drag on empty background pans; Shift+wheel zooms around
+  the cursor (clamped 0.25–3×; the plain wheel stays free for scrolling text
+  inside widgets), via a top-left-origin transform on the content element
+  (screen = pan + world×zoom). The background color lives on the space root,
+  so panning never reveals a void.
 - **Lasso selection**: Shift+drag draws a selection rectangle; intersecting
   widgets (facts included) highlight with an accent border. Click on empty
   background clears the selection. Selection state is lazy-initialized —
@@ -131,9 +133,11 @@ a selection (follow-up questions).
 
 The floating prompt bar: a wrapping multi-line `ToAlbum` editor (cursor,
 selection, clipboard; grows vertically with content) plus a `ToLabel` status
-line. Enter submits and Esc closes via capture-phase event filters (they win
-over the editor). The gateway runs in a forked process; UI updates are
-enqueued onto the space pulse.
+line showing loop progress. Enter submits and Esc closes via capture-phase
+event filters (they win over the editor). The gateway runs in a forked
+process; UI updates are enqueued onto the space pulse. On success the bar
+closes itself — answers live on the canvas (widget or note), never in the
+bar; on failure it stays open showing the error.
 
 ### The crib sheet (`prompts/system.md`)
 
