@@ -114,10 +114,20 @@ AgentWidget >> resizeTo: aPoint [
 
 { #category : 'actions' }
 AgentWidget >> removeFromParent [
-	"Deletions are undoable: the canvas remembers removed widgets (Cmd+Z)."
+	"Deletions are undoable: the canvas remembers removed widgets (Cmd+Z).
+	Subscriptions die with the widget so deleted widgets don't leak handlers."
 	(AgentCanvas current containsWidget: self)
 		ifTrue: [ AgentCanvas current recordDeletion: self ].
+	AgentCanvas current announcer unsubscribe: self.
 	super removeFromParent
+]
+
+{ #category : 'reactions' }
+AgentWidget >> announceChanged [
+	"Convention: state-mutating methods end with this, so derived widgets
+	(totals, charts) can react instead of needing Refresh buttons."
+	AgentCanvas current announcer announce:
+		(AgentWidgetChanged new widget: self; yourself)
 ]
 
 { #category : 'agent context' }

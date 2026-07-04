@@ -26,7 +26,8 @@ Class {
 		'navWired',
 		'rootWired',
 		'undoStack',
-		'topElevation'
+		'topElevation',
+		'announcer'
 	],
 	#classInstVars : [
 		'current'
@@ -167,7 +168,8 @@ AgentCanvas >> migrateAfterUpdate [
 	self widgets do: [ :w |
 		w ensureResizeGrip.
 		w ensureRaisesOnClick.
-		w repairElevation ].
+		w repairElevation.
+		(w isKindOf: AgentSticky) ifTrue: [ w ensureEditAnnouncement ] ].
 	AgentRemote ensureRunning
 ]
 
@@ -195,6 +197,13 @@ AgentCanvas >> handleKeyDown: evt [
 	(evt key = KeyboardKey Z and: [ evt modifiers isShift not ]) ifTrue: [
 		evt consume.
 		self undoDeletion ]
+]
+
+{ #category : 'reactions' }
+AgentCanvas >> announcer [
+	"The canvas-wide announcer: FactChanged, WidgetChanged. Lazy for
+	migrated singletons."
+	^ announcer ifNil: [ announcer := Announcer new ]
 ]
 
 { #category : 'z order' }

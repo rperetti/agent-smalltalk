@@ -69,6 +69,23 @@ AgentFact >> key: aSymbol [
 	self headerText: 'fact[' , aSymbol asString , ']'
 ]
 
+{ #category : 'accessing' }
+AgentFact >> body: aString [
+	super body: aString.
+	self announceFactChanged
+]
+
+{ #category : 'reactions' }
+AgentFact >> noteBodyEdited [
+	self announceFactChanged
+]
+
+{ #category : 'reactions' }
+AgentFact >> announceFactChanged [
+	AgentCanvas current announcer announce:
+		(AgentFactChanged new key: key; fact: self; yourself)
+]
+
 { #category : 'agent context' }
 AgentFact >> describe [
 	^ String streamContents: [ :s |

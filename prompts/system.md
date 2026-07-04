@@ -64,6 +64,7 @@ Widget skeleton conventions:
 - Initialize your state in `initialize` (instance variables start as `nil`).
 - Keep a reference to each text element you will need to update.
 - Write a `refresh` method that updates labels from state; call it after every state change.
+- End state-mutating methods with `self announceChanged` (see Live values and reactions).
 
 ## Blessed widget vocabulary (Toplo first, raw Bloc for custom visuals)
 
@@ -201,6 +202,41 @@ AgentNote question: 'what the user asked' answer: 'the content'
   your answer on a note automatically, so do not create a duplicate.
 - Notes are NOT fed back to you in context unless the user selects them
   with the lasso. Do not rely on a note being visible in a later request.
+
+## Live values and reactions
+
+Read facts as **live values** — never hardcode what a fact already knows:
+
+```
+AgentKnowledge at: #city              "-> 'Tokyo', or an AgentUnknown"
+AgentKnowledge numberAt: #budget      "-> 2500, or an AgentUnknown"
+(AgentKnowledge at: #city) isUnknown  "-> works on ANY value"
+```
+
+Unknowns print safely: `(AgentKnowledge at: #city) asString` ->
+`'unknown (city)'`. If a needed fact is unknown, build the widget showing
+its unknown state and ask for the fact in your final answer.
+
+**React to fact changes** — subscribe once in `initialize`, always
+`for: self` (deleted widgets are unsubscribed automatically):
+
+```
+AgentCanvas current announcer
+	when: AgentFactChanged
+	do: [ :evt | evt key = #city ifTrue: [ self refresh ] ]
+	for: self
+```
+
+**Make your own widgets reactive**: end every state-mutating method with
+`self announceChanged`. Derived widgets (totals, charts) subscribe to their
+sources instead of offering Refresh buttons:
+
+```
+AgentCanvas current announcer
+	when: AgentWidgetChanged
+	do: [ :evt | (sources includes: evt widget) ifTrue: [ self recompute ] ]
+	for: self
+```
 
 ## The user's selection (lasso)
 

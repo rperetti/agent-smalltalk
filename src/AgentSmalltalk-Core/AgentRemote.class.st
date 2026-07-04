@@ -29,14 +29,57 @@ AgentRemote class >> port [
 { #category : 'running' }
 AgentRemote class >> ensureRunning [
 	"Guard on the VM flag, not UIManager: during GUI startup the UIManager
-	is still non-interactive, which silently blocked the listener."
+	is still non-interactive, which silently blocked the listener. All
+	setup is inside the handler and failures are LOGGED (logs/remote.log)
+	-- silent swallowing cost us a debugging session. The watchdog retries
+	every 30s, so a transient boot-time failure heals itself."
 	Smalltalk isHeadless ifTrue: [ ^ nil ].
+	self startWatchdog.
 	(server notNil and: [ server isRunning ]) ifTrue: [ ^ server ].
-	server := ZnServer on: self port.
-	server bindingAddress: NetNameResolver loopBackAddress.
-	server onRequestRespond: [ :request | self handleRequest: request ].
-	[ server start ] on: Error do: [ :e | server := nil ].
+	[ | s |
+		s := ZnServer on: self port.
+		s bindingAddress: NetNameResolver loopBackAddress.
+		s onRequestRespond: [ :request | self handleRequest: request ].
+		s start.
+		s isRunning
+			ifTrue: [ server := s ]
+			ifFalse: [
+				self logFailure: 'server started but is not running'.
+				server := nil ] ]
+		on: Error
+		do: [ :e |
+			self logFailure: e class name , ': ' , (e messageText ifNil: [ '' ]).
+			server := nil ].
 	^ server
+]
+
+{ #category : 'running' }
+AgentRemote class >> startWatchdog [
+	"One background process that revives the listener if it is ever down.
+	Identified by process name so saves/reopens cannot duplicate it."
+	(Process allSubInstances anySatisfy: [ :p |
+		p name = 'agent-remote-watchdog' and: [ p isTerminated not ] ])
+		ifTrue: [ ^ self ].
+	[ [ true ] whileTrue: [
+		30 seconds wait.
+		[ Smalltalk isHeadless ifFalse: [
+			(server notNil and: [ server isRunning ]) ifFalse: [ self ensureRunning ] ] ]
+			on: Error do: [ :e |  ] ] ]
+		forkNamed: 'agent-remote-watchdog'
+]
+
+{ #category : 'running' }
+AgentRemote class >> logFailure: aString [
+	[ | ref stream |
+	ref := (FileLocator image asFileReference parent parent / 'logs')
+		ensureCreateDirectory; / 'remote.log'.
+	stream := ref writeStream.
+	stream setToEnd.
+	stream nextPutAll: DateAndTime now printString , ' | ' , aString.
+	stream lf.
+	stream close ]
+		on: Error
+		do: [ :e |  ]
 ]
 
 { #category : 'running' }

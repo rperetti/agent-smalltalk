@@ -12,7 +12,8 @@ Class {
 	#superclass : 'AgentWidget',
 	#instVars : [
 		'headerLabel',
-		'bodyEditor'
+		'bodyEditor',
+		'editWired'
 	],
 	#category : 'AgentSmalltalk-UI',
 	#package : 'AgentSmalltalk-UI'
@@ -80,7 +81,24 @@ AgentSticky >> buildBody [
 	bodyEditor constraintsDo: [ :c |
 		c horizontal matchParent.
 		c vertical matchParent ].
-	self addChild: bodyEditor
+	self addChild: bodyEditor.
+	self ensureEditAnnouncement
+]
+
+{ #category : 'reactions' }
+AgentSticky >> ensureEditAnnouncement [
+	"Manual edits announce when the user clicks away (focus loss) -- chosen
+	over Album's editor-internal change events for reliability. Idempotent
+	for the update migration."
+	editWired == true ifTrue: [ ^ self ].
+	bodyEditor ifNil: [ ^ self ].
+	bodyEditor addEventHandlerOn: BlBlurEvent do: [ :evt | self noteBodyEdited ].
+	editWired := true
+]
+
+{ #category : 'reactions' }
+AgentSticky >> noteBodyEdited [
+	"Hook: species that broadcast their changes override (AgentFact does)."
 ]
 
 { #category : 'defaults' }
