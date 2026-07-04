@@ -89,6 +89,25 @@ AgentKnowledgeTest >> testManualEditHookAnnounces [
 ]
 
 { #category : 'tests' }
+AgentKnowledgeTest >> testManualDriftIsDetectedAndSwept [
+	| fact heard |
+	heard := OrderedCollection new.
+	fact := AgentFact key: #city body: 'Tokyo'.
+	self deny: fact hasUnannouncedEdit.
+	"Simulate a manual edit: text changes without going through body:"
+	(fact instVarNamed: #bodyEditor) text: 'Lisbon' asRopedText.
+	self assert: fact hasUnannouncedEdit.
+	AgentCanvas current announcer
+		when: AgentFactChanged
+		do: [ :evt | heard add: evt key ]
+		for: self.
+	AgentCanvas current announcePendingFactEdits.
+	self assert: (heard includes: #city).
+	self deny: fact hasUnannouncedEdit.
+	AgentCanvas current announcer unsubscribe: self
+]
+
+{ #category : 'tests' }
 AgentKnowledgeTest >> testWidgetAnnounceChanged [
 	| w heard |
 	w := AgentWidget new.

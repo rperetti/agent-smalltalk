@@ -129,6 +129,7 @@ AgentCanvas >> open [
 	self wireKeyboard.
 	self wireNavigation.
 	AgentRemote ensureRunning.
+	self startFactWatcher.
 	space show.
 	"Second chance on the first pulse, in case boot-time start failed."
 	space enqueueTask: (BlTaskAction new action: [ AgentRemote ensureRunning ])
@@ -170,6 +171,7 @@ AgentCanvas >> migrateAfterUpdate [
 		w ensureRaisesOnClick.
 		w repairElevation.
 		(w isKindOf: AgentSticky) ifTrue: [ w ensureEditAnnouncement ] ].
+	self startFactWatcher.
 	AgentRemote ensureRunning
 ]
 
@@ -197,6 +199,30 @@ AgentCanvas >> handleKeyDown: evt [
 	(evt key = KeyboardKey Z and: [ evt modifiers isShift not ]) ifTrue: [
 		evt consume.
 		self undoDeletion ]
+]
+
+{ #category : 'reactions' }
+AgentCanvas >> announcePendingFactEdits [
+	"Announce facts whose bodies drifted from their last announcement --
+	the safety net for manual edits when focus events don't deliver."
+	self facts do: [ :f |
+		f hasUnannouncedEdit ifTrue: [
+			[ f announceFactChanged ] on: Error do: [ :e |  ] ] ]
+]
+
+{ #category : 'reactions' }
+AgentCanvas >> startFactWatcher [
+	"GUI-only background sweep: manual sticky edits announce within ~3s
+	even if the blur event never fires (the Album focus risk the phase 4
+	spec flagged). Named process, so saves/reopens cannot duplicate it."
+	Smalltalk isHeadless ifTrue: [ ^ self ].
+	(Process allSubInstances anySatisfy: [ :p |
+		p name = 'agent-fact-watcher' and: [ p isTerminated not ] ])
+		ifTrue: [ ^ self ].
+	[ [ true ] whileTrue: [
+		3 seconds wait.
+		[ self announcePendingFactEdits ] on: Error do: [ :e |  ] ] ]
+		forkNamed: 'agent-fact-watcher'
 ]
 
 { #category : 'reactions' }

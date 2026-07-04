@@ -75,7 +75,10 @@ cannot propagate invisibly.
 ### Reactions (phase 4)
 
 One canvas-wide `announcer`. `AgentFactChanged` fires on agent updates
-(`AgentFact key:body:`) and manual sticky edits (announced on focus loss);
+(`AgentFact key:body:`) and manual sticky edits — announced on focus loss
+when Bloc delivers the blur, and guaranteed within ~3s regardless by a
+drift sweep (facts remember their last-announced body; a GUI-only watcher
+process announces any drift);
 `AgentWidgetChanged` fires via the widget convention `self announceChanged`
 in state mutators. Widgets subscribe `when:do:for: self` (the crib pattern);
 deletion auto-unsubscribes. Verified with generated code: a clock retuned on
@@ -243,7 +246,7 @@ packages.
 |---|---|
 | `./build.sh` | FRESH `pharo/Agent.image` from `src/` — destroys the world (`core` arg skips UI) |
 | `./update.sh` | reload tooling from `src/`; widgets/facts survive. If a session is RUNNING it updates that session in place via `AgentRemote` (localhost:8807, `/update`); otherwise it patches the image file headless. Diffs via TonelReader + `MCPackageLoader updatePackage:withSnapshot:`, so removed definitions unload too. Backs up the image first (keeps 5). Does not update Bloc/Toplo — use `build.sh` for dependency changes |
-| `./test.sh` | SUnit suite headless (currently 82 tests) |
+| `./test.sh` | SUnit suite headless (currently 83 tests) |
 | `./run.sh` | open the canvas UI |
 
 Headless acceptance scripts (`pharo ... st scripts/<name>.st`):

@@ -9,7 +9,8 @@ Class {
 	#name : 'AgentFact',
 	#superclass : 'AgentSticky',
 	#instVars : [
-		'key'
+		'key',
+		'lastAnnouncedBody'
 	],
 	#category : 'AgentSmalltalk-UI',
 	#package : 'AgentSmalltalk-UI'
@@ -82,8 +83,16 @@ AgentFact >> noteBodyEdited [
 
 { #category : 'reactions' }
 AgentFact >> announceFactChanged [
+	lastAnnouncedBody := self body.
 	AgentCanvas current announcer announce:
 		(AgentFactChanged new key: key; fact: self; yourself)
+]
+
+{ #category : 'reactions' }
+AgentFact >> hasUnannouncedEdit [
+	"True when the editor's text has drifted from what was last announced
+	-- i.e. a manual edit that no event delivered."
+	^ lastAnnouncedBody ~= self body
 ]
 
 { #category : 'agent context' }
