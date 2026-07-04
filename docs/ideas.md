@@ -35,6 +35,17 @@ the canvas — the system's behavior becomes direct-manipulable.
 Parked because: needs the variables story first, and it changes how the crib
 sheet is assembled per request.
 
+## Promote a note to a fact
+
+*From the answer-notes brainstorm (2026-07-03).*
+
+A note sometimes turns out to contain something durable ("actually, keep
+this"). Today the path is asking the agent to copy it into a fact; a direct
+gesture (drag note onto the facts pile? a button?) would make the
+ephemeral→durable transition a physical act, like deletion already is.
+Parked because: needs so little that it can ride along whenever sticky
+interactions next get touched.
+
 ## Theming the canvas and widgets
 
 *From the phase 2 brainstorm.*

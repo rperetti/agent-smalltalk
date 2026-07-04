@@ -116,20 +116,24 @@ AgentGateway >> statusBlock: aBlock [
 
 { #category : 'running' }
 AgentGateway >> run: userText [
-	| messages |
+	| messages widgetsBefore |
 	self class noteLast: self.
 	self logAdd: '===== USER REQUEST: ' , userText.
 	self status: 'thinking...'.
 	sandbox backupImage.
 	messages := OrderedCollection with:
 		{ 'role' -> 'user'. 'content' -> userText } asDictionary.
+	widgetsBefore := self canvasWidgetsSnapshot.
 	1 to: maxRounds do: [ :round |
 		| response content toolUses |
 		response := self post: messages.
 		content := response at: 'content'.
 		messages add: { 'role' -> 'assistant'. 'content' -> content } asDictionary.
 		toolUses := content select: [ :block | (block at: 'type') = 'tool_use' ].
-		toolUses isEmpty ifTrue: [ ^ self finalTextFrom: content ].
+		toolUses isEmpty ifTrue: [
+			^ self noteIfPureAnswer: (self finalTextFrom: content)
+				for: userText
+				since: widgetsBefore ].
 		self status: (round = 1
 			ifTrue: [ 'evaluating...' ]
 			ifFalse: [ 'working (round ' , round printString , ' of ' , maxRounds printString , ')...' ]).
@@ -187,6 +191,32 @@ AgentGateway >> post: messages [
 		self error: 'Anthropic API error: ' , client response statusLine printString
 			, ' — ' , (body ifNil: [ '<no body>' ]) printString ].
 	^ STONJSON fromString: body
+]
+
+{ #category : 'running' }
+AgentGateway >> canvasWidgetsSnapshot [
+	^ (Smalltalk globals at: #AgentCanvas ifAbsent: [ nil ])
+		ifNil: [ IdentitySet new ]
+		ifNotNil: [ :cls | cls current toolWidgets asIdentitySet ]
+]
+
+{ #category : 'running' }
+AgentGateway >> noteIfPureAnswer: answer for: userText since: widgetsBefore [
+	"The heuristic: if the run produced no widget, the text IS the
+	deliverable -- put it on an AgentNote so it lives on the canvas.
+	If the model already made a note (or any widget), skip: the canvas
+	speaks for itself. Always answers the text unchanged."
+	| canvasClass noteClass newWidgets |
+	canvasClass := Smalltalk globals at: #AgentCanvas ifAbsent: [ ^ answer ].
+	noteClass := Smalltalk globals at: #AgentNote ifAbsent: [ ^ answer ].
+	answer trimBoth isEmpty ifTrue: [ ^ answer ].
+	newWidgets := canvasClass current toolWidgets
+		reject: [ :w | widgetsBefore includes: w ].
+	newWidgets isEmpty ifTrue: [
+		[ noteClass question: userText answer: answer ]
+			on: Error
+			do: [ :e | self logAdd: 'note creation failed: ' , e messageText ] ].
+	^ answer
 ]
 
 { #category : 'running' }

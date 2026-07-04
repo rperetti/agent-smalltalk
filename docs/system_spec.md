@@ -114,6 +114,19 @@ never generated classes. Capture is implicit and loud: the crib instructs
 the model to save durable facts stated even in passing, and the sticky
 visibly appearing on the canvas is the announcement.
 
+### AgentNote (UI)
+
+Answers as paper: a pale-blue sticky holding informational output — the
+question in the header (provenance), the answer as an editable body,
+`x`-to-delete. Created two ways: the **gateway heuristic** (a run that
+produced no widget puts its final answer on a note automatically — the text
+was the deliverable) or **model-authored** via `AgentNote question:answer:`
+(the crib steers summaries and lookups here, never into facts). Placement:
+next to the selection if one exists, else a pile at the top-right mirroring
+the facts pile. Notes are **out of LLM context by default** — conversation
+residue, not knowledge — but feed context like any widget when lassoed into
+a selection (follow-up questions).
+
 ### AgentSpotlight (UI)
 
 The floating prompt bar: a wrapping multi-line `ToAlbum` editor (cursor,
@@ -171,7 +184,7 @@ packages.
 |---|---|
 | `./build.sh` | FRESH `pharo/Agent.image` from `src/` — destroys the world (`core` arg skips UI) |
 | `./update.sh` | reload tooling from `src/` into the LIVING image; widgets/facts survive. Diffs via TonelReader + `MCPackageLoader updatePackage:withSnapshot:`, so removed definitions unload too. Backs up the image first (keeps 5). Does not update Bloc/Toplo — use `build.sh` for dependency changes |
-| `./test.sh` | SUnit suite headless (currently 42 tests) |
+| `./test.sh` | SUnit suite headless (currently 50 tests) |
 | `./run.sh` | open the canvas UI |
 
 Headless acceptance scripts (`pharo ... st scripts/<name>.st`):

@@ -341,6 +341,18 @@ AgentCanvas >> factWithKey: aSymbol [
 	^ self facts detect: [ :f | f key = aSymbol ] ifNone: [ nil ]
 ]
 
+{ #category : 'widgets' }
+AgentCanvas >> notes [
+	^ self widgets select: [ :w | w isKindOf: AgentNote ]
+]
+
+{ #category : 'widgets' }
+AgentCanvas >> contextWidgets [
+	"What the full-canvas context lists: notes are conversation residue and
+	stay out of context unless the user lassoes them into a selection."
+	^ self toolWidgets reject: [ :w | w isKindOf: AgentNote ]
+]
+
 { #category : 'agent context' }
 AgentCanvas >> contextDescription [
 	^ String streamContents: [ :s |
@@ -360,7 +372,7 @@ AgentCanvas >> contextDescription [
 AgentCanvas >> fullWidgetsOn: s [
 	s << '## Widgets on the canvas'.
 	s cr.
-	self toolWidgets
+	self contextWidgets
 		ifEmpty: [ s << '(the canvas is empty)'. s cr ]
 		ifNotEmpty: [ :ws |
 			ws do: [ :w |

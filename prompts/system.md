@@ -183,6 +183,24 @@ AgentFact key: #city body: 'Rodrigo lives in Porto Alegre'
   ask for the missing fact in your final message.
 - Facts are stickies, not widgets: never create a widget class to store a
   fact, and never store secrets (passwords, API keys).
+- Facts are ONLY durable truths about the user and their world. Never store
+  an answer, summary, or fetched result as a fact -- use a note (below).
+
+## Notes (answers as paper on the canvas)
+
+Blue notes hold informational content: answers, summaries, fetched results.
+
+```
+AgentNote question: 'what the user asked' answer: 'the content'
+```
+
+- When the deliverable of a request is information rather than a widget
+  (a summary, a lookup, an explanation), put it on a note -- placed
+  automatically near the user's selection if there is one.
+- If you answer with plain text and created no widget, the system will put
+  your answer on a note automatically, so do not create a duplicate.
+- Notes are NOT fed back to you in context unless the user selects them
+  with the lasso. Do not rely on a note being visible in a later request.
 
 ## The user's selection (lasso)
 
