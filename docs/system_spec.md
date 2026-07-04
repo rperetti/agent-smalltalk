@@ -103,6 +103,13 @@ The contract every generated widget subclasses:
   `defineNamed:slots:` — the **blessed class-creation helper** that insulates
   the model from Pharo class-builder API drift. Generated classes go to the
   `AgentSmalltalk-Generated` package.
+- **Resize grip**: bottom-right corner of every widget (facts and notes
+  included), drag-event based, zoom-aware, clamped to 120×80 minimum.
+- **Deletion undo**: `removeFromParent` on a canvas widget records it on the
+  canvas undo stack (capped at 50, survives image save/reopen); Cmd/Ctrl+Z
+  restores the most recent deletion. Unrestorable entries (instances of
+  since-removed broken classes) are discarded silently. Widget-internal
+  state and moves are not undoable; code changes are Epicea's job.
 
 ### AgentFact (UI)
 
@@ -187,8 +194,8 @@ packages.
 | command | what it does |
 |---|---|
 | `./build.sh` | FRESH `pharo/Agent.image` from `src/` — destroys the world (`core` arg skips UI) |
-| `./update.sh` | reload tooling from `src/` into the LIVING image; widgets/facts survive. Diffs via TonelReader + `MCPackageLoader updatePackage:withSnapshot:`, so removed definitions unload too. Backs up the image first (keeps 5). Does not update Bloc/Toplo — use `build.sh` for dependency changes |
-| `./test.sh` | SUnit suite headless (currently 50 tests) |
+| `./update.sh` | reload tooling from `src/`; widgets/facts survive. If a session is RUNNING it updates that session in place via `AgentRemote` (localhost:8807, `/update`); otherwise it patches the image file headless. Diffs via TonelReader + `MCPackageLoader updatePackage:withSnapshot:`, so removed definitions unload too. Backs up the image first (keeps 5). Does not update Bloc/Toplo — use `build.sh` for dependency changes |
+| `./test.sh` | SUnit suite headless (currently 57 tests) |
 | `./run.sh` | open the canvas UI |
 
 Headless acceptance scripts (`pharo ... st scripts/<name>.st`):
@@ -213,13 +220,15 @@ Each prints the loop transcript for post-mortems.
   every round); no rotation yet.
 - **Memory rides the prompt**: every remembered fact is sent to the
   Anthropic API on every request — inherent to the architecture.
-- **One writer at a time**: a running GUI session holds tooling in memory;
-  saving it overwrites any `update.sh` applied meanwhile. `update.sh` now
-  refuses to run while a session is open — update the live session instead
-  by running `scripts/heal-in-image.st` in a Playground. That script also
-  repairs an image whose stale SSL sessions crash headless startup (a
-  startup hook, `AgentSandbox class>>startUp:`, neutralizes those
-  automatically going forward).
+- **One writer at a time, automated**: a running GUI session holds tooling
+  in memory; saving it would overwrite a file-level update. `update.sh`
+  therefore updates a running session *through* it: `AgentRemote`, a
+  localhost-only listener on port 8807 (`GET /ping`, `POST /update` — no
+  arbitrary eval; it only loads this repo's own `src/`). Started at canvas
+  open and at image startup; never in headless sessions. Pre-remote images
+  need one Playground paste of `scripts/heal-in-image.st`, which also
+  repairs stale-SSL-poisoned images (the `AgentSandbox class>>startUp:`
+  hook prevents that poisoning going forward).
 - **Reliability is anecdotal**: cold runs have been consistently green, but
   the demo-1 "8 of 10" bar was never formally measured.
 - Single user, single space, no multiplayer.
