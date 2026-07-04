@@ -25,7 +25,9 @@ AgentRemote class >> port [
 
 { #category : 'running' }
 AgentRemote class >> ensureRunning [
-	AgentUpdater isInteractive ifFalse: [ ^ nil ].
+	"Guard on the VM flag, not UIManager: during GUI startup the UIManager
+	is still non-interactive, which silently blocked the listener."
+	Smalltalk isHeadless ifTrue: [ ^ nil ].
 	(server notNil and: [ server isRunning ]) ifTrue: [ ^ server ].
 	server := ZnServer on: self port.
 	server bindingAddress: NetNameResolver loopBackAddress.

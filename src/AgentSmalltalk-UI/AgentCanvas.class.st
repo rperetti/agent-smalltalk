@@ -127,7 +127,9 @@ AgentCanvas >> open [
 	self wireKeyboard.
 	self wireNavigation.
 	AgentRemote ensureRunning.
-	space show
+	space show.
+	"Second chance on the first pulse, in case boot-time start failed."
+	space enqueueTask: (BlTaskAction new action: [ AgentRemote ensureRunning ])
 ]
 
 { #category : 'navigation' }

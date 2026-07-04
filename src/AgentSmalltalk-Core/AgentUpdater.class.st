@@ -24,7 +24,8 @@ AgentUpdater class >> srcDirectory [
 
 { #category : 'testing' }
 AgentUpdater class >> isInteractive [
-	^ (UIManager default isKindOf: NonInteractiveUIManager) not
+	"VM-flag based: correct at any point of the boot sequence."
+	^ Smalltalk isHeadless not
 ]
 
 { #category : 'updating' }
