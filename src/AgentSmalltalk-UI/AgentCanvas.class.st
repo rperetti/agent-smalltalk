@@ -158,7 +158,8 @@ AgentCanvas >> migrateAfterUpdate [
 	self isOpen ifFalse: [ ^ self ].
 	self ensureContent.
 	space root background: (Color fromHexString: 'F4F1E8').
-	self wireNavigation
+	self wireNavigation.
+	self notes do: [ :n | n repairHeader ]
 ]
 
 { #category : 'navigation' }

@@ -55,6 +55,9 @@ AgentNote >> initialize [
 		c horizontal matchParent.
 		c vertical fitContent ].
 	headerLabel := ToLabel new text: 'note'.
+	"Cap the width: a long question header must never push the delete
+	button off the right edge of the card."
+	headerLabel constraintsDo: [ :c | c horizontal exact: 160 ].
 	spacer := BlElement new.
 	spacer constraintsDo: [ :c |
 		c horizontal matchParent.
@@ -100,6 +103,13 @@ AgentNote >> body [
 { #category : 'accessing' }
 AgentNote >> body: aString [
 	bodyEditor text: aString asRopedText
+]
+
+{ #category : 'private' }
+AgentNote >> repairHeader [
+	"Migration for notes built before the header width cap."
+	headerLabel ifNotNil: [
+		headerLabel constraintsDo: [ :c | c horizontal exact: 160 ] ]
 ]
 
 { #category : 'private' }
