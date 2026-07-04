@@ -13,6 +13,25 @@ Class {
 	#package : 'AgentSmalltalk-Core'
 }
 
+{ #category : 'class initialization' }
+AgentSandbox class >> initialize [
+	"Run on package load: register for image-startup cleanup."
+	SessionManager default unregisterClassNamed: self name.
+	SessionManager default registerUserClassNamed: self name
+]
+
+{ #category : 'system startup' }
+AgentSandbox class >> startUp: resuming [
+	"Stale SSL sessions saved with the image hold dead platform handles;
+	their finalizers raise PrimitiveFailed and abort non-interactive
+	sessions at startup. Neutralize them: destroy is a no-op once the
+	handle is nil."
+	resuming ifTrue: [
+		(Smalltalk globals at: #ZdcPluginSSLSession ifAbsent: [ ^ self ])
+			allInstancesDo: [ :s |
+				[ s instVarNamed: #handle put: nil ] on: Error do: [ :e |  ] ] ]
+]
+
 { #category : 'initialization' }
 AgentSandbox >> initialize [
 	super initialize.

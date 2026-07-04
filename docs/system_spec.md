@@ -213,6 +213,13 @@ Each prints the loop transcript for post-mortems.
   every round); no rotation yet.
 - **Memory rides the prompt**: every remembered fact is sent to the
   Anthropic API on every request — inherent to the architecture.
+- **One writer at a time**: a running GUI session holds tooling in memory;
+  saving it overwrites any `update.sh` applied meanwhile. `update.sh` now
+  refuses to run while a session is open — update the live session instead
+  by running `scripts/heal-in-image.st` in a Playground. That script also
+  repairs an image whose stale SSL sessions crash headless startup (a
+  startup hook, `AgentSandbox class>>startUp:`, neutralizes those
+  automatically going forward).
 - **Reliability is anecdotal**: cold runs have been consistently green, but
   the demo-1 "8 of 10" bar was never formally measured.
 - Single user, single space, no multiplayer.
