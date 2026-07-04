@@ -111,6 +111,24 @@ The contract every generated widget subclasses:
   since-removed broken classes) are discarded silently. Widget-internal
   state and moves are not undoable; code changes are Epicea's job.
 
+### The sticky family (UI): AgentSticky → AgentFact / AgentNote / AgentSystemMessage
+
+`AgentSticky` (abstract) provides the card: header row (label + `x`-to-delete),
+editable `ToAlbum` body, keyed pile placement. The corners of the canvas
+carry meaning: **facts pile top-left, notes top-right, system messages
+bottom-left** (spotlight appears top-center).
+
+#### AgentSystemMessage
+
+The system's own voice — gray stickies announcing things the user did NOT
+initiate. `AgentSystemMessage post: '...' key: #someKey`; same-key messages
+**coalesce** (header becomes `system x3 14:32`) instead of stacking.
+Deleting is acknowledging. Out of LLM context unless lassoed. Producers
+today: `AgentUpdater` (every update announces itself — including headless
+updates, whose message waits in the image for the next open) and
+swallowed note-creation failures. This is the seed of the future inbox
+(see ideas: agent-initiated work).
+
 ### AgentFact (UI)
 
 Sticky-note memory: a small pale-yellow
@@ -195,7 +213,7 @@ packages.
 |---|---|
 | `./build.sh` | FRESH `pharo/Agent.image` from `src/` — destroys the world (`core` arg skips UI) |
 | `./update.sh` | reload tooling from `src/`; widgets/facts survive. If a session is RUNNING it updates that session in place via `AgentRemote` (localhost:8807, `/update`); otherwise it patches the image file headless. Diffs via TonelReader + `MCPackageLoader updatePackage:withSnapshot:`, so removed definitions unload too. Backs up the image first (keeps 5). Does not update Bloc/Toplo — use `build.sh` for dependency changes |
-| `./test.sh` | SUnit suite headless (currently 57 tests) |
+| `./test.sh` | SUnit suite headless (currently 69 tests) |
 | `./run.sh` | open the canvas UI |
 
 Headless acceptance scripts (`pharo ... st scripts/<name>.st`):

@@ -416,10 +416,16 @@ AgentCanvas >> notes [
 ]
 
 { #category : 'widgets' }
+AgentCanvas >> systemMessages [
+	^ self widgets select: [ :w | w isKindOf: AgentSystemMessage ]
+]
+
+{ #category : 'widgets' }
 AgentCanvas >> contextWidgets [
-	"What the full-canvas context lists: notes are conversation residue and
-	stay out of context unless the user lassoes them into a selection."
-	^ self toolWidgets reject: [ :w | w isKindOf: AgentNote ]
+	"What the full-canvas context lists: notes and system messages stay out
+	of context unless the user lassoes them into a selection."
+	^ self toolWidgets reject: [ :w |
+		(w isKindOf: AgentNote) or: [ w isKindOf: AgentSystemMessage ] ]
 ]
 
 { #category : 'agent context' }

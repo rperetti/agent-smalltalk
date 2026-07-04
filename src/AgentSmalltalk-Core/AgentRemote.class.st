@@ -42,9 +42,10 @@ AgentRemote class >> stop [
 
 { #category : 'running' }
 AgentRemote class >> handleRequest: request [
-	request uri path = '/ping' ifTrue: [
+	"ZnUrl>>path answers the path without its leading slash."
+	request uri path = 'ping' ifTrue: [
 		^ ZnResponse ok: (ZnEntity text: 'agent-smalltalk alive') ].
-	(request uri path = '/update' and: [ request method = #POST ]) ifTrue: [
+	(request uri path = 'update' and: [ request method = #POST ]) ifTrue: [
 		^ [ AgentUpdater updateFromSrc.
 			ZnResponse ok: (ZnEntity text: 'updated') ]
 			on: Error

@@ -50,6 +50,20 @@ AgentUpdater class >> runMigrations [
 		ifTrue: [
 			canvas space enqueueTask: ((Smalltalk globals at: #BlTaskAction) new action: [
 				canvas migrateAfterUpdate.
+				self postUpdateMessage.
 				Smalltalk snapshot: true andQuit: false ]) ]
-		ifFalse: [ canvas migrateAfterUpdate ]
+		ifFalse: [
+			canvas migrateAfterUpdate.
+			self postUpdateMessage ]
+]
+
+{ #category : 'updating' }
+AgentUpdater class >> postUpdateMessage [
+	"The system's voice: announce updates the user did not initiate. A
+	headless (closed-session) update posts too -- the message persists in
+	the image and greets the user on next open."
+	(Smalltalk globals at: #AgentSystemMessage ifAbsent: [ ^ self ])
+		post: 'Tooling updated from src ('
+			, self packageNames size printString , ' packages).'
+		key: #imageUpdate
 ]

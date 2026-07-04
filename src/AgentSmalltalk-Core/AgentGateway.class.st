@@ -215,7 +215,12 @@ AgentGateway >> noteIfPureAnswer: answer for: userText since: widgetsBefore [
 	newWidgets isEmpty ifTrue: [
 		[ noteClass question: userText answer: answer ]
 			on: Error
-			do: [ :e | self logAdd: 'note creation failed: ' , e messageText ] ].
+			do: [ :e |
+				self logAdd: 'note creation failed: ' , e messageText.
+				(Smalltalk globals at: #AgentSystemMessage ifAbsent: [ nil ])
+					ifNotNil: [ :msgClass |
+						[ msgClass post: 'Failed to create an answer note: ' , e messageText
+							key: #noteFailure ] on: Error do: [ :e2 |  ] ] ] ].
 	^ answer
 ]
 
