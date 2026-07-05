@@ -41,15 +41,25 @@ AgentRemote class >> ensureRunning [
 	self trace: 'ensureRunning'.
 	self startWatchdog.
 	(server notNil and: [ server isRunning ]) ifTrue: [ ^ server ].
+	"Bury the predecessor BEFORE replacing it: a not-isRunning server can
+	still own a zombie [listenLoop] repeat process (snapshot-resumed) that
+	retries binding forever against the new server -- an in-image port
+	fight raising debuggers on every retry."
+	self stop.
 	[ | s |
 		s := ZnServer on: self port.
 		s bindingAddress: NetNameResolver loopBackAddress.
 		s onRequestRespond: [ :request | self handleRequest: request ].
 		s start.
+		"start is ASYNC: the listen loop binds a beat later. Checking
+		isRunning immediately declared healthy servers dead, orphaning
+		them while the watchdog spawned rivals -- the in-image port fight."
+		1 to: 25 do: [ :i | s isRunning ifFalse: [ 200 milliSeconds wait ] ].
 		s isRunning
 			ifTrue: [ server := s ]
 			ifFalse: [
-				self logFailure: 'server started but is not running'.
+				[ s stop ] on: Error do: [ :e |  ].
+				self logFailure: 'server did not reach running state'.
 				server := nil ] ]
 		on: Error
 		do: [ :e |
