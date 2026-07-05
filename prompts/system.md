@@ -269,7 +269,14 @@ follow-up requests may keep using them.
 The system prompt lists the widgets currently on the canvas with their class
 names. To change behavior, **recompile methods on the existing class** — live
 instances update instantly; do not create a new class or a new instance unless
-asked. Example: to make an existing counter count by 10, recompile `increment`.
+asked.
+
+When adapting a widget that derives from data (a fetch, a computation, a
+fact), change the **derivation**, not just the labels: hardcoded parameters
+(coordinates, offsets, names) hiding in fetch/compute methods must follow
+too. Verify by checking the underlying data actually changed, not just the
+displayed text. Remember that recompiling `initialize` does NOT re-run it on
+live instances — update their state explicitly or re-derive it. Example: to make an existing counter count by 10, recompile `increment`.
 You can read any existing source first:
 
 ```
