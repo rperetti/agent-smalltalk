@@ -34,9 +34,10 @@ AgentRemoteTest >> testUpdateRequiresPost [
 ]
 
 { #category : 'tests' }
-AgentRemoteTest >> testServerRefusesHeadlessSessions [
-	"In the non-interactive test run, ensureRunning must be a no-op."
-	self assert: AgentRemote ensureRunning isNil
+AgentRemoteTest >> testStopIsIdempotent [
+	"ensureRunning itself is integration-tested by pinging a live session;
+	here we only assert lifecycle calls never raise (port state varies)."
+	self shouldnt: [ AgentRemote stop. AgentRemote stop ] raise: Error
 ]
 
 { #category : 'tests' }

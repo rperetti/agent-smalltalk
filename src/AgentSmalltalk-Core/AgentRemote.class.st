@@ -33,7 +33,12 @@ AgentRemote class >> ensureRunning [
 	setup is inside the handler and failures are LOGGED (logs/remote.log)
 	-- silent swallowing cost us a debugging session. The watchdog retries
 	every 30s, so a transient boot-time failure heals itself."
-	Smalltalk isHeadless ifTrue: [ ^ nil ].
+	"No headless guard: Smalltalk isHeadless lies (true) in eval-launched
+	GUI sessions and the --headless VM flag never reaches the image, so
+	there is no reliable discriminator. The listener runs everywhere;
+	script sessions stop it at their snapshot/quit (shutDown:), and a
+	bind conflict fails gracefully into logs/remote.log."
+	self trace: 'ensureRunning'.
 	self startWatchdog.
 	(server notNil and: [ server isRunning ]) ifTrue: [ ^ server ].
 	[ | s |
@@ -62,9 +67,8 @@ AgentRemote class >> startWatchdog [
 		ifTrue: [ ^ self ].
 	[ [ true ] whileTrue: [
 		30 seconds wait.
-		[ Smalltalk isHeadless ifFalse: [
-			(server notNil and: [ server isRunning ]) ifFalse: [ self ensureRunning ].
-			self writeHeartbeat ] ]
+		[ (server notNil and: [ server isRunning ]) ifFalse: [ self ensureRunning ].
+		self writeHeartbeat ]
 			on: Error do: [ :e |  ] ] ]
 		forkNamed: 'agent-remote-watchdog'
 ]
@@ -83,6 +87,21 @@ AgentRemote class >> writeHeartbeat [
 			nextPutAll: ' | listener: ';
 			nextPutAll: (server notNil and: [ server isRunning ]) printString;
 			lf ] ]
+		on: Error
+		do: [ :e |  ]
+]
+
+{ #category : 'running' }
+AgentRemote class >> trace: aString [
+	"Unconditional breadcrumbs to logs/startup.log for boot-order debugging."
+	[ | ref stream |
+	ref := (FileLocator image asFileReference parent parent / 'logs')
+		ensureCreateDirectory; / 'startup.log'.
+	stream := ref writeStream.
+	stream setToEnd.
+	stream nextPutAll: DateAndTime now printString , ' | ' , aString.
+	stream lf.
+	stream close ]
 		on: Error
 		do: [ :e |  ]
 ]

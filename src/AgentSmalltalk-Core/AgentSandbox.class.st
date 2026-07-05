@@ -30,6 +30,7 @@ AgentSandbox class >> shutDown: quitting [
 
 { #category : 'system startup' }
 AgentSandbox class >> startUp: resuming [
+	AgentRemote trace: 'AgentSandbox startUp: resuming=' , resuming printString.
 	"Stale SSL sessions saved with the image hold dead platform handles;
 	their finalizers raise PrimitiveFailed and abort non-interactive
 	sessions at startup. Neutralize them: destroy is a no-op once the
@@ -40,8 +41,11 @@ AgentSandbox class >> startUp: resuming [
 				cls allInstancesDo: [ :s |
 					[ s instVarNamed: #handle put: nil ] on: Error do: [ :e |  ] ] ] ].
 	"Restart the listener on BOTH sides of a snapshot: when saving,
-	startUp: fires with resuming=false, and shutDown: just stopped it."
-	AgentRemote ensureRunning
+	startUp: fires with resuming=false, and shutDown: just stopped it.
+	Deferred: Smalltalk isHeadless answers TRUE during GUI startup (the
+	display is not up yet), so an immediate attempt self-cancels."
+	AgentRemote ensureRunning.
+	[ 5 seconds wait. AgentRemote ensureRunning ] forkNamed: 'agent-remote-boot'
 ]
 
 { #category : 'initialization' }

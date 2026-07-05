@@ -112,7 +112,13 @@ AgentCanvas >> ensureContent [
 { #category : 'opening' }
 AgentCanvas >> open [
 	space ifNotNil: [
-		space isOpened ifTrue: [ ^ self ].
+		space isOpened ifTrue: [
+			"Bloc auto-restored the saved window at startup: open is a
+			no-op for the UI, but session services must still start."
+			AgentRemote trace: 'open: space auto-restored, starting services'.
+			AgentRemote ensureRunning.
+			self startFactWatcher.
+			^ self ].
 		"Stale space: the image was saved from a headless session (update.sh),
 		so the space object outlived its OS window. Rebuild the window around
 		the existing content -- widgets and their handlers all survive."
@@ -128,11 +134,14 @@ AgentCanvas >> open [
 	space root addChild: content.
 	self wireKeyboard.
 	self wireNavigation.
+	AgentRemote trace: 'AgentCanvas open: before show'.
 	AgentRemote ensureRunning.
 	self startFactWatcher.
 	space show.
 	"Second chance on the first pulse, in case boot-time start failed."
-	space enqueueTask: (BlTaskAction new action: [ AgentRemote ensureRunning ])
+	space enqueueTask: (BlTaskAction new action: [
+		AgentRemote trace: 'first pulse retry'.
+		AgentRemote ensureRunning ])
 ]
 
 { #category : 'navigation' }
