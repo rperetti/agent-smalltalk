@@ -112,11 +112,15 @@ AgentCanvas >> ensureContent [
 
 { #category : 'opening' }
 AgentCanvas >> open [
+	"This is a GUI-only entry point (launched via `eval AgentCanvas open`),
+	so it is THE place that enables the remote listener -- the one signal
+	that reliably means interactive, since every saved flag is poisoned by
+	GUI-saved images resumed headless."
+	AgentRemote enable.
 	space ifNotNil: [
 		space isOpened ifTrue: [
-			"Bloc auto-restored the saved window at startup: open is a
-			no-op for the UI, but session services must still start."
-			AgentRemote trace: 'open: space auto-restored, starting services'.
+			"Bloc auto-restored the saved window at startup: open is a no-op
+			for the UI, but session services must still start."
 			AgentRemote ensureRunning.
 			self startFactWatcher.
 			^ self ].
@@ -135,14 +139,9 @@ AgentCanvas >> open [
 	space root addChild: content.
 	self wireKeyboard.
 	self wireNavigation.
-	AgentRemote trace: 'AgentCanvas open: before show'.
 	AgentRemote ensureRunning.
 	self startFactWatcher.
-	space show.
-	"Second chance on the first pulse, in case boot-time start failed."
-	space enqueueTask: (BlTaskAction new action: [
-		AgentRemote trace: 'first pulse retry'.
-		AgentRemote ensureRunning ])
+	space show
 ]
 
 { #category : 'navigation' }

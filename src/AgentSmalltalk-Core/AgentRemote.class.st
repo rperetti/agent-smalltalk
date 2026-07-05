@@ -3,19 +3,24 @@ I am the living image's ear: a localhost-only HTTP listener (port 8807) so
 tooling outside the process can update the RUNNING session instead of
 refusing (update.sh) or requiring a Playground paste. Endpoints:
   GET  /ping    -- liveness check
-  POST /update  -- AgentUpdater updateFromSrc (reload our packages, migrate
-                   on the UI thread, save)
-  POST /eval    -- evaluate the request body via AgentSandbox; answers the
-                   RESULT:/ERROR: report. Operator diagnostics for the live
-                   session (localhost-only; same trust level as the gateway,
-                   which already executes generated code).
-I never start in non-interactive sessions.
+  POST /update  -- AgentUpdater updateFromSrc (reload packages, migrate, save)
+  POST /eval    -- evaluate the request body via AgentSandbox (operator
+                   diagnostics; localhost-only, gateway-level trust).
+
+I run ONLY in an interactive GUI session, detected by the `enabled` flag:
+every fresh boot resets it to false (AgentSandbox startUp:), and only
+AgentCanvas open turns it on. This is the sole poison-proof discriminator --
+a headless VM loading a GUI-saved image inherits every saved flag (isHeadless,
+space isOpened, even OSWindow instances) as stale truth, but startUp: runs
+fresh each launch. Headless updates and probes never call open, so they never
+bind the port.
 "
 Class {
 	#name : 'AgentRemote',
 	#superclass : 'Object',
 	#classInstVars : [
-		'server'
+		'server',
+		'enabled'
 	],
 	#category : 'AgentSmalltalk-Core',
 	#package : 'AgentSmalltalk-Core'
@@ -26,34 +31,40 @@ AgentRemote class >> port [
 	^ 8807
 ]
 
+{ #category : 'enabling' }
+AgentRemote class >> enable [
+	"Called only from the GUI AgentCanvas open path."
+	enabled := true
+]
+
+{ #category : 'enabling' }
+AgentRemote class >> disable [
+	"Called from AgentSandbox startUp: on every fresh boot, so a GUI-saved
+	image resumed headless starts with the listener OFF until open re-enables."
+	enabled := false.
+	self stop
+]
+
+{ #category : 'enabling' }
+AgentRemote class >> isEnabled [
+	^ enabled == true
+]
+
 { #category : 'running' }
 AgentRemote class >> ensureRunning [
-	"Guard on the VM flag, not UIManager: during GUI startup the UIManager
-	is still non-interactive, which silently blocked the listener. All
-	setup is inside the handler and failures are LOGGED (logs/remote.log)
-	-- silent swallowing cost us a debugging session. The watchdog retries
-	every 30s, so a transient boot-time failure heals itself."
-	"No headless guard: Smalltalk isHeadless lies (true) in eval-launched
-	GUI sessions and the --headless VM flag never reaches the image, so
-	there is no reliable discriminator. The listener runs everywhere;
-	script sessions stop it at their snapshot/quit (shutDown:), and a
-	bind conflict fails gracefully into logs/remote.log."
-	self trace: 'ensureRunning'.
+	"No-op unless this is a GUI session (enabled). Idempotent: a healthy
+	server is left alone. Otherwise bury any predecessor and start one,
+	polling for the ASYNC listen loop to actually bind."
+	self isEnabled ifFalse: [ ^ nil ].
 	self startWatchdog.
 	(server notNil and: [ server isRunning ]) ifTrue: [ ^ server ].
-	"Bury the predecessor BEFORE replacing it: a not-isRunning server can
-	still own a zombie [listenLoop] repeat process (snapshot-resumed) that
-	retries binding forever against the new server -- an in-image port
-	fight raising debuggers on every retry."
 	self stop.
 	[ | s |
 		s := ZnServer on: self port.
 		s bindingAddress: NetNameResolver loopBackAddress.
 		s onRequestRespond: [ :request | self handleRequest: request ].
 		s start.
-		"start is ASYNC: the listen loop binds a beat later. Checking
-		isRunning immediately declared healthy servers dead, orphaning
-		them while the watchdog spawned rivals -- the in-image port fight."
+		"start forks the listen loop; isRunning flips true a beat later."
 		1 to: 25 do: [ :i | s isRunning ifFalse: [ 200 milliSeconds wait ] ].
 		s isRunning
 			ifTrue: [ server := s ]
@@ -70,50 +81,45 @@ AgentRemote class >> ensureRunning [
 
 { #category : 'running' }
 AgentRemote class >> startWatchdog [
-	"One background process that revives the listener if it is ever down.
-	Identified by process name so saves/reopens cannot duplicate it."
+	"One background reviver, gated on enabled and identified by name so
+	saves/reopens cannot duplicate it."
 	(Process allSubInstances anySatisfy: [ :p |
 		p name = 'agent-remote-watchdog' and: [ p isTerminated not ] ])
 		ifTrue: [ ^ self ].
 	[ [ true ] whileTrue: [
 		30 seconds wait.
-		[ (server notNil and: [ server isRunning ]) ifFalse: [ self ensureRunning ].
-		self writeHeartbeat ]
+		[ self isEnabled ifTrue: [
+			(server notNil and: [ server isRunning ]) ifFalse: [ self ensureRunning ].
+			self writeHeartbeat ] ]
 			on: Error do: [ :e |  ] ] ]
 		forkNamed: 'agent-remote-watchdog'
 ]
 
 { #category : 'running' }
+AgentRemote class >> stop [
+	"Stop the server AND terminate any stray Zn listen-loop processes bound
+	to our port, so a resumed snapshot cannot leave a zombie fighting a new
+	server for the bind."
+	server ifNotNil: [ [ server stop ] on: Error do: [ :e |  ] ].
+	server := nil.
+	[ ZnServer allSubInstances do: [ :s |
+		(s port = self port) ifTrue: [ [ s stop ] on: Error do: [ :e |  ] ] ] ]
+		on: Error do: [ :e |  ]
+]
+
+{ #category : 'running' }
 AgentRemote class >> writeHeartbeat [
-	"logs/session.status, overwritten each beat: sessions self-report their
-	listener state to disk, so a silent session is diagnosable from outside
-	even with no socket."
-	[ | ref |
-	ref := (FileLocator image asFileReference parent parent / 'logs')
-		ensureCreateDirectory; / 'session.status'.
+	[ | dir ref |
+	dir := FileLocator image asFileReference parent parent / 'logs'.
+	dir ensureCreateDirectory.
+	ref := dir / 'session.status'.
 	ref writeStreamDo: [ :stream |
 		stream
 			nextPutAll: DateAndTime now printString;
 			nextPutAll: ' | listener: ';
 			nextPutAll: (server notNil and: [ server isRunning ]) printString;
 			lf ] ]
-		on: Error
-		do: [ :e |  ]
-]
-
-{ #category : 'running' }
-AgentRemote class >> trace: aString [
-	"Unconditional breadcrumbs to logs/startup.log for boot-order debugging."
-	[ | ref stream |
-	ref := (FileLocator image asFileReference parent parent / 'logs')
-		ensureCreateDirectory; / 'startup.log'.
-	stream := ref writeStream.
-	stream setToEnd.
-	stream nextPutAll: DateAndTime now printString , ' | ' , aString.
-	stream lf.
-	stream close ]
-		on: Error
-		do: [ :e |  ]
+		on: Error do: [ :e |  ]
 ]
 
 { #category : 'running' }
@@ -123,17 +129,8 @@ AgentRemote class >> logFailure: aString [
 		ensureCreateDirectory; / 'remote.log'.
 	stream := ref writeStream.
 	stream setToEnd.
-	stream nextPutAll: DateAndTime now printString , ' | ' , aString.
-	stream lf.
-	stream close ]
-		on: Error
-		do: [ :e |  ]
-]
-
-{ #category : 'running' }
-AgentRemote class >> stop [
-	server ifNotNil: [ [ server stop ] on: Error do: [ :e |  ] ].
-	server := nil
+	stream nextPutAll: DateAndTime now printString , ' | ' , aString; lf; close ]
+		on: Error do: [ :e |  ]
 ]
 
 { #category : 'running' }
