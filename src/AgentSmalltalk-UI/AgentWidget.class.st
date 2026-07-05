@@ -123,6 +123,19 @@ AgentWidget >> removeFromParent [
 ]
 
 { #category : 'reactions' }
+AgentWidget >> flashUpdated [
+	"Blink an accent border so reactions are VISIBLE -- a widget that
+	updates itself imperceptibly reads as broken. Thread-safe; restores
+	the selection highlight when selected."
+	[ self border: (BlBorder paint: (Color fromHexString: '4A90D9') width: 2).
+	(Delay forSeconds: 1) wait.
+	(AgentCanvas current selectedWidgets includes: self)
+		ifTrue: [ self highlightSelected ]
+		ifFalse: [ self border: self defaultBorder ] ]
+		forkNamed: 'agent-flash'
+]
+
+{ #category : 'reactions' }
 AgentWidget >> announceChanged [
 	"Convention: state-mutating methods end with this, so derived widgets
 	(totals, charts) can react instead of needing Refresh buttons."

@@ -234,6 +234,11 @@ AgentCanvas current announcer
 	for: self
 ```
 
+**Make reactions visible**: when your widget updates itself in response to
+a FactChanged/WidgetChanged, end the reaction with `self flashUpdated` (a
+brief accent-border blink) — otherwise a self-updating widget whose new
+data happens to look similar reads as broken.
+
 **Make your own widgets reactive**: end every state-mutating method with
 `self announceChanged`. Derived widgets (totals, charts) subscribe to their
 sources instead of offering Refresh buttons:
