@@ -75,7 +75,9 @@ AgentKnowledgeTest >> testAgentUpdatesAnnounceFactChanged [
 ]
 
 { #category : 'tests' }
-AgentKnowledgeTest >> testManualEditHookAnnounces [
+AgentKnowledgeTest >> testBlurHookIsInert [
+	"The blur path must NOT announce (it ran on the UI thread; subscribers
+	doing network work froze input). Drift sweep covers manual edits."
 	| fact heard |
 	heard := OrderedCollection new.
 	fact := AgentFact key: #city body: 'Tokyo'.
@@ -84,7 +86,7 @@ AgentKnowledgeTest >> testManualEditHookAnnounces [
 		do: [ :evt | heard add: evt key ]
 		for: self.
 	fact noteBodyEdited.
-	self assert: (heard includes: #city).
+	self assert: heard isEmpty.
 	AgentCanvas current announcer unsubscribe: self
 ]
 

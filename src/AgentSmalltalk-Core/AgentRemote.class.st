@@ -63,9 +63,28 @@ AgentRemote class >> startWatchdog [
 	[ [ true ] whileTrue: [
 		30 seconds wait.
 		[ Smalltalk isHeadless ifFalse: [
-			(server notNil and: [ server isRunning ]) ifFalse: [ self ensureRunning ] ] ]
+			(server notNil and: [ server isRunning ]) ifFalse: [ self ensureRunning ].
+			self writeHeartbeat ] ]
 			on: Error do: [ :e |  ] ] ]
 		forkNamed: 'agent-remote-watchdog'
+]
+
+{ #category : 'running' }
+AgentRemote class >> writeHeartbeat [
+	"logs/session.status, overwritten each beat: sessions self-report their
+	listener state to disk, so a silent session is diagnosable from outside
+	even with no socket."
+	[ | ref |
+	ref := (FileLocator image asFileReference parent parent / 'logs')
+		ensureCreateDirectory; / 'session.status'.
+	ref writeStreamDo: [ :stream |
+		stream
+			nextPutAll: DateAndTime now printString;
+			nextPutAll: ' | listener: ';
+			nextPutAll: (server notNil and: [ server isRunning ]) printString;
+			lf ] ]
+		on: Error
+		do: [ :e |  ]
 ]
 
 { #category : 'running' }

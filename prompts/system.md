@@ -239,6 +239,15 @@ a FactChanged/WidgetChanged, end the reaction with `self flashUpdated` (a
 brief accent-border blink) — otherwise a self-updating widget whose new
 data happens to look similar reads as broken.
 
+**Keep reactions FAST — fork slow work.** Subscription blocks may run on
+any thread, including sweeps close to the UI. A network fetch inside a
+reaction freezes input. Pattern for slow reactions:
+
+```
+do: [ :evt | evt key = #city ifTrue: [
+	[ self fetchWeather. self flashUpdated ] forkNamed: 'weather-react' ] ]
+```
+
 **Make your own widgets reactive**: end every state-mutating method with
 `self announceChanged`. Derived widgets (totals, charts) subscribe to their
 sources instead of offering Refresh buttons:

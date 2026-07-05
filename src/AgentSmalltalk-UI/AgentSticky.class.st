@@ -87,18 +87,17 @@ AgentSticky >> buildBody [
 
 { #category : 'reactions' }
 AgentSticky >> ensureEditAnnouncement [
-	"Manual edits announce when the user clicks away (focus loss) -- chosen
-	over Album's editor-internal change events for reliability. Idempotent
-	for the update migration."
-	editWired == true ifTrue: [ ^ self ].
-	bodyEditor ifNil: [ ^ self ].
-	bodyEditor addEventHandlerOn: BlBlurEvent do: [ :evt | self noteBodyEdited ].
-	editWired := true
+	"Deliberately empty. The blur path announced ON THE UI THREAD, and
+	subscribers doing network work froze all input (dead panning, broken
+	lasso). Manual edits are detected solely by the canvas drift sweep,
+	which always announces from its own background process."
 ]
 
 { #category : 'reactions' }
 AgentSticky >> noteBodyEdited [
-	"Hook: species that broadcast their changes override (AgentFact does)."
+	"No-op kept for compatibility: stickies saved with the old blur handler
+	still send this on focus loss; announcing here would run subscribers on
+	the UI thread. The drift sweep announces instead."
 ]
 
 { #category : 'defaults' }

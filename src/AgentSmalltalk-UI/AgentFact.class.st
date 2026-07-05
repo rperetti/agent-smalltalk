@@ -77,11 +77,6 @@ AgentFact >> body: aString [
 ]
 
 { #category : 'reactions' }
-AgentFact >> noteBodyEdited [
-	self announceFactChanged
-]
-
-{ #category : 'reactions' }
 AgentFact >> announceFactChanged [
 	lastAnnouncedBody := self body.
 	AgentCanvas current announcer announce:
