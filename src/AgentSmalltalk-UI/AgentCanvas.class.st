@@ -23,6 +23,7 @@ Class {
 		'dragStart',
 		'panStart',
 		'lassoElement',
+		'pressShift',
 		'navWired',
 		'rootWired',
 		'undoStack',
@@ -147,22 +148,27 @@ AgentCanvas >> open [
 { #category : 'navigation' }
 AgentCanvas >> wireNavigation [
 	"Attach THIN handlers that only delegate: behavior then updates via
-	method recompilation, no rewiring needed. Handlers sit on the content
-	AND on the space root (panning exposes root areas outside content);
-	the isConsumed guards in the handle* methods prevent double handling.
-	Idempotent per element via navWired / rootWired."
-	navWired == true ifFalse: [
-		content addEventHandlerOn: BlMouseDownEvent do: [ :evt | self handleMouseDown: evt ].
-		content addEventHandlerOn: BlMouseMoveEvent do: [ :evt | self handleMouseMove: evt ].
-		content addEventHandlerOn: BlMouseUpEvent do: [ :evt | self handleMouseUp: evt ].
-		content addEventHandlerOn: BlMouseWheelEvent do: [ :evt | self handleWheel: evt ].
-		navWired := true ].
-	(space notNil and: [ rootWired ~~ true ]) ifTrue: [
-		space root addEventHandlerOn: BlMouseDownEvent do: [ :evt | self handleMouseDown: evt ].
-		space root addEventHandlerOn: BlMouseMoveEvent do: [ :evt | self handleMouseMove: evt ].
-		space root addEventHandlerOn: BlMouseUpEvent do: [ :evt | self handleMouseUp: evt ].
-		space root addEventHandlerOn: BlMouseWheelEvent do: [ :evt | self handleWheel: evt ].
-		rootWired := true ]
+	method recompilation. Gestures use DRAG events: Bloc delivers them to
+	the originating element for the whole gesture, so widgets under the
+	moving cursor cannot eat them (bubbled mouse-moves get consumed by
+	widget internals -- the lasso 'invisible wall'). Version 2 wiring;
+	the isConsumed guards prevent double handling next to v1 leftovers."
+	navWired == 2 ifFalse: [
+		self wireGesturesOn: content.
+		navWired := 2 ].
+	(space notNil and: [ rootWired ~~ 2 ]) ifTrue: [
+		self wireGesturesOn: space root.
+		rootWired := 2 ]
+]
+
+{ #category : 'navigation' }
+AgentCanvas >> wireGesturesOn: anElement [
+	anElement addEventHandlerOn: BlMouseDownEvent do: [ :evt | self handleMouseDown: evt ].
+	anElement addEventHandlerOn: BlDragStartEvent do: [ :evt | self handleDragStart: evt ].
+	anElement addEventHandlerOn: BlDragEvent do: [ :evt | self handleDrag: evt ].
+	anElement addEventHandlerOn: BlDragEndEvent do: [ :evt | self handleDragEnd: evt ].
+	anElement addEventHandlerOn: BlClickEvent do: [ :evt | self handleCanvasClick: evt ].
+	anElement addEventHandlerOn: BlMouseWheelEvent do: [ :evt | self handleWheel: evt ]
 ]
 
 { #category : 'navigation' }
@@ -281,14 +287,37 @@ AgentCanvas >> undoDeletion [
 
 { #category : 'navigation' }
 AgentCanvas >> handleMouseDown: evt [
+	"Record press context only. NOT consumed: Bloc must still synthesize
+	the click and drag gestures from this press. Shift is captured here
+	because drag events may not carry key modifiers."
+	(evt target == content or: [ space notNil and: [ evt target == space root ] ])
+		ifFalse: [ pressShift := nil. ^ self ].
+	self removeLasso.
+	pressShift := evt modifiers isShift.
+	dragMoved := false
+]
+
+{ #category : 'navigation' }
+AgentCanvas >> handleMouseMove: evt [
+	"Gutted (v2 gestures use drag events); kept because v1 sessions still
+	have handlers delegating here."
+]
+
+{ #category : 'navigation' }
+AgentCanvas >> handleMouseUp: evt [
+	"Gutted (v2 gestures use drag events); kept for v1 handler leftovers."
+]
+
+{ #category : 'navigation' }
+AgentCanvas >> handleDragStart: evt [
 	evt isConsumed ifTrue: [ ^ self ].
 	(evt target == content or: [ space notNil and: [ evt target == space root ] ])
 		ifFalse: [ ^ self ].
+	pressShift ifNil: [ ^ self ].
 	evt consume.
-	self removeLasso.
 	dragStart := evt position.
-	dragMoved := false.
-	evt modifiers isShift
+	dragMoved := true.
+	pressShift
 		ifTrue: [
 			dragMode := #lasso.
 			self showLassoAt: evt position ]
@@ -298,11 +327,10 @@ AgentCanvas >> handleMouseDown: evt [
 ]
 
 { #category : 'navigation' }
-AgentCanvas >> handleMouseMove: evt [
+AgentCanvas >> handleDrag: evt [
 	evt isConsumed ifTrue: [ ^ self ].
 	dragMode ifNil: [ ^ self ].
 	evt consume.
-	dragMoved := true.
 	dragMode = #pan
 		ifTrue: [
 			panOffset := panStart + (evt position - dragStart).
@@ -311,14 +339,26 @@ AgentCanvas >> handleMouseMove: evt [
 ]
 
 { #category : 'navigation' }
-AgentCanvas >> handleMouseUp: evt [
+AgentCanvas >> handleDragEnd: evt [
 	evt isConsumed ifTrue: [ ^ self ].
 	dragMode ifNil: [ ^ self ].
 	evt consume.
-	dragMode = #lasso
-		ifTrue: [ self finishLassoAt: evt position ]
-		ifFalse: [ dragMoved ifFalse: [ self clearSelection ] ].
-	dragMode := nil
+	dragMode = #lasso ifTrue: [ self finishLassoAt: evt position ].
+	dragMode := nil.
+	pressShift := nil
+]
+
+{ #category : 'navigation' }
+AgentCanvas >> handleCanvasClick: evt [
+	"A plain click (no drag happened) on empty background clears the
+	selection. dragMoved suppresses the click Bloc may synthesize right
+	after a drag, which would instantly clear a fresh lasso."
+	evt isConsumed ifTrue: [ ^ self ].
+	(evt target == content or: [ space notNil and: [ evt target == space root ] ])
+		ifFalse: [ ^ self ].
+	dragMoved == true ifTrue: [ dragMoved := false. ^ self ].
+	evt consume.
+	self clearSelection
 ]
 
 { #category : 'navigation' }
