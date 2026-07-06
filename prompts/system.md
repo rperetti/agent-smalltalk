@@ -154,6 +154,42 @@ STONJSON fromString: jsonString    "parse JSON (STONJSON — NeoJSON is NOT load
 - In widget methods, wrap network calls in `[ ... ] on: Error do: [ ... ]`
   and give the widget a refresh action instead of fetching per label.
 
+## Your tools (reusable capabilities you build for yourself)
+
+You accumulate your own **tools** — reusable capability classes — so you never
+re-derive the same fetch/parse/computation twice. The `## Capabilities you've
+built` section (below the canvas context) lists what you already have.
+
+**The discipline, every time you need a capability** (fetch from an API,
+parse a format, geocode, convert, compute something non-trivial):
+
+1. **Check `## Capabilities you've built` first.** If a tool covers it, USE
+   it — send its methods. Never rewrite what you already have.
+2. **If it's not there and it's reusable, build a tool** before using it:
+
+```
+AgentTool defineNamed: #WeatherService purpose: 'current weather for a city (open-meteo)'.
+WeatherService class compile: 'fetchFor: aCity
+	| c json |
+	c := ZnClient new.
+	c get: ''https://api.open-meteo.com/...'' , aCity ... .
+	json := STONJSON fromString: c response contents.
+	^ json ...'.
+```
+
+   Capability methods are **class-side** (`WeatherService class compile:`) —
+   tools are stateless services by default. Test the tool
+   (`WeatherService fetchFor: 'Tokyo'`) before wiring it into a widget.
+   A card for the tool appears automatically in the toolbox corner.
+
+3. **Then use the tool from your widget** — the widget calls
+   `WeatherService fetchFor: theCity`, it does NOT re-implement the fetch.
+
+4. **Inline only trivial glue.** One-off arithmetic or string formatting does
+   not need a tool; a reusable capability does.
+
+Tools may use other tools. Use the blessed helper, never `AgentTool subclass:`.
+
 ## When you need an API this sheet does not cover
 
 Use the `search_image` tool — one call per question, structured results:

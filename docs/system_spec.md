@@ -4,8 +4,8 @@ What the living agentic environment does **today**. The long-term vision lives
 in [vision.md](vision.md). This document is kept in sync with the
 code; when behavior changes, change this file in the same commit.
 
-*Last updated: 2026-07-05 (phase 4 achieved: reactive canvas verified live;
-drag-event gestures; boot-hardened remote listener; guarded update.sh).*
+*Last updated: 2026-07-06 (phase 5: self-evolving tools -- AgentTool,
+capabilities context, toolbox cards; reuse verified with generated code).*
 
 ## One-paragraph summary
 
@@ -135,12 +135,39 @@ The contract every generated widget subclasses:
   since-removed broken classes) are discarded silently. Widget-internal
   state and moves are not undoable; code changes are Epicea's job.
 
+### AgentTool + AgentToolCard — the agent's own capabilities (phase 5)
+
+The agent builds **reusable tools for itself**, not just widgets for the
+user. `AgentTool` (Core) is the base; the agent creates a tool via the
+blessed helper `AgentTool defineNamed: #WeatherService purpose: '...'` (a
+`slots:purpose:` variant exists for the rare stateful tool), then compiles
+**class-side** capability methods (`WeatherService class compile: 'fetchFor:
+...'`). Tools land in a live `AgentSmalltalk-Tools` package (not `src/`, so
+`update.sh` never wipes them) and persist with the image.
+
+Discovery is the whole game: `AgentTool contextListing` renders a
+`## Capabilities you've built` section (each tool's name, purpose, and
+class-side selectors) that the gateway appends to every system prompt, so
+reuse is automatic — no recurrence-detection. The base prompt teaches the
+discipline: consult capabilities, reuse if present, else build a tool, inline
+only glue.
+
+`AgentToolCard` (UI) is the visible face — a sage card auto-summoned into the
+**bottom-right toolbox corner** (completing the geography: facts ↖, notes ↗,
+system ↙, tools ↘), showing name + purpose, right-click opening the *tool's*
+source to read/tweak. Cards are meta and stay out of the widget context.
+
+Verified with generated code: "weather widget for Tokyo" built a
+`WeatherService` tool + widget; "compare Tokyo and London" then **reused**
+`WeatherService fetchFor:` twice instead of rewriting the fetch — no
+duplicate tool.
+
 ### The sticky family (UI): AgentSticky → AgentFact / AgentNote / AgentSystemMessage
 
 `AgentSticky` (abstract) provides the card: header row (label + `x`-to-delete),
 editable `ToAlbum` body, keyed pile placement. The corners of the canvas
 carry meaning: **facts pile top-left, notes top-right, system messages
-bottom-left** (spotlight appears top-center).
+bottom-left, tool cards bottom-right** (spotlight appears top-center).
 
 #### AgentSystemMessage
 
@@ -261,6 +288,7 @@ Headless acceptance scripts (`pharo ... st scripts/<name>.st`):
 `smoke-widget.st` (cold counter generation), `smoke-modify.st` (live
 modification with state preservation), `smoke-textfield.st` (text-input
 widget), `smoke-facts.st` (remember / use / update / implicit capture),
+`smoke-tools.st` (build a tool, then reuse it),
 `smoke-selection.st` (selection-scoped context + live Selection globals),
 `smoke-reactive.st` (reactive clock follows a fact edit; live total follows
 counters). Each prints the loop transcript for post-mortems.

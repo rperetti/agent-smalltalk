@@ -1,6 +1,9 @@
 # Phase 5 Specification: The Agent Evolves Its Own Tools
 
-> **Status: agreed scope (2026-07-06).** All open questions resolved:
+> **Status: ACHIEVED (2026-07-06).** Reuse verified with generated code
+> (scripts/smoke-tools.st): a WeatherService tool was built for a Tokyo
+> weather widget, then reused (fetchFor: called twice) for a compare-two-
+> cities widget with no duplicate tool. 92 tests. Original decisions:
 > auto-summon a card per tool (bottom-right toolbox), a blessed
 > `AgentTool defineNamed:purpose:` helper, and class-side capability
 > selectors only in context.

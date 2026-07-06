@@ -544,10 +544,13 @@ AgentCanvas >> systemMessages [
 
 { #category : 'widgets' }
 AgentCanvas >> contextWidgets [
-	"What the full-canvas context lists: notes and system messages stay out
-	of context unless the user lassoes them into a selection."
+	"What the full-canvas context lists: notes, system messages, and tool
+	cards stay out unless lassoed. Tool cards are meta -- the tools they
+	front are listed under '## Capabilities you've built' instead."
 	^ self toolWidgets reject: [ :w |
-		(w isKindOf: AgentNote) or: [ w isKindOf: AgentSystemMessage ] ]
+		(w isKindOf: AgentNote)
+			or: [ (w isKindOf: AgentSystemMessage)
+			or: [ w isKindOf: AgentToolCard ] ] ]
 ]
 
 { #category : 'agent context' }
