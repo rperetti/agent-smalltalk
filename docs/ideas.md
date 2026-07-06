@@ -3,6 +3,33 @@
 Things we've deliberately deferred, so they don't evaporate. Each entry says
 where it came from and why it's parked.
 
+## Undo should re-establish a reactive widget's subscriptions
+
+*From a delete+undo crash on a reactive widget (2026-07-06).*
+
+`removeFromParent` unsubscribes a widget from the canvas announcer (so deleted
+widgets don't react); `undoDeletion` re-adds the instance but does **not**
+re-run its subscription setup (which lives inline in the generated
+`initialize`). So undoing a *reactive* widget restores its presence but not its
+live wiring — a restored total/chart sits inert until rebuilt. (The dangerous
+half — a stale off-canvas subscriber crashing the UI — is already prevented by
+`pruneStaleSubscriptions`; this entry is only about restoring liveness.)
+
+Approaches when picked up:
+- **Reaction-setup hook**: crib teaches reactive widgets to put subscriptions
+  in a `subscribeReactions` method called from `initialize`; `undoDeletion`
+  re-invokes it on restore. Clean, but only helps widgets built after the
+  convention exists.
+- **Canvas-mediated dispatch**: widgets declare interest declaratively and the
+  canvas delivers only to on-canvas widgets, so subscription lifecycle follows
+  canvas membership automatically. The correct architecture, but a real
+  refactor that changes how all generated reactions are written.
+
+Parked because: it's an edge case (delete *then* undo a *reactive* widget),
+the crash risk is already structurally handled, and the proper fix
+(canvas-mediated dispatch) deserves its own pass. Workaround: rebuild the
+widget, or ask the agent to re-wire it.
+
 ## Open-source readiness pass
 
 *From the base-prompt rename discussion (2026-07-06), with an OSS release in mind.*
