@@ -123,6 +123,6 @@ AgentGatewayTest >> testNoBudgetNoteEarlyOrAtEnd [
 ]
 
 { #category : 'tests' }
-AgentGatewayTest >> testSystemPromptIncludesCribSheet [
+AgentGatewayTest >> testSystemPromptIncludesBasePrompt [
 	self assert: (gateway systemPrompt includesSubstring: 'AgentWidget')
 ]

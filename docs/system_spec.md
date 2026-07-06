@@ -38,7 +38,7 @@ The bridge to the Anthropic Messages API and the owner of the agentic loop.
   - **`search_image`** — structured image exploration via `AgentImageSearch`:
     `find_classes` (name fragment), `find_selectors` (class + fragment),
     `method_source` (class + selector, `'Foo class'` for class side).
-- System prompt = the crib sheet (`prompts/system.md`) + the canvas context
+- System prompt = the base prompt (`prompts/system.md`) + the canvas context
   in two sections: `## Known facts` (all stickies) and `## Widgets on the
   canvas` (class, position, `describe`).
 - Status callbacks (`statusBlock:`) drive the spotlight's status line:
@@ -80,7 +80,7 @@ when Bloc delivers the blur, and guaranteed within ~3s regardless by a
 drift sweep (facts remember their last-announced body; a GUI-only watcher
 process announces any drift);
 `AgentWidgetChanged` fires via the widget convention `self announceChanged`
-in state mutators. Widgets subscribe `when:do:for: self` (the crib pattern);
+in state mutators. Widgets subscribe `when:do:for: self` (the base-prompt pattern);
 deletion auto-unsubscribes. Verified with generated code: a clock retuned on
 a pure fact edit with no request, and a total recomputed purely from a
 counter's announcement — no Refresh buttons.
@@ -161,7 +161,7 @@ editing the text IS editing the memory); the `x` button deletes (forgetting
 is a physical act). An optional key gives identity: `AgentFact key: #city
 body: '...'` creates **or updates** — one sticky per key, ever. New stickies
 pile near the top-left. Facts are instances of this hand-written class,
-never generated classes. Capture is implicit and loud: the crib instructs
+never generated classes. Capture is implicit and loud: the base prompt instructs
 the model to save durable facts stated even in passing, and the sticky
 visibly appearing on the canvas is the announcement.
 
@@ -172,7 +172,7 @@ question in the header (provenance), the answer as an editable body,
 `x`-to-delete. Created two ways: the **gateway heuristic** (a run that
 produced no widget puts its final answer on a note automatically — the text
 was the deliverable) or **model-authored** via `AgentNote question:answer:`
-(the crib steers summaries and lookups here, never into facts). Placement:
+(the base prompt steers summaries and lookups here, never into facts). Placement:
 next to the selection if one exists, else a pile at the top-right mirroring
 the facts pile. Notes are **out of LLM context by default** — conversation
 residue, not knowledge — but feed context like any widget when lassoed into
@@ -191,7 +191,7 @@ process; UI updates are enqueued onto the space pulse. On success the bar
 closes itself — answers live on the canvas (widget or note), never in the
 bar; on failure it stays open showing the error.
 
-### The crib sheet (`prompts/system.md`)
+### The base prompt (`prompts/system.md`)
 
 The system prompt that teaches the model the environment. **Treat it as code**
 — it is the highest-leverage artifact in the system. It covers: the tool
@@ -217,7 +217,7 @@ packages.
   the model finds the widget from canvas context, recompiles `increment` on
   the running class; the same instance keeps its state and next click reads 13.
 - **Text-input widgets**: "type text, press Reverse, see it reversed" →
-  built with `ToTextField` straight from the crib. Complex compositions
+  built with `ToTextField` straight from the base prompt. Complex compositions
   (shopping list with checkboxes, count label, progress bar) verified
   interactively.
 - **Persist**: save image, quit, reopen — widgets, positions, and state
@@ -274,7 +274,7 @@ counters). Each prints the loop transcript for post-mortems.
   for dependency (Bloc/Toplo) changes.
 - **No capability sandbox**: generated code runs with full image authority.
 - **Latency**: a widget takes roughly 15–60s depending on rounds; the status
-  line keeps it honest. Crib-sheet prompt caching is the obvious next
+  line keeps it honest. base-prompt caching is the obvious next
   optimization.
 - **Log growth**: `logs/gateway.log` includes full payloads (system prompt
   every round); no rotation yet.

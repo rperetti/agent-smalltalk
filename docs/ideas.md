@@ -3,24 +3,24 @@
 Things we've deliberately deferred, so they don't evaporate. Each entry says
 where it came from and why it's parked.
 
-## Agent-written tools may subsume parts of the crib sheet
+## Agent-written tools may subsume parts of the base prompt
 
 *From the self-evolving-tools brainstorm (2026-07-06).*
 
-The crib sheet (`prompts/system.md`) is **hand-written** capability knowledge —
+The base prompt (`prompts/system.md`) is **hand-written** capability knowledge —
 blessed APIs, recipes, examples we maintain by hand. Once the agent builds its
 own reusable **tools** (see the tools feature: library classes it writes and
 reuses), those are **agent-written** capability knowledge that lives in the
 image and is already listed in context. Over time the two converge: a mature
-toolbox could replace whole sections of the crib (why teach the Bloc-button
+toolbox could replace whole sections of the base prompt (why teach the Bloc-button
 recipe by hand if the agent has a tested `LabeledButton` tool it reuses?).
 
-The long game: the crib shrinks toward *bootstrapping* knowledge (how to write
+The long game: the base prompt shrinks toward *bootstrapping* knowledge (how to write
 Pharo, the AgentWidget contract, how to build a tool) and the agent's own
 toolbox carries the *accumulated* knowledge. The system teaches itself.
 
 Parked because: only meaningful once the tools feature exists and a real
-toolbox has accumulated. Revisit then — and watch whether crib sections start
+toolbox has accumulated. Revisit then — and watch whether base-prompt sections start
 feeling redundant with tools the agent already has.
 
 ## Thread-aware reply (full conversation context)
@@ -72,11 +72,11 @@ semantics deserve their own phase with the wiring UX thought through.
 "I like dark widgets" is knowledge *about how to build*, not about the world
 — a preference. Preferences feel like **scoped variables**: scoped to a
 widget class, to a region, or to the whole canvas. The deep end: the agent's
-own instructions (crib-sheet fragments) becoming visible, editable objects on
+own instructions (base prompt fragments) becoming visible, editable objects on
 the canvas — the system's behavior becomes direct-manipulable.
 
-Parked because: needs the variables story first, and it changes how the crib
-sheet is assembled per request.
+Parked because: needs the variables story first, and it changes how the base prompt is
+assembled per request.
 
 ## Promote a note to a fact
 

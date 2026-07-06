@@ -52,18 +52,18 @@ AgentGateway class >> logFile [
 ]
 
 { #category : 'accessing' }
-AgentGateway class >> cribSheetFile [
+AgentGateway class >> basePromptFile [
 	"prompts/system.md at the repository root (the image lives in <repo>/pharo/)."
 	^ FileLocator image asFileReference parent parent / 'prompts' / 'system.md'
 ]
 
 { #category : 'accessing' }
-AgentGateway class >> cribSheet [
+AgentGateway class >> basePrompt [
 	| file |
-	file := self cribSheetFile.
+	file := self basePromptFile.
 	^ file exists
 		ifTrue: [ file contents ]
-		ifFalse: [ self error: 'Crib sheet not found at ' , file fullName ]
+		ifFalse: [ self error: 'Base prompt not found at ' , file fullName ]
 ]
 
 { #category : 'initialization' }
@@ -287,13 +287,13 @@ AgentGateway >> finalTextFrom: content [
 
 { #category : 'running' }
 AgentGateway >> systemPrompt [
-	| crib canvasClass dynamic |
-	crib := self class cribSheet.
+	| base canvasClass dynamic |
+	base := self class basePrompt.
 	canvasClass := Smalltalk globals at: #AgentCanvas ifAbsent: [ nil ].
 	dynamic := canvasClass
 		ifNil: [ '' ]
 		ifNotNil: [ :cls | String cr , cls current contextDescription ].
-	^ crib , dynamic
+	^ base , dynamic
 ]
 
 { #category : 'private' }

@@ -36,7 +36,7 @@ Headless one-shot ask:
 ## Layout
 
 - `src/` — Tonel packages (Core: gateway + sandbox; UI: canvas, widget, spotlight; Tests)
-- `prompts/system.md` — the crib sheet: the system prompt that teaches the model
+- `prompts/system.md` — the base prompt that teaches the model
   Pharo/Bloc and the AgentWidget contract. Treat it as code.
 - `scripts/` — image build/test scripts run by the shell wrappers
 - `logs/gateway.log` (gitignored) — append-only transcript of every agent

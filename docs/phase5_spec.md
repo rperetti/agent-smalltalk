@@ -60,9 +60,9 @@ shows the agent **reusing `WeatherService`**, not rewriting the fetch.
 - This is the mechanism that makes reuse automatic. If a tool is in context,
   the agent uses it; the design effort goes here.
 
-### Crib discipline — consult, build, reuse
+### Base-prompt discipline — consult, build, reuse
 
-New crib section teaching the loop:
+New base-prompt section teaching the loop:
 
 - **Before** writing code that fetches, calls an API, parses a format,
   geocodes, or performs any reusable capability: check
@@ -111,7 +111,7 @@ GUI pass.
   specially scaffolded; emergent for now.
 - **Agent adds gateway-level tools** to its own tool-use schema — rejected for
   this phase; tools are library classes it calls via `evaluate_smalltalk`.
-- **Tools subsuming the crib sheet** — the long game, parked in ideas.
+- **Tools subsuming the base prompt** — the long game, parked in ideas.
 - Auto-generated tests for tools; tool versioning.
 
 ## Open questions (to settle before building)

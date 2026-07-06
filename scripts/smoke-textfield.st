@@ -1,5 +1,5 @@
 "Headless acceptance for text-input widgets (the category that used to exhaust
-the round budget): the model should reach for ToTextField from the crib
+the round budget): the model should reach for ToTextField from the base prompt
 instead of exploring the image."
 | gateway answer |
 gateway := AgentGateway new.
