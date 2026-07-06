@@ -114,6 +114,47 @@ AgentUndoResizeTest >> testRaiseWiringIsIdempotent [
 ]
 
 { #category : 'tests' }
+AgentUndoResizeTest >> testWidgetShowsDeleteButtonStickyDoesNot [
+	self assert: AgentWidget new showsDeleteButton.
+	self deny: (AgentFact key: #x body: 'y') showsDeleteButton
+]
+
+{ #category : 'tests' }
+AgentUndoResizeTest >> testDeleteButtonIsIdempotent [
+	| w n |
+	w := AgentWidget new.
+	n := w children size.
+	w ensureDeleteButton.
+	self assert: w children size equals: n
+]
+
+{ #category : 'tests' }
+AgentUndoResizeTest >> testDeleteKeyRemovesSelection [
+	| a b evt |
+	a := AgentWidget new.
+	b := AgentWidget new.
+	AgentCanvas current addWidget: a.
+	AgentCanvas current addWidget: b.
+	AgentCanvas current selectWidgets: { a. b }.
+	evt := BlKeyDownEvent new key: KeyboardKey delete.
+	AgentCanvas current handleDeleteKey: evt.
+	self assert: AgentCanvas current widgets isEmpty.
+	self assert: AgentCanvas current selectedWidgets isEmpty.
+	"Deletions are undoable."
+	self assert: AgentCanvas current undoStack size equals: 2
+]
+
+{ #category : 'tests' }
+AgentUndoResizeTest >> testDeleteKeyNoopWithoutSelection [
+	| evt |
+	AgentCanvas current addWidget: AgentWidget new.
+	evt := BlKeyDownEvent new key: KeyboardKey delete.
+	AgentCanvas current handleDeleteKey: evt.
+	self assert: AgentCanvas current widgets size equals: 1.
+	self deny: evt isConsumed
+]
+
+{ #category : 'tests' }
 AgentUndoResizeTest >> testResizeGripIsIdempotent [
 	| w n |
 	w := AgentWidget new.

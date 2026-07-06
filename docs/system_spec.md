@@ -129,6 +129,10 @@ The contract every generated widget subclasses:
   included), drag-event based, zoom-aware, clamped to 120×80 minimum.
 - **Click-to-front**: pressing anywhere on a widget raises it (monotonic
   elevation counter on the canvas), so overlapping cards behave like paper.
+- **Delete**: a floating x (top-right, ignoreByLayout so it never disturbs the
+  widget's layout) removes any widget; stickies suppress it (they carry an x
+  in their header). Delete/Backspace on the canvas removes the current lasso
+  selection. Both are undoable (Cmd/Ctrl+Z).
 - **Deletion undo**: `removeFromParent` on a canvas widget records it on the
   canvas undo stack (capped at 50, survives image save/reopen); Cmd/Ctrl+Z
   restores the most recent deletion. Unrestorable entries (instances of

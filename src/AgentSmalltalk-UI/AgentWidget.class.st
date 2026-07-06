@@ -11,7 +11,8 @@ Class {
 		'resizeGrip',
 		'resizeStart',
 		'resizeStartExtent',
-		'raiseWired'
+		'raiseWired',
+		'deleteButton'
 	],
 	#category : 'AgentSmalltalk-UI',
 	#package : 'AgentSmalltalk-UI'
@@ -52,7 +53,34 @@ AgentWidget >> initialize [
 			evt consume.
 			self browseSource ] ].
 	self ensureResizeGrip.
-	self ensureRaisesOnClick
+	self ensureRaisesOnClick.
+	self ensureDeleteButton
+]
+
+{ #category : 'deleting' }
+AgentWidget >> showsDeleteButton [
+	"Every widget gets a floating delete x by default. Stickies override to
+	false -- they already carry an x in their header row."
+	^ true
+]
+
+{ #category : 'deleting' }
+AgentWidget >> ensureDeleteButton [
+	"A small floating x in the top-right corner (ignoreByLayout, so it never
+	disturbs the widget's own layout). Idempotent for the update migration."
+	self showsDeleteButton ifFalse: [ ^ self ].
+	deleteButton ifNotNil: [ ^ self ].
+	deleteButton := BlTextElement new.
+	deleteButton text: ('✕' asRopedText fontSize: 12; foreground: (Color gray alpha: 0.7)).
+	deleteButton constraintsDo: [ :c |
+		c ignoreByLayout.
+		c ignored horizontal alignRight.
+		c ignored vertical alignTop ].
+	deleteButton margin: (BlInsets top: 3 right: 5 bottom: 0 left: 0).
+	deleteButton addEventHandlerOn: BlClickEvent do: [ :evt |
+		evt consume.
+		self removeFromParent ].
+	self addChild: deleteButton
 ]
 
 { #category : 'z order' }

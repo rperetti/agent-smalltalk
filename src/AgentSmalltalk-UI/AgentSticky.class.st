@@ -50,6 +50,12 @@ AgentSticky >> initialize [
 	self buildFooter
 ]
 
+{ #category : 'deleting' }
+AgentSticky >> showsDeleteButton [
+	"Stickies already have an x in their header row -- no floating one."
+	^ false
+]
+
 { #category : 'initialization' }
 AgentSticky >> buildFooter [
 	"Hook: species with a footer action override (AgentNote adds Reply).

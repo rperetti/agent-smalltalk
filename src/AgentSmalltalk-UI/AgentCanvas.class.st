@@ -206,6 +206,7 @@ AgentCanvas >> migrateAfterUpdate [
 	self widgets do: [ :w |
 		w ensureResizeGrip.
 		w ensureRaisesOnClick.
+		w ensureDeleteButton.
 		w repairElevation.
 		(w isKindOf: AgentSticky) ifTrue: [ w ensureEditAnnouncement ] ].
 	self startFactWatcher.
@@ -228,6 +229,10 @@ AgentCanvas >> wireKeyboard [
 AgentCanvas >> handleKeyDown: evt [
 	| primary |
 	evt isConsumed ifTrue: [ ^ self ].
+	"Delete/Backspace (no modifier) removes the selection -- handle before
+	the modifier gate below."
+	self handleDeleteKey: evt.
+	evt isConsumed ifTrue: [ ^ self ].
 	primary := evt modifiers isCmd or: [ evt modifiers isCtrl ].
 	primary ifFalse: [ ^ self ].
 	evt key = KeyboardKey enter ifTrue: [
@@ -237,6 +242,20 @@ AgentCanvas >> handleKeyDown: evt [
 		evt consume.
 		self undoDeletion ]
 ]
+
+{ #category : 'navigation' }
+AgentCanvas >> handleDeleteKey: evt [
+	"Delete/Backspace on the canvas removes the current selection (undoable
+	via Cmd+Z). Guarded on a non-empty selection so a stray keypress with
+	nothing selected does nothing; text editors consume these keys first
+	when focused, so this only fires with canvas focus."
+	evt isConsumed ifTrue: [ ^ self ].
+	(evt key = KeyboardKey delete or: [ evt key = KeyboardKey backspace ])
+		ifFalse: [ ^ self ].
+	self selection ifEmpty: [ ^ self ].
+	evt consume.
+	self selection asArray do: [ :w | w removeFromParent ].
+	self clearSelection ]
 
 { #category : 'reactions' }
 AgentCanvas >> announcePendingFactEdits [
