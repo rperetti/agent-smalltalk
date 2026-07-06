@@ -3,6 +3,26 @@
 Things we've deliberately deferred, so they don't evaporate. Each entry says
 where it came from and why it's parked.
 
+## Agent-written tools may subsume parts of the crib sheet
+
+*From the self-evolving-tools brainstorm (2026-07-06).*
+
+The crib sheet (`prompts/system.md`) is **hand-written** capability knowledge —
+blessed APIs, recipes, examples we maintain by hand. Once the agent builds its
+own reusable **tools** (see the tools feature: library classes it writes and
+reuses), those are **agent-written** capability knowledge that lives in the
+image and is already listed in context. Over time the two converge: a mature
+toolbox could replace whole sections of the crib (why teach the Bloc-button
+recipe by hand if the agent has a tested `LabeledButton` tool it reuses?).
+
+The long game: the crib shrinks toward *bootstrapping* knowledge (how to write
+Pharo, the AgentWidget contract, how to build a tool) and the agent's own
+toolbox carries the *accumulated* knowledge. The system teaches itself.
+
+Parked because: only meaningful once the tools feature exists and a real
+toolbox has accumulated. Revisit then — and watch whether crib sections start
+feeling redundant with tools the agent already has.
+
 ## Thread-aware reply (full conversation context)
 
 *From using the reply button (2026-07-06).*
