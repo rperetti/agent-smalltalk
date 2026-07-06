@@ -43,6 +43,23 @@ AgentCanvas class >> current [
 ]
 
 { #category : 'accessing' }
+AgentCanvas class >> reunite [
+	"Recovery: re-point `current` at the canvas actually shown on screen.
+	The singleton is orphaned if `current` is nil'd or replaced while a
+	canvas is displayed -- e.g. a unit test's `AgentCanvas reset` run in a
+	live session. Displayed widgets then talk to the orphaned instance's
+	announcer, so reactions silently break. One call restores routing.
+	(Not auto-run in the getter: `space isOpened` reads stale-true in
+	headless test runs, which would break test isolation.)"
+	| shown |
+	shown := self allInstances
+		detect: [ :c | c space notNil and: [ c space isOpened ] ]
+		ifNone: [ nil ].
+	shown ifNotNil: [ current := shown ].
+	^ shown
+]
+
+{ #category : 'accessing' }
 AgentCanvas class >> isOpen [
 	^ current notNil and: [ current isOpen ]
 ]
