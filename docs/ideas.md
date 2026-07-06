@@ -3,6 +3,28 @@
 Things we've deliberately deferred, so they don't evaporate. Each entry says
 where it came from and why it's parked.
 
+## Open-source readiness pass
+
+*From the base-prompt rename discussion (2026-07-06), with an OSS release in mind.*
+
+Before (or as part of) making the repo public, a dedicated polish pass:
+- **LICENSE** — none yet; pick one (MIT is the usual default for a prototype).
+- **README for newcomers** — currently assumes Pharo familiarity; add a
+  "what is this / why Pharo / how the pieces fit" intro and a screenshot/gif
+  of the canvas in action.
+- **Explain the load-bearing oddities** — `scripts/heal-in-image.st`, the
+  `logs/` breadcrumbs (`startup.log`, `remote.log`, `session.status`), and the
+  `update.sh` vs `build.sh` distinction each deserve a sentence on *why* they
+  exist, so a contributor doesn't mistake them for cruft.
+- **Naming sweep** — one more read for anything else that reads as
+  internal-jargon rather than industry-standard (the base-prompt rename was
+  the first of these).
+- **Contributing notes** — how to run tests, the src/-is-truth vs image-is-
+  world model, the "update.sh not build.sh" habit.
+
+Parked because: the code should settle a bit more first; do this pass when a
+release actually feels near.
+
 ## Agent-written tools may subsume parts of the base prompt
 
 *From the self-evolving-tools brainstorm (2026-07-06).*
