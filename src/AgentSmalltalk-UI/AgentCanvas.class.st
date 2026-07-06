@@ -480,6 +480,9 @@ AgentCanvas >> addWidget: aWidget [
 	the space never pulses, so the queue would never drain -- and with no
 	competing UI thread, adding directly is safe."
 	self ensureContent.
+	"Raise on add so a freshly created widget is never hidden behind ones
+	already raised by click-to-front -- creations always land visible."
+	(aWidget isKindOf: AgentWidget) ifTrue: [ aWidget raise ].
 	(space isNil or: [ self isHeadlessSession ])
 		ifTrue: [ content addChild: aWidget ]
 		ifFalse: [ space enqueueTask: (BlTaskAction new action: [ content addChild: aWidget ]) ]

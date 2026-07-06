@@ -94,6 +94,17 @@ AgentUndoResizeTest >> testRepairElevationHealsRawIntegers [
 ]
 
 { #category : 'tests' }
+AgentUndoResizeTest >> testAddedWidgetRaisesAboveExisting [
+	| first second |
+	first := AgentWidget new.
+	AgentCanvas current addWidget: first.
+	second := AgentWidget new.
+	AgentCanvas current addWidget: second.
+	"A freshly added widget must sit above ones already on the canvas."
+	self assert: second elevation elevation > first elevation elevation
+]
+
+{ #category : 'tests' }
 AgentUndoResizeTest >> testRaiseWiringIsIdempotent [
 	| w |
 	w := AgentWidget new.

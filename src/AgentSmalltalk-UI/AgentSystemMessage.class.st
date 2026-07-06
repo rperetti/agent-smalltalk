@@ -88,7 +88,11 @@ AgentSystemMessage >> message: aString [
 
 { #category : 'accessing' }
 AgentSystemMessage >> coalesce: aString [
-	self message: aString
+	"Update the existing sticky AND raise it to the front -- a repeat
+	announcement the user should still notice, not one buried behind
+	whatever was raised since."
+	self message: aString.
+	self raise
 ]
 
 { #category : 'agent context' }
