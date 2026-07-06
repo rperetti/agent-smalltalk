@@ -125,6 +125,27 @@ AgentKnowledgeTest >> testWidgetAnnounceChanged [
 ]
 
 { #category : 'tests' }
+AgentKnowledgeTest >> testPruneStaleSubscriptionsSilencesOffCanvasWidgets [
+	| ghost onCanvas ghostFired liveFired |
+	ghostFired := false.
+	liveFired := false.
+	ghost := AgentWidget new.
+	"ghost is NOT on the canvas but is subscribed -- a leftover"
+	AgentCanvas current announcer
+		when: AgentWidgetChanged do: [ :e | ghostFired := true ] for: ghost.
+	onCanvas := AgentWidget new.
+	AgentCanvas current addWidget: onCanvas.
+	AgentCanvas current announcer
+		when: AgentWidgetChanged do: [ :e | liveFired := true ] for: onCanvas.
+	AgentCanvas current pruneStaleSubscriptions.
+	AgentCanvas current announcer announce:
+		(AgentWidgetChanged new widget: onCanvas; yourself).
+	self assert: liveFired description: 'on-canvas widget still reacts'.
+	self deny: ghostFired description: 'off-canvas ghost was pruned'.
+	AgentCanvas current announcer unsubscribe: onCanvas
+]
+
+{ #category : 'tests' }
 AgentKnowledgeTest >> testDeletedWidgetIsUnsubscribed [
 	| w fired |
 	w := AgentWidget new.

@@ -291,9 +291,15 @@ sources instead of offering Refresh buttons:
 ```
 AgentCanvas current announcer
 	when: AgentWidgetChanged
-	do: [ :evt | (sources includes: evt widget) ifTrue: [ self recompute ] ]
+	do: [ :evt | (sources notNil and: [ sources includes: evt widget ])
+		ifTrue: [ self recompute ] ]
 	for: self
 ```
+
+**Guard reaction blocks against uninitialized state.** A reaction may fire in
+an edge state (a slot momentarily nil after a reshape or restore); always
+null-check the slots the block reads (`sources notNil and: [ ... ]`) so a
+reaction can never crash the UI.
 
 ## The user's selection (lasso)
 

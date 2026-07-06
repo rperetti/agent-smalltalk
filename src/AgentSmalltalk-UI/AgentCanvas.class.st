@@ -209,6 +209,7 @@ AgentCanvas >> migrateAfterUpdate [
 		w refreshDeleteButton.
 		w repairElevation.
 		(w isKindOf: AgentSticky) ifTrue: [ w ensureEditAnnouncement ] ].
+	self pruneStaleSubscriptions.
 	self startFactWatcher.
 	AgentRemote ensureRunning
 ]
@@ -279,6 +280,21 @@ AgentCanvas >> startFactWatcher [
 		3 seconds wait.
 		[ self announcePendingFactEdits ] on: Error do: [ :e |  ] ] ]
 		forkNamed: 'agent-fact-watcher'
+]
+
+{ #category : 'reactions' }
+AgentCanvas >> pruneStaleSubscriptions [
+	"Unsubscribe any AgentWidget not currently on the canvas. Off-canvas
+	widgets must never react -- a ghost subscriber (leftover from a canvas
+	reset, a class reshape, or a removal that skipped removeFromParent) firing
+	a reaction against stale state crashes the whole UI. Belt-and-suspenders
+	on top of removeFromParent's own unsubscribe."
+	| live widgetClass |
+	widgetClass := Smalltalk globals at: #AgentWidget ifAbsent: [ ^ self ].
+	live := self widgets asIdentitySet.
+	widgetClass allSubInstances do: [ :w |
+		(live includes: w) ifFalse: [
+			[ self announcer unsubscribe: w ] on: Error do: [ :e |  ] ] ]
 ]
 
 { #category : 'reactions' }
