@@ -164,9 +164,11 @@ AgentRemote class >> handleRequest: request [
 		^ ZnResponse ok: (ZnEntity text: 'agent-smalltalk alive') ].
 	(request uri path = 'update' and: [ request method = #POST ]) ifTrue: [
 		^ [ AgentUpdater updateFromSrc.
-			ZnResponse ok: (ZnEntity text: 'updated') ]
+			AgentUpdater verifySentinels
+				ifTrue: [ ZnResponse ok: (ZnEntity text: 'UPDATE_OK') ]
+				ifFalse: [ ZnResponse serverError: 'UPDATE_FAILED: sentinel selectors missing (incomplete load)' ] ]
 			on: Error
-			do: [ :e | ZnResponse serverError: e messageText ] ].
+			do: [ :e | ZnResponse serverError: 'UPDATE_FAILED load error: ' , (e messageText ifNil: [ e class name ]) ] ].
 	(request uri path = 'eval' and: [ request method = #POST ]) ifTrue: [
 		^ ZnResponse ok: (ZnEntity text: (AgentSandbox new evaluate: request contents)) ].
 	^ ZnResponse notFound: request uri

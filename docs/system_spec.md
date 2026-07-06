@@ -245,7 +245,7 @@ packages.
 | command | what it does |
 |---|---|
 | `./build.sh` | FRESH `pharo/Agent.image` from `src/` — destroys the world (`core` arg skips UI) |
-| `./update.sh` | reload tooling from `src/`; widgets/facts survive. If a session is RUNNING it updates that session in place via `AgentRemote` (localhost:8807, `/update`); otherwise it patches the image file headless. Diffs via TonelReader + `MCPackageLoader updatePackage:withSnapshot:`, so removed definitions unload too. Backs up the image first (keeps 5). Does not update Bloc/Toplo — use `build.sh` for dependency changes |
+| `./update.sh` | reload tooling from `src/`; widgets/facts survive. Live session → updates in place via `AgentRemote` (localhost:8807 `/update`); else patches the file headless. **Guarded**: both paths require an `UPDATE_OK` token (load raised nothing AND sentinel selectors resolve) or fail loudly leaving the image unchanged — a silent stale-code load once cost a multi-session debugging detour. Diffs via TonelReader + `MCPackageLoader`. Backs up first (keeps 5). Not for Bloc/Toplo — use `build.sh` |
 | `./test.sh` | SUnit suite headless (currently 83 tests) |
 | `./run.sh` | open the canvas UI |
 

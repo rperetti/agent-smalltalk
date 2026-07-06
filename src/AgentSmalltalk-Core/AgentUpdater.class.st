@@ -28,6 +28,27 @@ AgentUpdater class >> isInteractive [
 	^ Smalltalk isHeadless not
 ]
 
+{ #category : 'verification' }
+AgentUpdater class >> sentinels [
+	"One recently-added selector per package/key class. A compile error
+	aborts its containing class's load, so a missing sentinel is proof the
+	update did not fully take. Update these when adding classes, not routinely."
+	^ {
+		AgentRemote class -> #killStrayProcesses.
+		AgentUpdater class -> #verifySentinels.
+		(Smalltalk globals at: #AgentKnowledge) class -> #numberAt:.
+		(Smalltalk globals at: #AgentCanvas) -> #announcer.
+		(Smalltalk globals at: #AgentWidget) -> #flashUpdated }
+]
+
+{ #category : 'verification' }
+AgentUpdater class >> verifySentinels [
+	"True only when every sentinel selector is understood -- i.e. every
+	watched class compiled fully during the load."
+	^ self sentinels allSatisfy: [ :assoc |
+		[ assoc key canUnderstand: assoc value ] on: Error do: [ :e | false ] ]
+]
+
 { #category : 'updating' }
 AgentUpdater class >> updateFromSrc [
 	"Load the packages (diff semantics: removed definitions unload), then
