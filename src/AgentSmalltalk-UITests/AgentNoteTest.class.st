@@ -39,6 +39,19 @@ AgentNoteTest >> testPileWhenNoSelection [
 ]
 
 { #category : 'tests' }
+AgentNoteTest >> testReplySelectsSelfAndScopesContext [
+	| note |
+	note := AgentNote question: 'what is the score' answer: 'Australia 1-1 Egypt'.
+	note reply.
+	"Reply scopes the LLM context to this note (via selection), and a
+	follow-up answer would land beside it."
+	self assert: (AgentCanvas current selectedWidgets includes: note).
+	self assert: (Smalltalk globals at: #Selection1) identicalTo: note.
+	self assert: (AgentCanvas current contextDescription includesSubstring: 'Australia 1-1 Egypt').
+	self assert: AgentNote nextPosition equals: note position + (260 @ 0)
+]
+
+{ #category : 'tests' }
 AgentNoteTest >> testPlacementNearSelection [
 	| w |
 	w := AgentWidget new.

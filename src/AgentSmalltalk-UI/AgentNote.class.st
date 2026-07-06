@@ -77,6 +77,34 @@ AgentNote >> question: aString [
 	self headerText: 're: ' , (self truncate: aString to: 32)
 ]
 
+{ #category : 'initialization' }
+AgentNote >> buildFooter [
+	"A Reply button under the note: continue the conversation from here.
+	Pure form -- it just selects this note (scoping the LLM context to its
+	Q+A, via phase-3 selection) and opens the spotlight. The follow-up
+	answer then lands as a new note beside this one (AgentNote nextPosition
+	places near the selection), so threads grow spatially, not as a log."
+	| reply |
+	reply := ToLabel new text: '↩ reply'.
+	reply constraintsDo: [ :c | c vertical fitContent ].
+	reply margin: (BlInsets top: 4).
+	reply addEventHandlerOn: BlClickEvent do: [ :evt |
+		evt consume.
+		self reply ].
+	self addChild: reply
+]
+
+{ #category : 'actions' }
+AgentNote >> reply [
+	"Select this note (scopes context to it) and open the spotlight for a
+	follow-up. Guarded for headless: selection still happens; the spotlight
+	needs a live space."
+	| canvas |
+	canvas := AgentCanvas current.
+	canvas selectWidgets: { self }.
+	canvas isOpen ifTrue: [ AgentSpotlight openOn: canvas ]
+]
+
 { #category : 'private' }
 AgentNote >> repairHeader [
 	"Kept for migrations of notes built before the header width cap."

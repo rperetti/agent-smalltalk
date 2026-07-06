@@ -176,7 +176,10 @@ was the deliverable) or **model-authored** via `AgentNote question:answer:`
 next to the selection if one exists, else a pile at the top-right mirroring
 the facts pile. Notes are **out of LLM context by default** — conversation
 residue, not knowledge — but feed context like any widget when lassoed into
-a selection (follow-up questions).
+a selection (follow-up questions). A **↩ reply** button under each note is
+the one-click form of that: it selects the note (scoping context to its
+Q+A) and opens the spotlight, so the follow-up answer lands as a new note
+beside it — conversation threads grow *spatially*, not as a chat log.
 
 ### AgentSpotlight (UI)
 
@@ -251,7 +254,7 @@ packages.
 |---|---|
 | `./build.sh` | FRESH `pharo/Agent.image` from `src/` — destroys the world (`core` arg skips UI) |
 | `./update.sh` | reload tooling from `src/`; widgets/facts survive. Live session → updates in place via `AgentRemote` (localhost:8807 `/update`); else patches the file headless. **Guarded**: both paths require an `UPDATE_OK` token (load raised nothing AND sentinel selectors resolve) or fail loudly leaving the image unchanged — a silent stale-code load once cost a multi-session debugging detour. Diffs via TonelReader + `MCPackageLoader`. Backs up first (keeps 5). Not for Bloc/Toplo — use `build.sh` |
-| `./test.sh` | SUnit suite headless (currently 83 tests) |
+| `./test.sh` | SUnit suite headless (currently 84 tests) |
 | `./run.sh` | open the canvas UI |
 
 Headless acceptance scripts (`pharo ... st scripts/<name>.st`):

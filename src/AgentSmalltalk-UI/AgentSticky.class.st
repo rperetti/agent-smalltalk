@@ -46,7 +46,14 @@ AgentSticky >> initialize [
 	self geometry: (BlRoundedRectangleGeometry cornerRadius: 4).
 	self padding: (BlInsets all: 8).
 	self buildHeader.
-	self buildBody
+	self buildBody.
+	self buildFooter
+]
+
+{ #category : 'initialization' }
+AgentSticky >> buildFooter [
+	"Hook: species with a footer action override (AgentNote adds Reply).
+	Body is matchParent, footer is fitContent, so the footer sits under it."
 ]
 
 { #category : 'initialization' }
