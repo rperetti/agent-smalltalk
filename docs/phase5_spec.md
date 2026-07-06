@@ -1,6 +1,9 @@
 # Phase 5 Specification: The Agent Evolves Its Own Tools
 
-> **Status: DRAFT for discussion.**
+> **Status: agreed scope (2026-07-06).** All open questions resolved:
+> auto-summon a card per tool (bottom-right toolbox), a blessed
+> `AgentTool defineNamed:purpose:` helper, and class-side capability
+> selectors only in context.
 >
 > (Reuses the phase-5 slot; the wiring draft that briefly held it is
 > postponed — see [postponed.md](postponed.md).)
@@ -114,18 +117,15 @@ GUI pass.
 - **Tools subsuming the base prompt** — the long game, parked in ideas.
 - Auto-generated tests for tools; tool versioning.
 
-## Open questions (to settle before building)
+## Open questions — resolved (2026-07-06)
 
-1. **Card per tool, or on demand?** Auto-summon a card for every tool
-   (discoverable/tweakable but can clutter bottom-right) vs. only when the
-   user asks "show your tools." Recommendation: auto-summon, since the whole
-   value of the card is passive inspectability, and tools are far fewer than
-   widgets — revisit if it clutters.
-2. **How does the agent create a tool class** — a blessed helper like
-   `AgentTool defineNamed:purpose:` (insulates from class-builder drift, the
-   `defineNamed:slots:` lesson) or plain subclassing? Recommendation: a
-   blessed helper, same reasoning as widgets.
-3. **Selectors in context: all, or a capped/curated set?** A tool with many
-   private helpers would bloat the listing. Recommendation: list only class-
-   side (capability) selectors, or a tool-declared `apiSelectors`, to keep the
-   context tight. Lean toward class-side-only by default.
+1. ~~Card per tool, or on demand?~~ **Auto-summon a card per tool** into the
+   bottom-right toolbox corner. Passive discoverability + right-click-to-source;
+   tools are far fewer than widgets, so revisit only if it crowds.
+2. ~~Blessed helper vs. plain subclassing?~~ **Blessed helper**:
+   `AgentTool defineNamed:purpose:` (name + purpose; an optional slots variant
+   for the rare stateful tool). Insulates from the Pharo class-builder API
+   drift that broke widget creation.
+3. ~~Which selectors in context?~~ **Class-side capability selectors only.**
+   Private instance-side helpers stay out, keeping `## Capabilities you've
+   built` tight and matching the stateless-service convention.
