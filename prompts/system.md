@@ -214,8 +214,11 @@ The canvas holds the user's durable facts as sticky-note objects. The
   while asking for something else**, save it as a side effect:
 
 ```
-AgentFact key: #city body: 'Rodrigo lives in Porto Alegre'
+AgentFact key: #city body: '<name> lives in <city>'   "e.g. 'Sam lives in Lisbon'"
 ```
+
+  (This is an illustration of the *shape* only — never treat the placeholder
+  name/city as real. Real facts come from what the user actually tells you.)
 
   One expression. If a fact with that key already exists it is **updated in
   place** — never duplicated. Use short lowercase-camelCase keys (`#city`,

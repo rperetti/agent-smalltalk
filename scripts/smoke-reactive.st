@@ -5,13 +5,13 @@ A) after a fact edit, SOME widget reflects the new city with NO request
 B) after a counter bump, SOME non-counter widget's describe changes by itself"
 | canvas answer counters cls beforeDescribes changed |
 canvas := AgentCanvas current.
-AgentFact key: #city body: 'Rodrigo lives in Tokyo'.
+AgentFact key: #city body: 'Sam lives in Tokyo'.
 
 Stdio stdout nextPutAll: '--- A: reactive clock ---'; lf.
 answer := [ AgentGateway ask: 'make sure there is a clock widget showing the current time in my city, staying correct if my city ever changes' ]
 	on: Error do: [ :e | 'FAILED: ' , e messageText ].
 Stdio stdout nextPutAll: answer; lf.
-AgentFact key: #city body: 'Rodrigo lives in Reykjavik'.
+AgentFact key: #city body: 'Sam lives in Reykjavik'.
 Stdio stdout nextPutAll: ((canvas toolWidgets anySatisfy: [ :w |
 		w describe asLowercase includesSubstring: 'reykjavik' ])
 	ifTrue: [ 'REACTIVE FACT OK' ]

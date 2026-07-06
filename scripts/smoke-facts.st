@@ -15,16 +15,16 @@ report := [ :label :request |
 		do: [ :f | Stdio stdout nextPutAll: '(' , f describe , ') ' ].
 	Stdio stdout lf; lf ].
 
-report value: 'A' value: 'remember that I live in Porto Alegre'.
+report value: 'A' value: 'remember that I live in Lisbon'.
 report value: 'B' value: 'make me a widget showing the current time in my city'.
 report value: 'C' value: 'actually I moved to Madrid'.
-report value: 'D' value: 'make a greeting widget. by the way, my name is Rodrigo'.
+report value: 'D' value: 'make a greeting widget. by the way, my name is Sam'.
 
 Stdio stdout nextPutAll: '=== CHECKS ==='; lf.
 Stdio stdout nextPutAll: 'fact count (expect 2): ' , AgentCanvas current facts size printString; lf.
 Stdio stdout nextPutAll: 'city updated (expect true): '
 	, ((AgentCanvas current facts anySatisfy: [ :f | f body asLowercase includesSubstring: 'madrid' ]) and: [
-		AgentCanvas current facts noneSatisfy: [ :f | f body asLowercase includesSubstring: 'porto alegre' ] ]) printString; lf.
+		AgentCanvas current facts noneSatisfy: [ :f | f body asLowercase includesSubstring: 'lisbon' ] ]) printString; lf.
 Stdio stdout nextPutAll: 'tool widgets (expect 2): ' , AgentCanvas current toolWidgets size printString; lf.
 AgentCanvas current toolWidgets do: [ :w |
 	Stdio stdout nextPutAll: '  ' , w class name , ': ' , w describe; lf ].

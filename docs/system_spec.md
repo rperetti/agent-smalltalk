@@ -253,7 +253,7 @@ packages.
   interactively.
 - **Persist**: save image, quit, reopen — widgets, positions, and state
   intact; behavior still works.
-- **Remember** (phase 2): "remember that I live in Porto Alegre" → sticky
+- **Remember** (phase 2): "remember that I live in Lisbon" → sticky
   appears; "widget showing the current time in my city" → built with no
   clarifying question; "actually I moved to Madrid" → the same sticky
   updated (no duplicate) *and the model retuned the existing clock widget's
