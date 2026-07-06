@@ -4,8 +4,8 @@ What the living agentic environment does **today**. The long-term vision lives
 in [vision.md](vision.md). This document is kept in sync with the
 code; when behavior changes, change this file in the same commit.
 
-*Last updated: 2026-07-04 (phase 4 built: reactive canvas — AgentKnowledge,
-AgentUnknown, canvas announcer; click-to-front; self-healing listener).*
+*Last updated: 2026-07-05 (phase 4 achieved: reactive canvas verified live;
+drag-event gestures; boot-hardened remote listener; guarded update.sh).*
 
 ## One-paragraph summary
 
@@ -239,6 +239,11 @@ packages.
 - **Update itself while running**: `./update.sh` against an open session
   delivered code over localhost:8807, migrated on the UI thread, saved, and
   announced itself with a gray system sticky — observed live.
+- **React by hand** (phase 4, verified interactively 2026-07-05): editing a
+  `#city` sticky in the GUI retuned a subscribed clock with no request; a
+  lassoed sum widget recomputed live as its source counters changed. The
+  full canvas — pan, Shift+wheel zoom, lasso across widgets, click-to-front,
+  reactive widgets — confirmed working together.
 
 ## Operations
 
@@ -253,8 +258,9 @@ Headless acceptance scripts (`pharo ... st scripts/<name>.st`):
 `smoke-widget.st` (cold counter generation), `smoke-modify.st` (live
 modification with state preservation), `smoke-textfield.st` (text-input
 widget), `smoke-facts.st` (remember / use / update / implicit capture),
-`smoke-selection.st` (selection-scoped context + live Selection globals).
-Each prints the loop transcript for post-mortems.
+`smoke-selection.st` (selection-scoped context + live Selection globals),
+`smoke-reactive.st` (reactive clock follows a fact edit; live total follows
+counters). Each prints the loop transcript for post-mortems.
 
 ## Known limitations / accepted risks
 
@@ -274,16 +280,26 @@ Each prints the loop transcript for post-mortems.
 - **One writer at a time, automated**: a running GUI session holds tooling
   in memory; saving it would overwrite a file-level update. `update.sh`
   therefore updates a running session *through* it: `AgentRemote`, a
-  localhost-only listener on port 8807 (`GET /ping`, `POST /update`, and
-  `POST /eval` — operator diagnostics through AgentSandbox; same trust
-  level as the gateway, which already executes generated code). Started at
-  canvas open and on both sides of every snapshot; never in headless
-  sessions. Lifecycle lessons encoded in the hooks: the listener STOPS
-  before every save (a snapshotted live socket crashes the next boot) and
-  restarts after; snapshots must not run inside Bloc pulse tasks (they die
-  silently there) — the updater migrates on the UI thread but always saves
-  from the calling thread. `scripts/heal-in-image.st` remains the repair
-  kit for wedged images.
+  localhost-only listener on port 8807 (`GET /ping`, `POST /update`,
+  `POST /eval` — operator diagnostics via AgentSandbox, gateway-level trust).
+  The listener design is the scar tissue of a multi-session debugging saga;
+  the lessons are load-bearing:
+  - **`enabled` flag as the only reliable discriminator.** A headless VM
+    loading a GUI-saved image inherits every saved flag as stale-true
+    (`Smalltalk isHeadless`, `space isOpened`, even `OSWindow allInstances`).
+    The one thing that runs fresh each boot is `AgentSandbox class>>startUp:`,
+    which resets `enabled := false`; only the GUI `AgentCanvas open` turns it
+    on. Headless updates/probes never call open, so they never bind the port.
+  - **Forked processes serialize into snapshots and resurrect running OLD
+    code**, immune to recompilation — an old-code watchdog spawning rival
+    servers was the true engine of the recurring port-bind debuggers. Every
+    boot (`disable`) now terminates all agent-remote processes and stray Zn
+    listen loops before a fresh listener starts.
+  - **`ZnServer start` is async** (binds a beat later); the immediate
+    `isRunning` check once orphaned healthy servers, so `ensureRunning` polls
+    up to 5s and buries any predecessor first. A watchdog revives it and
+    writes `logs/session.status` every 30s.
+  `scripts/heal-in-image.st` remains the repair kit for wedged images.
 - **Reliability is anecdotal**: cold runs have been consistently green, but
   the demo-1 "8 of 10" bar was never formally measured.
 - Single user, single space, no multiplayer.
