@@ -55,7 +55,13 @@ AgentCanvas class >> reunite [
 	shown := self allInstances
 		detect: [ :c | c space notNil and: [ c space isOpened ] ]
 		ifNone: [ nil ].
-	shown ifNotNil: [ current := shown ].
+	shown ifNil: [ ^ nil ].
+	current := shown.
+	"Close any OTHER canvas's window -- an orphaned reset leftover can leave
+	an empty second window on screen. Only the shown, reunited canvas survives."
+	self allInstances do: [ :c |
+		(c ~~ shown and: [ c space notNil ]) ifTrue: [
+			[ c space close ] on: Error do: [ :e |  ] ] ].
 	^ shown
 ]
 
