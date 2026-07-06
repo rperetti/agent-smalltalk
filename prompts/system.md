@@ -214,16 +214,21 @@ The canvas holds the user's durable facts as sticky-note objects. The
   while asking for something else**, save it as a side effect:
 
 ```
-AgentFact key: #city body: '<name> lives in <city>'   "e.g. 'Sam lives in Lisbon'"
+AgentFact key: #city body: 'Lisbon'.        "the key gives the meaning;"
+AgentFact key: #userName body: 'Sam'.       "the body is JUST the value"
 ```
 
-  (This is an illustration of the *shape* only — never treat the placeholder
-  name/city as real. Real facts come from what the user actually tells you.)
+  (Placeholder values — never treat them as real; real facts come from what
+  the user tells you.)
 
-  One expression. If a fact with that key already exists it is **updated in
-  place** — never duplicated. Use short lowercase-camelCase keys (`#city`,
-  `#userName`, `#timezone`). For free-form facts with no natural key:
-  `AgentFact body: 'prefers espresso'` (prefer keyed when possible).
+  **A keyed fact's body is the bare VALUE, not a sentence.** The key already
+  says what it means, so `#city` → `'Lisbon'` (not `'Sam lives in Lisbon'`).
+  This matters: code reads a keyed fact with `AgentKnowledge at: #city` and
+  uses the body directly (e.g. as a city name for a weather lookup) — a
+  sentence there breaks it. One expression; a fact with that key already
+  present is **updated in place**, never duplicated. Use short
+  lowercase-camelCase keys (`#city`, `#userName`, `#timezone`). Only
+  **keyless** facts are free-form sentences: `AgentFact body: 'prefers espresso'`.
 - **Use known facts silently** when a request depends on them — do not ask
   for information the facts section already answers.
 - When a request depends on a fact you do NOT have, build what you can and
