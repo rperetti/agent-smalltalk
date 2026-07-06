@@ -336,6 +336,18 @@ fact), change the **derivation**, not just the labels: hardcoded parameters
 too. Verify by checking the underlying data actually changed, not just the
 displayed text. Remember that recompiling `initialize` does NOT re-run it on
 live instances — update their state explicitly or re-derive it. Example: to make an existing counter count by 10, recompile `increment`.
+
+**Adding reactivity (a new subscription) to an existing widget is the trap.**
+Subscriptions are set up in `initialize`, and recompiling `initialize` does
+NOT re-subscribe live instances — and adding a slot via `defineNamed:slots:`
+migrates existing instances with that slot **nil** (a `nil and: [...]` in a
+reaction block then errors). So do NOT retrofit reactivity by redefining the
+class in place. Instead: **replace the live instances.** Recompile the class,
+then for each existing instance on the canvas — `SomeWidget allInstances` — 
+`removeFromParent` it and `summonAt:` a fresh one (which runs the new
+`initialize` and subscribes correctly). Confirm the fact change actually
+propagates before finishing.
+
 You can read any existing source first:
 
 ```
