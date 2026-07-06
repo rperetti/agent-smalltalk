@@ -3,6 +3,29 @@
 Things we've deliberately deferred, so they don't evaporate. Each entry says
 where it came from and why it's parked.
 
+## Thread-aware reply (full conversation context)
+
+*From using the reply button (2026-07-06).*
+
+The ↩ reply on a note scopes context to **that one note** (its Q+A). In a
+multi-turn thread this means a follow-up only sees the immediately previous
+answer, not the whole conversation — for full history the user must lasso all
+the notes in the thread. Fine for now, but worth handling: replies could
+automatically include the **whole thread** a note belongs to.
+
+Approaches to explore when it matters:
+- **Provenance chain**: each follow-up note remembers its parent note; reply
+  walks the chain and selects/serializes the lineage (root → this note).
+- **Thread id**: notes born from a reply share a thread tag; reply scopes to
+  all notes with that tag.
+- **Spatial**: since threads already grow rightward from their parent, group
+  by proximity/row — but that's brittle once the user rearranges.
+
+Recommendation when picked up: the provenance chain — it's explicit, survives
+rearrangement, and the note already carries a `question`; adding a `parent`
+reference is small. Current workaround (lasso the whole thread) stays as the
+manual escape hatch.
+
 ## Variables on the canvas
 
 *From the phase 2 brainstorm (2026-07-03), sparked by fact keys like `#city`.*
