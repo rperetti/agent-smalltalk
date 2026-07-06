@@ -206,7 +206,7 @@ AgentCanvas >> migrateAfterUpdate [
 	self widgets do: [ :w |
 		w ensureResizeGrip.
 		w ensureRaisesOnClick.
-		w ensureDeleteButton.
+		w refreshDeleteButton.
 		w repairElevation.
 		(w isKindOf: AgentSticky) ifTrue: [ w ensureEditAnnouncement ] ].
 	self startFactWatcher.

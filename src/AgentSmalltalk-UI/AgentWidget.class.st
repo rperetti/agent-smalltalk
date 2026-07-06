@@ -65,18 +65,26 @@ AgentWidget >> showsDeleteButton [
 ]
 
 { #category : 'deleting' }
+AgentWidget >> refreshDeleteButton [
+	"Migration: drop any existing delete button and rebuild it with the
+	current style (so widgets made before a style change get restyled)."
+	deleteButton ifNotNil: [ deleteButton removeFromParent. deleteButton := nil ].
+	self ensureDeleteButton
+]
+
+{ #category : 'deleting' }
 AgentWidget >> ensureDeleteButton [
 	"A small floating x in the top-right corner (ignoreByLayout, so it never
 	disturbs the widget's own layout). Idempotent for the update migration."
 	self showsDeleteButton ifFalse: [ ^ self ].
 	deleteButton ifNotNil: [ ^ self ].
-	deleteButton := BlTextElement new.
-	deleteButton text: ('✕' asRopedText fontSize: 12; foreground: (Color gray alpha: 0.7)).
+	"Same glyph style as the sticky delete x, for a consistent look."
+	deleteButton := BlTextElement new text: ('x' asRopedText fontSize: 14).
 	deleteButton constraintsDo: [ :c |
 		c ignoreByLayout.
 		c ignored horizontal alignRight.
 		c ignored vertical alignTop ].
-	deleteButton margin: (BlInsets top: 3 right: 5 bottom: 0 left: 0).
+	deleteButton margin: (BlInsets top: 2 right: 6 bottom: 0 left: 0).
 	deleteButton addEventHandlerOn: BlClickEvent do: [ :evt |
 		evt consume.
 		self removeFromParent ].
