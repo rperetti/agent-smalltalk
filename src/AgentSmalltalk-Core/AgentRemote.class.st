@@ -40,9 +40,33 @@ AgentRemote class >> enable [
 { #category : 'enabling' }
 AgentRemote class >> disable [
 	"Called from AgentSandbox startUp: on every fresh boot, so a GUI-saved
-	image resumed headless starts with the listener OFF until open re-enables."
+	image resumed headless starts with the listener OFF until open re-enables.
+	Crucially also kills processes RESURRECTED from the snapshot: forked
+	processes serialize into the image and come back running OLD compiled
+	code, immune to recompilation -- an old-code watchdog was the true
+	engine of the recurring port-bind debuggers. Nuke them every boot."
 	enabled := false.
+	self killStrayProcesses.
 	self stop
+]
+
+{ #category : 'enabling' }
+AgentRemote class >> killStrayProcesses [
+	"Terminate any agent-remote watchdog/boot processes and any Zn listen
+	loops on our port -- whether spawned this session or resurrected from
+	a snapshot. Fresh ones are started cleanly by ensureRunning."
+	[ Process allSubInstances do: [ :p |
+		(p isTerminated not and: [ self isStrayProcess: p ]) ifTrue: [
+			[ p terminate ] on: Error do: [ :e |  ] ] ] ]
+		on: Error do: [ :e |  ]
+]
+
+{ #category : 'enabling' }
+AgentRemote class >> isStrayProcess: aProcess [
+	| name |
+	name := aProcess name ifNil: [ '' ].
+	(#('agent-remote-watchdog' 'agent-remote-boot') includes: name) ifTrue: [ ^ true ].
+	^ name includesSubstring: 'HTTP port ' , self port printString
 ]
 
 { #category : 'enabling' }
