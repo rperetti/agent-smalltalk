@@ -59,3 +59,16 @@ Headless one-shot ask:
   request: loop events, evaluated code, results/errors, and full HTTP
   request/response JSON. In-image: `AgentGateway last log` for the most
   recent run. The API key is never logged.
+
+## Acknowledgments
+
+This project is an experiment in human–agent collaboration, and it was built
+the same way. The idea and direction are Rodrigo Peretti's; the implementation
+was a genuine collaboration with several AI models — **Claude Opus 4.8** and
+**Claude Fable 5** (Anthropic) and **Gemini Pro** (Google) — pairing on the
+design, the code, and the many debugging sessions along the way.
+
+So the "we" throughout this README is literal: a project about a human and an
+agent expanding their capabilities together, made by a human and several
+agents doing exactly that. The commit history carries `Co-Authored-By`
+trailers as a record of the partnership.
