@@ -25,6 +25,28 @@ We found a blueprint for this in the legacy of Smalltalk. Smalltalk wasn't just 
 Pushing a concept to its limits to see where it breaks is how breakthrough systems get designed. This project is an experiment in building a useful place for a human and an agent to collaborate on expanding capabilities and knowledge. For a precise map of what runs today versus what's still ahead, see [what's built](docs/system_spec.md) and [the vision](docs/vision.md).
 
 
+## ⚠️ Heads up — this is an experiment, with no guardrails
+
+agent-smalltalk is a research prototype shared for the curious, **not a polished
+or production-ready product**. Expect rough edges, bugs, and breaking changes;
+there are no promises of stability or support.
+
+Most importantly, **there are no guardrails, by design.** The whole premise is
+an unconstrained living environment, so:
+
+- The agent writes Smalltalk and **executes it immediately** in the running
+  image, with full authority — there is *no sandbox*. It can run arbitrary
+  code, make network requests, and touch anything in the image and, through
+  it, your machine. Run it somewhere you're comfortable handing a coding agent
+  the keys.
+- Everything on the canvas — including any facts you tell it — is **sent to the
+  Anthropic API on every request**. Don't put secrets or sensitive personal
+  data in it.
+- It calls the Anthropic API, so **it costs money** per request.
+
+Treat it as a toy to explore, not a tool to depend on. No warranty; use at your
+own risk — and have fun with it.
+
 ## Setup
 
 1. Pharo 13 image + VM live in `pharo/` (gitignored). To fetch them:
