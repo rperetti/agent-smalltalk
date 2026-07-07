@@ -16,7 +16,7 @@ We found a blueprint for this in the legacy of Smalltalk. Smalltalk wasn't just 
 
 **The vision — and where it stands today:**
 
-* **Knowledge is Code** *(working today).* We blur the line between a fact (knowledge) and a tool (code). A note about your favorite coffee order is an object; a script that orders that coffee is also an object. Because they share one environment, the agent links the two fluidly — no databases required. This is real now: facts live as editable objects on the canvas, and the agent writes its own reusable tools the same way.
+* **Knowledge is Code** *(working today).* We blur the line between a fact (knowledge) and a tool (code). A note about your favorite coffee is an object; a script that orders that coffee is also an object. Because they share one environment, the agent links the two fluidly — no databases required. This is real now: facts live as editable objects on the canvas, and the agent writes its own reusable tools the same way.
 
 * **An Evolving Ecosystem** *(working today).* The agent starts with generic capabilities and morphs into software tailored to your life. As it works, it writes reusable tools for itself instead of re-deriving the same things — accumulating competence over time. You're "programming" a personalized environment just by talking to it, correcting it, and sharing your digital life with it.
 
@@ -63,7 +63,7 @@ Headless one-shot ask:
 ## Acknowledgments
 
 This project is an experiment in human–agent collaboration, and it was built
-the same way. The idea and direction are Rodrigo Peretti's; the implementation
+the same way. The idea and direction are Rodrigo Peretti's; the implementation (so far)
 was a genuine collaboration with several AI models — **Claude Opus 4.8** and
 **Claude Fable 5** (Anthropic) and **Gemini Pro** (Google) — pairing on the
 design, the code, and the many debugging sessions along the way.
