@@ -1,7 +1,9 @@
 # Ideas parking lot
 
 Things we've deliberately deferred, so they don't evaporate. Each entry says
-where it came from and why it's parked.
+where it came from and why it's parked. This file and the other files under
+`docs/` are the project's planning and issue tracker; GitHub Issues are not
+used.
 
 ## Undo should re-establish a reactive widget's subscriptions
 
@@ -29,6 +31,21 @@ Parked because: it's an edge case (delete *then* undo a *reactive* widget),
 the crash risk is already structurally handled, and the proper fix
 (canvas-mediated dispatch) deserves its own pass. Workaround: rebuild the
 widget, or ask the agent to re-wire it.
+
+## Hosted GitHub CI
+
+*From the first GitHub Actions experiment (2026-07-08).*
+
+Testing currently runs only on the user's machine through `./test.sh`, which
+builds a disposable pristine image and leaves the living `Agent.image`
+untouched. The first hosted Linux workflow crashed inside the official Pharo
+VM's bundled `libgit2` during Iceberg dependency fetching, before any project
+test ran.
+
+Parked because: local clean-image testing is reliable and sufficient for the
+current single-user prototype. Revisit hosted GitHub CI when broader
+collaboration makes it valuable, ideally with an upstream Pharo/Linux Git fix
+or a deliberately prebuilt dependency image.
 
 ## Open-source readiness pass
 

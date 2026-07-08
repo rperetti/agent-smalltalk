@@ -6,7 +6,7 @@ code; when behavior changes, change this file in the same commit.
 
 *Last updated: 2026-07-08 (clean-image tests/builds,
 single-writer/cancellable gateway runs, process cleanup, deterministic
-transport tests, pinned dependencies, and CI).*
+transport tests, and pinned dependencies).*
 
 ## One-paragraph summary
 
@@ -357,7 +357,8 @@ counters). Each prints the loop transcript for post-mortems.
   `scripts/heal-in-image.st` remains the repair kit for wedged images.
 - **Reliability is anecdotal**: cold runs have been consistently green, but
   the demo-1 "8 of 10" bar was never formally measured.
-- **Tests and the world are separate artifacts**: CI and `test.sh` build a
-  disposable image. The mutable `Agent.image` is user data and is exercised
-  only by explicit smoke/acceptance runs.
+- **Testing is local for now**: `./test.sh` builds a disposable image and is
+  run on the user's machine. The mutable `Agent.image` is user data and is
+  exercised only by explicit smoke/acceptance runs. Hosted GitHub CI is
+  deliberately deferred.
 - Single user, single space, no multiplayer.

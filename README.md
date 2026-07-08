@@ -8,6 +8,9 @@ today, [docs/ideas.md](docs/ideas.md) for the parking lot of what's being
 considered, and [docs/postponed.md](docs/postponed.md) for ideas worked out
 then consciously deferred.
 
+Project planning and issue tracking are file-based and live under `docs/`;
+this project does not use GitHub Issues.
+
 ## Motivation: Breaking the Silos with a Living Agentic Environment
 
 The spark for this project came from a simple realization: interacting with standard operating systems through APIs, rigid file structures, or screen-scraping feels like wearing a heavy pair of mittens. Everything is siloed. A true agentic OS wouldn't just tolerate an AI agent as a standalone application; the OS would be built around the agent's cognitive loop.
@@ -89,15 +92,18 @@ Headless one-shot ask:
   recent run. The API key is never logged.
 
 Bloc, Toplo, and their transitive dependencies are pinned to exact revisions
-in the baseline, so fresh builds and CI use the same graphics stack.
+in the baseline, so fresh builds and local test runs use the same graphics
+stack. Testing currently runs on the user's machine via `./test.sh`; hosted
+GitHub CI is deferred.
 
 ## Acknowledgments
 
 This project is an experiment in human–agent collaboration, and it was built
 the same way. The idea and direction are Rodrigo Peretti's; the implementation (so far)
 was a genuine collaboration with several AI models — **Claude Opus 4.8** and
-**Claude Fable 5** (Anthropic) and **Gemini Pro** (Google) — pairing on the
-design, the code, and the many debugging sessions along the way.
+**Claude Fable 5** (Anthropic), **Gemini Pro** (Google), and **OpenAI Codex
+(GPT-5)** — pairing on the design, the code, and the many debugging sessions
+along the way.
 
 So the "we" throughout this README is literal: a project about a human and an
 agent expanding their capabilities together, made by a human and several
