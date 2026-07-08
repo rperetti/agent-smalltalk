@@ -12,7 +12,9 @@ Class {
 	#instVars : [
 		'canvas',
 		'inputField',
-		'statusLabel'
+		'statusLabel',
+		'running',
+		'runProcess'
 	],
 	#category : 'AgentSmalltalk-UI',
 	#package : 'AgentSmalltalk-UI'
@@ -50,6 +52,7 @@ AgentSpotlight >> initialize [
 		c vertical fitContent.
 		c minHeight: 34 ].
 	statusLabel := ToLabel new text: 'Return to run, Esc to close'.
+	running := false.
 	statusLabel beMultiLine.
 	statusLabel margin: (BlInsets top: 8).
 	statusLabel constraintsDo: [ :c | c horizontal exact: 590 ].
@@ -57,7 +60,11 @@ AgentSpotlight >> initialize [
 	self addChild: statusLabel.
 	inputField addEventFilterOn: BlKeyDownEvent do: [ :evt |
 		evt key = KeyboardKey enter ifTrue: [ evt consume. self submit ].
-		evt key = KeyboardKey escape ifTrue: [ evt consume. self close ] ]
+		evt key = KeyboardKey escape ifTrue: [
+			evt consume.
+			self isRunning
+				ifTrue: [ self cancel ]
+				ifFalse: [ self close ] ] ]
 ]
 
 { #category : 'accessing' }
@@ -72,28 +79,68 @@ AgentSpotlight >> focusInput [
 
 { #category : 'private' }
 AgentSpotlight >> showStatusNow: aString [
-	statusLabel text: aString
+	statusLabel text: (self isRunning
+		ifTrue: [ aString , ' — Esc cancels' ]
+		ifFalse: [ aString ])
 ]
 
 { #category : 'private' }
 AgentSpotlight >> showStatus: aString [
 	"Safe to call from a non-UI process: defer the update onto the space pulse."
-	self enqueueTask: (BlTaskAction new action: [ self showStatusNow: aString ])
+	self enqueueTask: (BlTaskAction new action: [
+		self isRunning ifTrue: [ self showStatusNow: aString ] ])
 ]
 
 { #category : 'actions' }
 AgentSpotlight >> submit [
 	| request gateway |
+	self isRunning ifTrue: [ ^ self ].
 	request := inputField text asString trimBoth.
 	request isEmpty ifTrue: [ ^ self ].
+	running := true.
+	self showStatusNow: 'thinking...'.
 	gateway := AgentGateway new.
 	gateway statusBlock: [ :msg | self showStatus: msg ].
-	[ [ gateway run: request.
-		"Answers live on the canvas (widget or note) -- the bar just leaves."
-		self enqueueTask: (BlTaskAction new action: [ self close ]) ]
+	runProcess := [ [ gateway run: request.
+		self enqueueTask: (BlTaskAction new action: [ self completeSuccess ]) ]
 		on: Error
-		do: [ :e | self showStatus: 'FAILED: ' , e messageText ] ]
+		do: [ :e |
+			self enqueueTask: (BlTaskAction new action: [
+				self completeFailure: e messageText ]) ] ]
 		forkNamed: 'agent-spotlight-run'
+]
+
+{ #category : 'testing' }
+AgentSpotlight >> isRunning [
+	^ running == true
+]
+
+{ #category : 'actions' }
+AgentSpotlight >> cancel [
+	| process |
+	self isRunning ifFalse: [ ^ self ].
+	process := runProcess.
+	runProcess := nil.
+	running := false.
+	process ifNotNil: [
+		[ process terminate ] on: Error do: [ :ignored |  ] ].
+	self showStatusNow: 'cancelled — edit and Return to retry'
+]
+
+{ #category : 'private' }
+AgentSpotlight >> completeSuccess [
+	self isRunning ifFalse: [ ^ self ].
+	running := false.
+	runProcess := nil.
+	self close
+]
+
+{ #category : 'private' }
+AgentSpotlight >> completeFailure: messageText [
+	self isRunning ifFalse: [ ^ self ].
+	running := false.
+	runProcess := nil.
+	self showStatusNow: 'FAILED: ' , messageText
 ]
 
 { #category : 'actions' }

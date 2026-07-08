@@ -59,10 +59,16 @@ own risk — and have fun with it.
 
 | command | what it does |
 |---|---|
-| `./build.sh` | build a FRESH `pharo/Agent.image` from `src/` — destroys existing widgets/facts |
+| `./build.sh` | build a FRESH verified `pharo/Agent.image` from `src/`; backs up/replaces any existing world only after the new image loads and tests pass |
 | `./update.sh` | reload tooling from `src/` into the LIVING image — world preserved; use this one |
-| `./test.sh` | run the SUnit suite headless |
+| `./test.sh` | build a disposable clean image and run SUnit; never opens `Agent.image` |
 | `./run.sh` | open the Agent canvas (Cmd/Ctrl+Enter summons the spotlight bar) |
+
+`build.sh` accepts `core`/`all`, `--output PATH`, `--no-verify`,
+`--no-backup`, and the `PHARO_VM` / `PHARO_PRISTINE` environment overrides.
+It runs Pharo with an isolated temporary `HOME`, so builds do not mutate your
+global Pharo preferences. Use `--output /tmp/Some.image` when you want to
+test a fresh build without replacing the living `pharo/Agent.image`.
 
 Headless one-shot ask:
 
@@ -81,6 +87,9 @@ Headless one-shot ask:
   request: loop events, evaluated code, results/errors, and full HTTP
   request/response JSON. In-image: `AgentGateway last log` for the most
   recent run. The API key is never logged.
+
+Bloc, Toplo, and their transitive dependencies are pinned to exact revisions
+in the baseline, so fresh builds and CI use the same graphics stack.
 
 ## Acknowledgments
 

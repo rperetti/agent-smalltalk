@@ -4,8 +4,9 @@ What the living agentic environment does **today**. The long-term vision lives
 in [vision.md](vision.md). This document is kept in sync with the
 code; when behavior changes, change this file in the same commit.
 
-*Last updated: 2026-07-06 (phase 5: self-evolving tools -- AgentTool,
-capabilities context, toolbox cards; reuse verified with generated code).*
+*Last updated: 2026-07-08 (clean-image tests/builds,
+single-writer/cancellable gateway runs, process cleanup, deterministic
+transport tests, pinned dependencies, and CI).*
 
 ## One-paragraph summary
 
@@ -43,6 +44,11 @@ The bridge to the Anthropic Messages API and the owner of the agentic loop.
   canvas` (class, position, `describe`).
 - Status callbacks (`statusBlock:`) drive the spotlight's status line:
   `thinking... / evaluating... / working (round N of 30)...`.
+- A class-wide mutex makes the gateway the image's **single writer**:
+  concurrent asks wait rather than interleaving tool calls and class changes.
+- HTTP lives behind `AgentAnthropicTransport`; tests substitute a scripted
+  transport and exercise the complete loop without network, credentials,
+  latency, or API cost.
 - Transcript: every event and the **full HTTP request/response JSON** are
   appended to `logs/gateway.log`; `AgentGateway last log` gives in-image
   access to the most recent run.
@@ -62,6 +68,11 @@ Evaluates model-generated code with guardrails:
   (rotating, keeps 5) so a corrupted image is recoverable.
 - Not sandboxed in the capability sense: the model can touch anything in the
   image. Accepted risk for a single-user prototype.
+- `AgentProcessManager` terminates AgentSmalltalk-owned background processes
+  before snapshots and on startup; gateway mutex state is reset on startup.
+- Save-and-quit detaches persistent canvas content from the native Bloc
+  window, preventing a later headless launch from resurrecting AppKit/SDL
+  before AgentSmalltalk's startup hooks can run.
 
 ### AgentKnowledge + AgentUnknown (Core) — live values
 
@@ -91,6 +102,9 @@ Singleton owning the Bloc space (`AgentCanvas open`, 1280×840, `ToBeeTheme`).
 
 - Widgets live on a content element; `addWidget:` defers to the UI thread via
   `enqueueTask:` when the space is open.
+- Additions advance a synchronous monotonic version before that enqueue. The
+  gateway observes the version, so its pure-answer heuristic cannot race the
+  next Bloc pulse and create a duplicate note.
 - **Headless mode**: with no space open, widgets attach to a detached content
   element, so the full generation loop runs (and is tested) without a display.
   In non-interactive sessions `addWidget:` adds directly instead of enqueuing
@@ -159,7 +173,9 @@ only glue.
 `AgentToolCard` (UI) is the visible face — a sage card auto-summoned into the
 **bottom-right toolbox corner** (completing the geography: facts ↖, notes ↗,
 system ↙, tools ↘), showing name + purpose, right-click opening the *tool's*
-source to read/tweak. Cards are meta and stay out of the widget context.
+source to read/tweak. Purpose text wraps and the card grows vertically to fit;
+its label follows horizontal resizing rather than staying at a fixed width.
+Cards are meta and stay out of the widget context.
 
 Verified with generated code: "weather widget for Tokyo" built a
 `WeatherService` tool + widget; "compare Tokyo and London" then **reused**
@@ -220,7 +236,9 @@ line showing loop progress. Enter submits and Esc closes via capture-phase
 event filters (they win over the editor). The gateway runs in a forked
 process; UI updates are enqueued onto the space pulse. On success the bar
 closes itself — answers live on the canvas (widget or note), never in the
-bar; on failure it stays open showing the error.
+bar; on failure it stays open showing the error. While a run is active,
+additional submissions are ignored and Esc cancels while leaving the prompt
+available to edit and retry.
 
 ### The base prompt (`prompts/system.md`)
 
@@ -283,9 +301,9 @@ packages.
 
 | command | what it does |
 |---|---|
-| `./build.sh` | FRESH `pharo/Agent.image` from `src/` — destroys the world (`core` arg skips UI) |
+| `./build.sh` | FRESH verified image from `src/` (`core` arg skips UI). Builds into a temp image under an isolated `HOME`, runs SUnit by default, then backs up/replaces `pharo/Agent.image` only after success. Supports `--output`, `--no-verify`, `--no-backup`, `PHARO_VM`, and `PHARO_PRISTINE` |
 | `./update.sh` | reload tooling from `src/`; widgets/facts survive. Live session → updates in place via `AgentRemote` (localhost:8807 `/update`); else patches the file headless. **Guarded**: both paths require an `UPDATE_OK` token (load raised nothing AND sentinel selectors resolve) or fail loudly leaving the image unchanged — a silent stale-code load once cost a multi-session debugging detour. Diffs via TonelReader + `MCPackageLoader`. Backs up first (keeps 5). Not for Bloc/Toplo — use `build.sh` |
-| `./test.sh` | SUnit suite headless (currently 84 tests) |
+| `./test.sh` | builds a disposable pristine image, loads pinned dependencies, and runs 103 tests; never opens the living image |
 | `./run.sh` | open the canvas UI |
 
 Headless acceptance scripts (`pharo ... st scripts/<name>.st`):
@@ -299,11 +317,13 @@ counters). Each prints the loop transcript for post-mortems.
 
 ## Known limitations / accepted risks
 
-- **`build.sh` destroys the world** — but routine tooling upgrades no longer
-  need it: `update.sh` reloads our packages into the living image with
-  widgets and facts intact (verified: method added and removed across two
-  updates while the canvas survived). Fresh builds remain necessary only
-  for dependency (Bloc/Toplo) changes.
+- **`build.sh` replaces the world by design** — but it now does so only after
+  a clean temp-image load and verification pass, with an existing image backed
+  up first. Routine tooling upgrades should still use `update.sh`, which
+  reloads our packages into the living image with widgets and facts intact
+  (verified: method added and removed across two updates while the canvas
+  survived). Fresh builds remain necessary for dependency (Bloc/Toplo)
+  changes or an intentional factory reset.
 - **No capability sandbox**: generated code runs with full image authority.
 - **Latency**: a widget takes roughly 15–60s depending on rounds; the status
   line keeps it honest. base-prompt caching is the obvious next
@@ -337,4 +357,7 @@ counters). Each prints the loop transcript for post-mortems.
   `scripts/heal-in-image.st` remains the repair kit for wedged images.
 - **Reliability is anecdotal**: cold runs have been consistently green, but
   the demo-1 "8 of 10" bar was never formally measured.
+- **Tests and the world are separate artifacts**: CI and `test.sh` build a
+  disposable image. The mutable `Agent.image` is user data and is exercised
+  only by explicit smoke/acceptance runs.
 - Single user, single space, no multiplayer.

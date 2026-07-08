@@ -46,16 +46,34 @@ AgentToolCard class >> nextPosition [
 { #category : 'initialization' }
 AgentToolCard >> initialize [
 	super initialize.
-	self extent: 200 @ 84.
+	self width: 240.
+	self minHeight: 84.
+	self vFitContent.
 	self background: (Color fromHexString: 'E4EAD9').
 	self border: (BlBorder paint: (Color fromHexString: 'B6C39E') width: 1).
 	self geometry: (BlRoundedRectangleGeometry cornerRadius: 4).
 	self padding: (BlInsets all: 8).
 	nameLabel := BlTextElement new text: ('tool' asRopedText fontSize: 13).
 	purposeLabel := ToLabel new text: ''.
-	purposeLabel constraintsDo: [ :c | c horizontal exact: 184 ].
+	purposeLabel beMultiLine.
+	purposeLabel constraintsDo: [ :c |
+		c horizontal matchParent.
+		c vertical fitContent ].
 	self addChild: nameLabel.
 	self addChild: purposeLabel
+]
+
+{ #category : 'migration' }
+AgentToolCard >> repairLayout [
+	"Repair cards created before purpose text wrapped. Match-parent also
+	makes horizontal resizing useful instead of leaving the label at 184px."
+	self minHeight: 84.
+	self vFitContent.
+	purposeLabel ifNotNil: [
+		purposeLabel beMultiLine.
+		purposeLabel constraintsDo: [ :c |
+			c horizontal matchParent.
+			c vertical fitContent ] ]
 ]
 
 { #category : 'accessing' }

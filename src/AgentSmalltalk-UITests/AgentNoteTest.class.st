@@ -85,10 +85,12 @@ AgentNoteTest >> testGatewayNotesPureAnswers [
 
 { #category : 'tests' }
 AgentNoteTest >> testGatewaySkipsNoteWhenWidgetWasCreated [
-	| gateway before |
+	| gateway before after |
 	gateway := AgentGateway new.
 	before := gateway canvasWidgetsSnapshot.
 	AgentCanvas current addWidget: AgentWidget new.
+	after := gateway canvasWidgetsSnapshot.
+	self assert: after equals: before + 1.
 	gateway noteIfPureAnswer: 'done, made you a widget' for: 'make a widget' since: before.
 	self assert: AgentCanvas current notes isEmpty
 ]

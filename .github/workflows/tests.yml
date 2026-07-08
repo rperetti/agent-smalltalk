@@ -1,0 +1,34 @@
+name: tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  clean-image:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cache Pharo packages
+        uses: actions/cache@v4
+        with:
+          path: pharo/pharo-local
+          key: pharo13-${{ runner.os }}-${{ hashFiles('src/BaselineOfAgentSmalltalk/BaselineOfAgentSmalltalk.class.st') }}
+
+      - name: Install Pharo 13
+        run: |
+          mkdir -p pharo/vm
+          curl --fail --location --retry 3 \
+            https://files.pharo.org/get-files/130/pharoImage-x86_64.zip \
+            --output /tmp/pharo-image.zip
+          curl --fail --location --retry 3 \
+            https://files.pharo.org/get-files/130/pharo-vm-Linux-x86_64-stable.zip \
+            --output /tmp/pharo-vm.zip
+          unzip -q /tmp/pharo-image.zip -d pharo
+          unzip -q /tmp/pharo-vm.zip -d pharo/vm
+
+      - name: Run project tests in a disposable image
+        run: ./test.sh

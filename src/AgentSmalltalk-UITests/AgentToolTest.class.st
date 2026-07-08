@@ -90,6 +90,37 @@ AgentToolTest >> testDefineSummonsOneCard [
 ]
 
 { #category : 'tests' }
+AgentToolTest >> testToolCardPurposeWrapsAndTracksCardWidth [
+	| card purpose |
+	self define: #TestWrappingTool purpose:
+		'a deliberately long service purpose that needs more than one visual line'.
+	card := AgentCanvas current widgets
+		detect: [ :w | w isKindOf: AgentToolCard ].
+	purpose := card instVarNamed: #purposeLabel.
+	self assert: purpose isMultiLine.
+	self assert: purpose constraints horizontal resizer isMatchParent.
+	self assert: purpose constraints vertical resizer isFitContent.
+	self assert: card constraints vertical resizer isFitContent
+]
+
+{ #category : 'tests' }
+AgentToolTest >> testToolCardRepairMigratesOldFixedLabel [
+	| card purpose |
+	self define: #TestRepairTool purpose: 'a purpose that should wrap'.
+	card := AgentCanvas current widgets
+		detect: [ :w | w isKindOf: AgentToolCard ].
+	purpose := card instVarNamed: #purposeLabel.
+	card extent: 200 @ 84.
+	purpose beMonoLine.
+	purpose constraintsDo: [ :c | c horizontal exact: 184 ].
+	AgentCanvas current migrateAfterUpdate.
+	self assert: purpose isMultiLine.
+	self assert: purpose constraints horizontal resizer isMatchParent.
+	self assert: purpose constraints vertical resizer isFitContent.
+	self assert: card constraints vertical resizer isFitContent
+]
+
+{ #category : 'tests' }
 AgentToolTest >> testToolCardIsOutOfWidgetContext [
 	self define: #TestHiddenCardTool purpose: 'x'.
 	self deny: (AgentCanvas current contextDescription includesSubstring: 'TestHiddenCardTool')

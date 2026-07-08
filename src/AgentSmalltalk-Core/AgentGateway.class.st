@@ -13,10 +13,12 @@ Class {
 		'maxRounds',
 		'sandbox',
 		'log',
-		'statusBlock'
+		'statusBlock',
+		'transport'
 	],
 	#classInstVars : [
-		'last'
+		'last',
+		'runMutex'
 	],
 	#category : 'AgentSmalltalk-Core',
 	#package : 'AgentSmalltalk-Core'
@@ -38,6 +40,20 @@ AgentGateway class >> last [
 { #category : 'accessing' }
 AgentGateway class >> noteLast: aGateway [
 	last := aGateway
+]
+
+{ #category : 'running' }
+AgentGateway class >> runMutex [
+	"One writer for the living image. Multiple UI submissions or
+	programmatic asks may wait, but their tool calls never interleave."
+	^ runMutex ifNil: [ runMutex := Semaphore forMutualExclusion ]
+]
+
+{ #category : 'system startup' }
+AgentGateway class >> resetRunMutex [
+	"A mutex may have been serialized while owned by a process that does not
+	survive the snapshot. Every fresh session starts with an unlocked writer."
+	runMutex := Semaphore forMutualExclusion
 ]
 
 { #category : 'accessing' }
@@ -73,7 +89,8 @@ AgentGateway >> initialize [
 	maxRounds := 30.
 	sandbox := AgentSandbox new.
 	log := OrderedCollection new.
-	statusBlock := [ :msg |  ]
+	statusBlock := [ :msg |  ].
+	transport := AgentAnthropicTransport new
 ]
 
 { #category : 'accessing' }
@@ -82,6 +99,12 @@ AgentGateway >> apiKey [
 		apiKey := Smalltalk os environment
 			at: 'ANTHROPIC_API_KEY'
 			ifAbsent: [ self error: 'ANTHROPIC_API_KEY is not set in the environment' ] ]
+]
+
+{ #category : 'accessing' }
+AgentGateway >> apiKey: aString [
+	"Injection point for deterministic tests; production reads the environment."
+	apiKey := aString
 ]
 
 { #category : 'accessing' }
@@ -114,8 +137,23 @@ AgentGateway >> statusBlock: aBlock [
 	statusBlock := aBlock
 ]
 
+{ #category : 'accessing' }
+AgentGateway >> transport [
+	^ transport
+]
+
+{ #category : 'accessing' }
+AgentGateway >> transport: aTransport [
+	transport := aTransport
+]
+
 { #category : 'running' }
 AgentGateway >> run: userText [
+	^ self class runMutex critical: [ self runUnlocked: userText ]
+]
+
+{ #category : 'running' }
+AgentGateway >> runUnlocked: userText [
 	| messages widgetsBefore |
 	self class noteLast: self.
 	self logAdd: '===== USER REQUEST: ' , userText.
@@ -170,34 +208,28 @@ AgentGateway >> runTool: aToolUse [
 
 { #category : 'running' }
 AgentGateway >> post: messages [
-	| payload client body |
+	| payload response |
 	payload := {
 		'model' -> model.
 		'max_tokens' -> 8192.
 		'system' -> self systemPrompt.
 		'tools' -> self toolDefinitions.
 		'messages' -> messages asArray } asDictionary.
-	client := ZnClient new.
 	self logAdd: 'HTTP REQUEST: ' , (STONJSON toString: payload).
-	client
-		url: 'https://api.anthropic.com/v1/messages';
-		headerAt: 'x-api-key' put: self apiKey;
-		headerAt: 'anthropic-version' put: '2023-06-01';
-		entity: (ZnEntity with: (STONJSON toString: payload) type: ZnMimeType applicationJson);
-		timeout: 180.
-	body := client post.
-	self logAdd: 'HTTP RESPONSE: ' , (body ifNil: [ '<no body>' ]).
-	client isSuccess ifFalse: [
-		self error: 'Anthropic API error: ' , client response statusLine printString
-			, ' — ' , (body ifNil: [ '<no body>' ]) printString ].
-	^ STONJSON fromString: body
+	[ response := transport postPayload: payload apiKey: self apiKey ]
+		on: Error
+		do: [ :error |
+			self logAdd: 'HTTP ERROR: ' , error messageText.
+			error pass ].
+	self logAdd: 'HTTP RESPONSE: ' , (STONJSON toString: response).
+	^ response
 ]
 
 { #category : 'running' }
 AgentGateway >> canvasWidgetsSnapshot [
 	^ (Smalltalk globals at: #AgentCanvas ifAbsent: [ nil ])
-		ifNil: [ IdentitySet new ]
-		ifNotNil: [ :cls | cls current toolWidgets asIdentitySet ]
+		ifNil: [ 0 ]
+		ifNotNil: [ :cls | cls current widgetAddVersion ]
 ]
 
 { #category : 'running' }
@@ -206,13 +238,11 @@ AgentGateway >> noteIfPureAnswer: answer for: userText since: widgetsBefore [
 	deliverable -- put it on an AgentNote so it lives on the canvas.
 	If the model already made a note (or any widget), skip: the canvas
 	speaks for itself. Always answers the text unchanged."
-	| canvasClass noteClass newWidgets |
+	| canvasClass noteClass |
 	canvasClass := Smalltalk globals at: #AgentCanvas ifAbsent: [ ^ answer ].
 	noteClass := Smalltalk globals at: #AgentNote ifAbsent: [ ^ answer ].
 	answer trimBoth isEmpty ifTrue: [ ^ answer ].
-	newWidgets := canvasClass current toolWidgets
-		reject: [ :w | widgetsBefore includes: w ].
-	newWidgets isEmpty ifTrue: [
+	canvasClass current widgetAddVersion = widgetsBefore ifTrue: [
 		[ noteClass question: userText answer: answer ]
 			on: Error
 			do: [ :e |

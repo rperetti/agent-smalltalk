@@ -9,12 +9,33 @@ Class {
 BaselineOfAgentSmalltalk >> baseline: spec [
 	<baseline>
 	spec for: #common do: [
+		"Declare the transitive graph at exact revisions before Bloc/Toplo.
+	Their upstream baselines follow moving branches; these root declarations
+	make a fresh AgentSmalltalk image reproducible."
+		spec
+			baseline: 'Alexandrie'
+			with: [ spec repository: 'github://pharo-graphics/Alexandrie:d3185a6f5e4041a2054025c24a5120fd0108b164/src' ].
+		spec
+			baseline: 'XMLParser'
+			with: [
+				spec
+					repository: 'github://pharo-contributions/XML-XMLParser:26a888381174c154b02e908f27d9d5eead3d04ec/src';
+					loads: #('Core') ].
+		spec
+			baseline: 'BitmapCharacterSet'
+			with: [ spec repository: 'github://pharo-contributions/BitmapCharacterSet:62ee106d7960646fa5b85577fe83f920a6bb6672/src' ].
+		spec
+			baseline: 'OrderPreservingDictionary'
+			with: [ spec repository: 'github://pharo-contributions/OrderPreservingDictionary:7b3ab363379e35a3e0e0183b6c2d193a675f898f/src' ].
+		spec
+			baseline: 'Album'
+			with: [ spec repository: 'github://pharo-graphics/Album:a20f74b190c41fabb2b2b27bbdaa0eb41c261d33/src' ].
 		spec
 			baseline: 'Bloc'
-			with: [ spec repository: 'github://pharo-graphics/Bloc:master/src' ].
+			with: [ spec repository: 'github://pharo-graphics/Bloc:a863816b9e526826d66286d871fef7042b03f546/src' ].
 		spec
 			baseline: 'Toplo'
-			with: [ spec repository: 'github://pharo-graphics/Toplo:master/src' ].
+			with: [ spec repository: 'github://pharo-graphics/Toplo:685e2497e6fff39682c4e66eebb7d33443c3f341/src' ].
 		spec
 			package: 'AgentSmalltalk-Core';
 			package: 'AgentSmalltalk-UI' with: [ spec requires: #('AgentSmalltalk-Core' 'Bloc' 'Toplo') ];

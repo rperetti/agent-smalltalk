@@ -161,14 +161,27 @@ AgentWidget >> removeFromParent [
 { #category : 'reactions' }
 AgentWidget >> flashUpdated [
 	"Blink an accent border so reactions are VISIBLE -- a widget that
-	updates itself imperceptibly reads as broken. Thread-safe; restores
-	the selection highlight when selected."
-	[ self border: (BlBorder paint: (Color fromHexString: '4A90D9') width: 2).
-	(Delay forSeconds: 1) wait.
-	(AgentCanvas current selectedWidgets includes: self)
-		ifTrue: [ self highlightSelected ]
-		ifFalse: [ self border: self defaultBorder ] ]
+	updates itself imperceptibly reads as broken. UI mutations are always
+	enqueued on the live space; the background process only owns the delay."
+	self runOnUiThread: [
+		self border: (BlBorder paint: (Color fromHexString: '4A90D9') width: 2) ].
+	[ (Delay forSeconds: 1) wait.
+	self runOnUiThread: [
+		(AgentCanvas current selectedWidgets includes: self)
+			ifTrue: [ self highlightSelected ]
+			ifFalse: [ self border: self defaultBorder ] ] ]
 		forkNamed: 'agent-flash'
+]
+
+{ #category : 'private' }
+AgentWidget >> runOnUiThread: aBlock [
+	| canvas |
+	canvas := AgentCanvas current.
+	(canvas isOpen and: [ canvas isHeadlessSession not ])
+		ifTrue: [
+			canvas space enqueueTask: (BlTaskAction new action: aBlock).
+			canvas space requestNextPulse ]
+		ifFalse: [ aBlock value ]
 ]
 
 { #category : 'reactions' }

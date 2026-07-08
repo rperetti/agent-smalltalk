@@ -24,8 +24,9 @@ AgentUpdater class >> srcDirectory [
 
 { #category : 'testing' }
 AgentUpdater class >> isInteractive [
-	"VM-flag based: correct at any point of the boot sequence."
-	^ Smalltalk isHeadless not
+	"Consult the freshly installed UI manager, not Smalltalk isHeadless:
+	the latter can be stale when a GUI-saved image resumes headlessly."
+	^ (UIManager default isKindOf: NonInteractiveUIManager) not
 ]
 
 { #category : 'verification' }
@@ -35,10 +36,14 @@ AgentUpdater class >> sentinels [
 	update did not fully take. Update these when adding classes, not routinely."
 	^ {
 		AgentRemote class -> #killStrayProcesses.
+		AgentProcessManager class -> #terminateAll.
 		AgentUpdater class -> #verifySentinels.
+		AgentGateway -> #transport:.
 		(Smalltalk globals at: #AgentKnowledge) class -> #numberAt:.
 		(Smalltalk globals at: #AgentCanvas) -> #announcer.
-		(Smalltalk globals at: #AgentWidget) -> #flashUpdated }
+		(Smalltalk globals at: #AgentCanvas) -> #widgetAddVersion.
+		(Smalltalk globals at: #AgentWidget) -> #flashUpdated.
+		(Smalltalk globals at: #AgentSpotlight) -> #cancel }
 ]
 
 { #category : 'verification' }

@@ -126,3 +126,29 @@ AgentGatewayTest >> testNoBudgetNoteEarlyOrAtEnd [
 AgentGatewayTest >> testSystemPromptIncludesBasePrompt [
 	self assert: (gateway systemPrompt includesSubstring: 'AgentWidget')
 ]
+
+{ #category : 'tests' }
+AgentGatewayTest >> testScriptedTransportExercisesCompleteToolLoop [
+	| transport result secondRequest toolResult |
+	transport := AgentGatewayFakeTransport responses: {
+		{ 'content' -> {
+			{ 'type' -> 'tool_use'.
+				'id' -> 'tu_loop'.
+				'name' -> 'evaluate_smalltalk'.
+				'input' -> ({ 'code' -> '3 + 4' } asDictionary) } asDictionary
+			} } asDictionary.
+		{ 'content' -> {
+			{ 'type' -> 'text'. 'text' -> 'calculated seven' } asDictionary
+			} } asDictionary }.
+	gateway
+		transport: transport;
+		apiKey: 'test-key';
+		maxRounds: 10.
+	result := gateway run: 'calculate three plus four'.
+	self assert: result equals: 'calculated seven'.
+	self assert: transport payloads size equals: 2.
+	secondRequest := transport payloads second.
+	toolResult := ((secondRequest at: 'messages') last at: 'content') first.
+	self assert: (toolResult at: 'tool_use_id') equals: 'tu_loop'.
+	self assert: (toolResult at: 'content') equals: 'RESULT: 7'
+]

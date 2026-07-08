@@ -89,3 +89,12 @@ AgentSandboxTest >> testSafePrintSurvivesBrokenPrintString [
 	"Whatever happens, the answer must be a RESULT: or ERROR: string, never a walkback."
 	self assert: ((report beginsWith: 'RESULT:') or: [ report beginsWith: 'ERROR:' ])
 ]
+
+{ #category : 'tests' }
+AgentSandboxTest >> testManagedBackgroundProcessesAreTerminated [
+	| process blocker |
+	blocker := Semaphore new.
+	process := [ blocker wait ] forkNamed: 'agent-flash'.
+	AgentProcessManager terminateAll.
+	self assert: process isTerminated
+]

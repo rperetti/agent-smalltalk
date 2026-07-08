@@ -28,7 +28,8 @@ Class {
 		'rootWired',
 		'undoStack',
 		'topElevation',
-		'announcer'
+		'announcer',
+		'widgetAddVersion'
 	],
 	#classInstVars : [
 		'current'
@@ -80,6 +81,14 @@ AgentCanvas class >> reset [
 	current := nil
 ]
 
+{ #category : 'system startup' }
+AgentCanvas class >> prepareForQuit [
+	"Persist the canvas graph without persisting an open native window.
+	Otherwise Bloc resurrects the window during a later --headless launch,
+	before AgentSmalltalk's startup hooks can intervene."
+	current ifNotNil: [ current prepareForQuit ]
+]
+
 { #category : 'initialization' }
 AgentCanvas >> initialize [
 	super initialize.
@@ -102,6 +111,17 @@ AgentCanvas >> isOpen [
 { #category : 'testing' }
 AgentCanvas >> isHeadlessSession [
 	^ UIManager default isKindOf: NonInteractiveUIManager
+]
+
+{ #category : 'system startup' }
+AgentCanvas >> prepareForQuit [
+	"Detach the persistent content graph from the ephemeral native space.
+	The next AgentCanvas open builds a fresh space around the same widgets."
+	space ifNil: [ ^ self ].
+	content ifNotNil: [ content removeFromParent ].
+	[ space close ] on: Error do: [ :ignored |  ].
+	space := nil.
+	rootWired := nil
 ]
 
 { #category : 'accessing' }
@@ -196,19 +216,21 @@ AgentCanvas >> wireGesturesOn: anElement [
 { #category : 'navigation' }
 AgentCanvas >> migrateAfterUpdate [
 	"Run by scripts/update.st after reloading code into a living image:
-	setup steps that open-time wiring cannot deliver to already-open spaces."
-	self isOpen ifFalse: [ ^ self ].
-	self ensureContent.
-	space root background: (Color fromHexString: 'F4F1E8').
-	self wireKeyboard.
-	self wireNavigation.
+	repair persistent widgets even when the image is closed, then perform
+	session setup that only makes sense for an already-open space."
 	self notes do: [ :n | n repairHeader ].
 	self widgets do: [ :w |
 		w ensureResizeGrip.
 		w ensureRaisesOnClick.
 		w refreshDeleteButton.
 		w repairElevation.
-		(w isKindOf: AgentSticky) ifTrue: [ w ensureEditAnnouncement ] ].
+		(w isKindOf: AgentSticky) ifTrue: [ w ensureEditAnnouncement ].
+		(w isKindOf: AgentToolCard) ifTrue: [ w repairLayout ] ].
+	self isOpen ifFalse: [ ^ self ].
+	self ensureContent.
+	space root background: (Color fromHexString: 'F4F1E8').
+	self wireKeyboard.
+	self wireNavigation.
 	self pruneStaleSubscriptions.
 	self startFactWatcher.
 	AgentRemote ensureRunning
@@ -272,7 +294,7 @@ AgentCanvas >> startFactWatcher [
 	"GUI-only background sweep: manual sticky edits announce within ~3s
 	even if the blur event never fires (the Album focus risk the phase 4
 	spec flagged). Named process, so saves/reopens cannot duplicate it."
-	Smalltalk isHeadless ifTrue: [ ^ self ].
+	self isHeadlessSession ifTrue: [ ^ self ].
 	(Process allSubInstances anySatisfy: [ :p |
 		p name = 'agent-fact-watcher' and: [ p isTerminated not ] ])
 		ifTrue: [ ^ self ].
@@ -538,12 +560,22 @@ AgentCanvas >> addWidget: aWidget [
 	the space never pulses, so the queue would never drain -- and with no
 	competing UI thread, adding directly is safe."
 	self ensureContent.
+	"Record intent synchronously, before a GUI enqueue. The gateway uses
+	this monotonic version to distinguish a pure-text answer from a run
+	that created a widget, without racing the next Bloc pulse."
+	widgetAddVersion := self widgetAddVersion + 1.
 	"Raise on add so a freshly created widget is never hidden behind ones
 	already raised by click-to-front -- creations always land visible."
 	(aWidget isKindOf: AgentWidget) ifTrue: [ aWidget raise ].
 	(space isNil or: [ self isHeadlessSession ])
 		ifTrue: [ content addChild: aWidget ]
 		ifFalse: [ space enqueueTask: (BlTaskAction new action: [ content addChild: aWidget ]) ]
+]
+
+{ #category : 'widgets' }
+AgentCanvas >> widgetAddVersion [
+	"Lazy for canvases migrated from images created before this slot."
+	^ widgetAddVersion ifNil: [ widgetAddVersion := 0 ]
 ]
 
 { #category : 'widgets' }

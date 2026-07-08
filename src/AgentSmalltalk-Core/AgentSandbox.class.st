@@ -25,7 +25,11 @@ AgentSandbox class >> shutDown: quitting [
 	"Never snapshot a live server socket: a saved ZnServer resurrects with
 	a dead socket and crashes the next session's accept loop (observed:
 	headless boots dying in SocketError). startUp: restarts the listener."
-	AgentRemote stop
+	AgentProcessManager terminateAll.
+	AgentRemote stop.
+	quitting ifTrue: [
+		(Smalltalk globals at: #AgentCanvas ifAbsent: [ nil ])
+			ifNotNil: [ :canvasClass | canvasClass prepareForQuit ] ]
 ]
 
 { #category : 'system startup' }
@@ -42,6 +46,8 @@ AgentSandbox class >> startUp: resuming [
 	poison-proof discriminator: only AgentCanvas open (GUI) re-enables it,
 	so headless updates/probes that never call open never bind the port.
 	disable also stops any zombie server resurrected from the snapshot."
+	AgentProcessManager terminateAll.
+	AgentGateway resetRunMutex.
 	AgentRemote disable
 ]
 
