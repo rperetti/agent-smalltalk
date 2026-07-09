@@ -128,6 +128,31 @@ AgentGatewayTest >> testSystemPromptIncludesBasePrompt [
 ]
 
 { #category : 'tests' }
+AgentGatewayTest >> testSystemPromptRequiresFactFirstReferenceResolution [
+	| prompt |
+	prompt := gateway systemPrompt.
+	self assert: (prompt includesSubstring: 'Resolve references from facts before you design or code').
+	self assert: (prompt includesSubstring: 'Facts stated in the CURRENT request').
+	self assert: (prompt includesSubstring: 'count immediately').
+	self assert: (prompt includesSubstring: 'keep it fact-backed').
+	self assert: (prompt includesSubstring: 'copying the current literal').
+	self assert: (prompt includesSubstring: 'AgentKnowledge at:')
+]
+
+{ #category : 'tests' }
+AgentGatewayTest >> testSystemPromptRequiresNonblockingWidgetConstruction [
+	| prompt |
+	prompt := gateway systemPrompt.
+	self assert: (prompt includesSubstring: 'Never perform network or other slow I/O synchronously').
+	self assert: (prompt includesSubstring: 'initialize` may end with `self refreshAsync`').
+	self assert: (prompt includesSubstring: 'self runOnUiThreadSafely:').
+	self assert: (prompt includesSubstring: 'agent-widget-').
+	self assert: (prompt includesSubstring: 'inspect and clean it up instead of blindly constructing another').
+	self assert: (prompt includesSubstring: 'setText:on:fontSize:').
+	self assert: (prompt includesSubstring: 'Never send `text:fontSize:` directly')
+]
+
+{ #category : 'tests' }
 AgentGatewayTest >> testScriptedTransportExercisesCompleteToolLoop [
 	| transport result secondRequest toolResult |
 	transport := AgentGatewayFakeTransport responses: {

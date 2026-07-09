@@ -79,7 +79,9 @@ AgentSandboxTest >> testTimeoutIsReported [
 	| report |
 	sandbox timeoutSeconds: 1.
 	report := sandbox evaluate: '[ true ] whileTrue'.
-	self assert: (report beginsWith: 'ERROR: evaluation timed out')
+	self assert: (report beginsWith: 'ERROR: evaluation timed out').
+	self assert: (report includesSubstring: 'Never perform network I/O in initialize').
+	self assert: (report includesSubstring: 'partial instances')
 ]
 
 { #category : 'tests' }
@@ -95,6 +97,15 @@ AgentSandboxTest >> testManagedBackgroundProcessesAreTerminated [
 	| process blocker |
 	blocker := Semaphore new.
 	process := [ blocker wait ] forkNamed: 'agent-flash'.
+	AgentProcessManager terminateAll.
+	self assert: process isTerminated
+]
+
+{ #category : 'tests' }
+AgentSandboxTest >> testGeneratedWidgetBackgroundProcessesAreTerminated [
+	| process blocker |
+	blocker := Semaphore new.
+	process := [ blocker wait ] forkNamed: 'agent-widget-test-refresh'.
 	AgentProcessManager terminateAll.
 	self assert: process isTerminated
 ]

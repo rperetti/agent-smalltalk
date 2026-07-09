@@ -1,4 +1,4 @@
-"Headless acceptance for phase 5 (self-evolving tools). Does NOT save.
+"Headless acceptance for self-evolving tools. Does NOT save.
 A) a weather request builds a reusable weather TOOL (+ widget)
 B) a second weather request REUSES the tool instead of rebuilding the fetch:
    the weather tool is present in the context, and no duplicate weather tool

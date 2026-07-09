@@ -71,6 +71,48 @@ AgentSystemMessageTest >> testUpdaterPostsWithImageUpdateKey [
 ]
 
 { #category : 'tests' }
+AgentSystemMessageTest >> testSafeUiUpdateTurnsErrorIntoSystemMessage [
+	AgentWidget new runOnUiThreadSafely: [ self error: 'async boom' ].
+	self assert: AgentCanvas current systemMessages size equals: 1.
+	self assert: (AgentCanvas current systemMessages first body
+		includesSubstring: 'async boom').
+	self assert: (AgentCanvas current systemMessages first body
+		includesSubstring: 'AgentWidget')
+]
+
+{ #category : 'tests' }
+AgentSystemMessageTest >> testGatewaySurfacesAsyncFailureOncePerOccurrence [
+	| gateway toolUse firstResult secondResult |
+	gateway := AgentGateway new.
+	AgentSystemMessage
+		post: 'Widget update failed in ProbeWidget: broken label'
+		key: #'widgetUpdateFailure-ProbeWidget'.
+	toolUse := {
+		'id' -> 'async-probe'.
+		'name' -> 'evaluate_smalltalk'.
+		'input' -> ({ 'code' -> '3 + 4' } asDictionary) } asDictionary.
+	firstResult := gateway runTool: toolUse.
+	secondResult := gateway runTool: toolUse.
+	self assert: ((firstResult at: 'content')
+		includesSubstring: 'asynchronous widget update failure').
+	self assert: ((firstResult at: 'content')
+		includesSubstring: 'broken label').
+	self deny: ((secondResult at: 'content')
+		includesSubstring: 'asynchronous widget update failure')
+]
+
+{ #category : 'tests' }
+AgentSystemMessageTest >> testStyledTextHelperAvoidsKeywordPrecedenceTrap [
+	| element |
+	element := BlTextElement new.
+	AgentWidget new
+		setText: '18°C'
+		on: element
+		fontSize: 24.
+	self assert: element text asString equals: '18°C'
+]
+
+{ #category : 'tests' }
 AgentSystemMessageTest >> testPilesAtBottomLeft [
 	self assert: AgentSystemMessage pileOrigin equals: 20 @ 640
 ]

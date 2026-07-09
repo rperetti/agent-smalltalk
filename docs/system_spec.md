@@ -4,9 +4,8 @@ What the living agentic environment does **today**. The long-term vision lives
 in [vision.md](vision.md). This document is kept in sync with the
 code; when behavior changes, change this file in the same commit.
 
-*Last updated: 2026-07-08 (clean-image tests/builds,
-single-writer/cancellable gateway runs, process cleanup, deterministic
-transport tests, and pinned dependencies).*
+*Last updated: 2026-07-09 (self-built tools, fact-backed asynchronous
+widgets, automatic async-failure repair feedback, and 113 clean-image tests).*
 
 ## One-paragraph summary
 
@@ -52,6 +51,10 @@ The bridge to the Anthropic Messages API and the owner of the agentic loop.
 - Transcript: every event and the **full HTTP request/response JSON** are
   appended to `logs/gateway.log`; `AgentGateway last log` gives in-image
   access to the most recent run.
+- Asynchronous widget failures are posted as keyed system messages and each
+  new occurrence is injected into the next tool result. The model therefore
+  sees failures that happen after an earlier evaluation returned and must
+  repair/re-verify them before finishing.
 - Entry points: `AgentGateway ask: 'request'` (headless or programmatic);
   the spotlight uses an instance with a status block.
 
@@ -63,13 +66,16 @@ Evaluates model-generated code with guardrails:
 - Catches all errors and answers a report: class, message text, top stack
   frames — plus, for `doesNotUnderstand:`, up to 8 **similar selectors the
   receiver does understand**.
-- 10-second evaluation timeout (survives infinite loops).
+- 10-second evaluation timeout (survives infinite loops); timeout feedback
+  explicitly forbids network I/O during widget construction and warns that
+  retrying can accumulate partial instances.
 - Before each gateway request: copies the image file to `pharo/backups/`
   (rotating, keeps 5) so a corrupted image is recoverable.
 - Not sandboxed in the capability sense: the model can touch anything in the
   image. Accepted risk for a single-user prototype.
 - `AgentProcessManager` terminates AgentSmalltalk-owned background processes
-  before snapshots and on startup; gateway mutex state is reset on startup.
+  (including generated `agent-widget-*` refreshes) before snapshots and on
+  startup; gateway mutex state is reset on startup.
 - Save-and-quit detaches persistent canvas content from the native Bloc
   window, preventing a later headless launch from resurrecting AppKit/SDL
   before AgentSmalltalk's startup hooks can run.
@@ -95,6 +101,14 @@ in state mutators. Widgets subscribe `when:do:for: self` (the base-prompt patter
 deletion auto-unsubscribes. Verified with generated code: a clock retuned on
 a pure fact edit with no request, and a total recomputed purely from a
 counter's announcement — no Refresh buttons.
+
+Forked network refreshes apply their result through
+`AgentWidget>>runOnUiThreadSafely:`. It catches errors when the queued UI block
+actually executes and posts a visible, keyed system message instead of letting
+an asynchronous UI exception disappear or crash a worker. The gateway injects
+each new async-failure message into the next tool result, forcing the model to
+repair and re-verify before it can finish. `setText:on:fontSize:` is the blessed
+generated-code path for styled Bloc text, avoiding keyword-precedence mistakes.
 
 ### AgentCanvas (UI)
 
@@ -139,6 +153,9 @@ The contract every generated widget subclasses:
   `defineNamed:slots:` — the **blessed class-creation helper** that insulates
   the model from Pharo class-builder API drift. Generated classes go to the
   `AgentSmalltalk-Generated` package.
+- `runOnUiThreadSafely:` applies forked results on the live UI thread and
+  converts errors into visible system messages; `setText:on:fontSize:` is the
+  blessed styled-Bloc-text path, avoiding generated keyword-precedence bugs.
 - **Resize grip**: bottom-right corner of every widget (facts and notes
   included), drag-event based, zoom-aware, clamped to 120×80 minimum.
 - **Click-to-front**: pressing anywhere on a widget raises it (monotonic
@@ -153,7 +170,7 @@ The contract every generated widget subclasses:
   since-removed broken classes) are discarded silently. Widget-internal
   state and moves are not undoable; code changes are Epicea's job.
 
-### AgentTool + AgentToolCard — the agent's own capabilities (phase 5)
+### AgentTool + AgentToolCard — the agent's own capabilities
 
 The agent builds **reusable tools for itself**, not just widgets for the
 user. `AgentTool` (Core) is the base; the agent creates a tool via the
@@ -168,19 +185,26 @@ Discovery is the whole game: `AgentTool contextListing` renders a
 class-side selectors) that the gateway appends to every system prompt, so
 reuse is automatic — no recurrence-detection. The base prompt teaches the
 discipline: consult capabilities, reuse if present, else build a tool, inline
-only glue.
+only glue. `AgentTool tools` discovers subclasses directly and returns them
+name-sorted; no separate registry can drift from the live classes. Only
+selectors defined on each tool's class side are exposed, keeping inherited
+framework and private instance methods out of context.
 
 `AgentToolCard` (UI) is the visible face — a sage card auto-summoned into the
 **bottom-right toolbox corner** (completing the geography: facts ↖, notes ↗,
 system ↙, tools ↘), showing name + purpose, right-click opening the *tool's*
 source to read/tweak. Purpose text wraps and the card grows vertically to fit;
 its label follows horizontal resizing rather than staying at a fixed width.
-Cards are meta and stay out of the widget context.
+Cards are meta and stay out of the widget context. There is at most one card
+per tool. Deleting a card does not delete or hide the capability: the class
+continues to persist and appear in the capabilities context.
 
-Verified with generated code: "weather widget for Tokyo" built a
-`WeatherService` tool + widget; "compare Tokyo and London" then **reused**
-`WeatherService fetchFor:` twice instead of rewriting the fetch — no
-duplicate tool.
+Verified with generated code and the GUI acceptance pass (2026-07-09):
+"weather widget for Tokyo" built one `WeatherService` tool + card + widget;
+"compare Tokyo and London" then **reused** `WeatherService fetchFor:` twice
+instead of rewriting the fetch; a same-request `#city` fact produced a
+fact-backed reactive weather widget; card source browsing, live tool edits,
+and save/reopen persistence all worked with no duplicate tool.
 
 ### The sticky family (UI): AgentSticky → AgentFact / AgentNote / AgentSystemMessage
 
@@ -296,6 +320,11 @@ packages.
   lassoed sum widget recomputed live as its source counters changed. The
   full canvas — pan, Shift+wheel zoom, lasso across widgets, click-to-front,
   reactive widgets — confirmed working together.
+- **Accumulate and reuse tools** (verified headless and interactively
+  2026-07-09): a Tokyo weather request created one reusable `WeatherService`
+  and visible tool card; a comparison widget reused the same service twice;
+  a later same-turn city fact built a nonblocking, reactive weather widget.
+  Source edits and image persistence benefited every dependent widget.
 
 ## Operations
 
@@ -303,13 +332,14 @@ packages.
 |---|---|
 | `./build.sh` | FRESH verified image from `src/` (`core` arg skips UI). Builds into a temp image under an isolated `HOME`, runs SUnit by default, then backs up/replaces `pharo/Agent.image` only after success. Supports `--output`, `--no-verify`, `--no-backup`, `PHARO_VM`, and `PHARO_PRISTINE` |
 | `./update.sh` | reload tooling from `src/`; widgets/facts survive. Live session → updates in place via `AgentRemote` (localhost:8807 `/update`); else patches the file headless. **Guarded**: both paths require an `UPDATE_OK` token (load raised nothing AND sentinel selectors resolve) or fail loudly leaving the image unchanged — a silent stale-code load once cost a multi-session debugging detour. Diffs via TonelReader + `MCPackageLoader`. Backs up first (keeps 5). Not for Bloc/Toplo — use `build.sh` |
-| `./test.sh` | builds a disposable pristine image, loads pinned dependencies, and runs 103 tests; never opens the living image |
+| `./test.sh` | builds a disposable pristine image, loads pinned dependencies, and runs 113 tests; never opens the living image |
 | `./run.sh` | open the canvas UI |
 
 Headless acceptance scripts (`pharo ... st scripts/<name>.st`):
 `smoke-widget.st` (cold counter generation), `smoke-modify.st` (live
 modification with state preservation), `smoke-textfield.st` (text-input
 widget), `smoke-facts.st` (remember / use / update / implicit capture),
+`smoke-fact-widget.st` (same-request fact resolution into a live widget),
 `smoke-tools.st` (build a tool, then reuse it),
 `smoke-selection.st` (selection-scoped context + live Selection globals),
 `smoke-reactive.st` (reactive clock follows a fact edit; live total follows

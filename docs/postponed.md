@@ -17,8 +17,8 @@ spline connects them and data flows along it — the vision's "draw a line from
 the Email Inbox to the To-Do List" made real. Wires would be first-class
 canvas objects (selectable, deletable, persistent), turning the canvas into a
 runnable dataflow diagram. The money shot: drag a `#city` fact onto a blank
-widget and watch it bind and track. (Full draft is in git history at commit
-`4c44487`, `docs/phase5_spec.md`.)
+widget and watch it bind and track. (The full draft is in git history at
+commit `4c44487`, in the then-current `docs/phase5_spec.md`.)
 
 **Why postponed.**
 - **No proven need.** Phase 4's global announcer already gives full

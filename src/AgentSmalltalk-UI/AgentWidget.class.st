@@ -184,6 +184,31 @@ AgentWidget >> runOnUiThread: aBlock [
 		ifFalse: [ aBlock value ]
 ]
 
+{ #category : 'private' }
+AgentWidget >> runOnUiThreadSafely: aBlock [
+	"Run a background result on the UI thread and catch errors where the
+	queued block actually executes. A handler around the caller's fork is
+	too early in a live GUI: enqueueing returns before the UI block runs."
+	self runOnUiThread: [
+		[ aBlock value ]
+			on: Error
+			do: [ :error |
+				[ AgentSystemMessage
+					post: 'Widget update failed in ' , self class name , ': '
+						, error messageText
+					key: ('widgetUpdateFailure-' , self class name) asSymbol ]
+					on: Error
+					do: [ :ignored |  ] ] ]
+]
+
+{ #category : 'text' }
+AgentWidget >> setText: aString on: aTextElement fontSize: aNumber [
+	"Blessed styled-text update. Keeping keyword precedence inside this
+	hand-written method prevents generated code from accidentally sending
+	the nonexistent #text:fontSize: selector."
+	aTextElement text: (aString asString asRopedText fontSize: aNumber)
+]
+
 { #category : 'reactions' }
 AgentWidget >> announceChanged [
 	"Convention: state-mutating methods end with this, so derived widgets

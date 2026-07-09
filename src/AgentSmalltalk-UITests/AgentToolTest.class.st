@@ -47,6 +47,18 @@ AgentToolTest >> testDefineCreatesToolWithPurpose [
 ]
 
 { #category : 'tests' }
+AgentToolTest >> testDefineStatefulToolWithSlots [
+	| tool |
+	tool := AgentTool
+		defineNamed: #TestStatefulTool
+		slots: #(cache timestamp)
+		purpose: 'remember a cached result'.
+	made add: tool.
+	self assert: tool instVarNames equals: #('cache' 'timestamp').
+	self assert: tool purpose equals: 'remember a cached result'
+]
+
+{ #category : 'tests' }
 AgentToolTest >> testToolIsDiscoverable [
 	| tool |
 	tool := self define: #TestDiscoverTool purpose: 'x'.
@@ -78,6 +90,15 @@ AgentToolTest >> testContextListingIncludesToolAndPurpose [
 ]
 
 { #category : 'tests' }
+AgentToolTest >> testEmptyContextInvitesToolCreation [
+	| listing |
+	listing := AgentTool contextListing.
+	self assert: (listing includesSubstring: 'Capabilities you''ve built').
+	self assert: (listing includesSubstring: 'none yet').
+	self assert: (listing includesSubstring: 'build a tool')
+]
+
+{ #category : 'tests' }
 AgentToolTest >> testDefineSummonsOneCard [
 	| tool cards |
 	tool := self define: #TestCardTool purpose: 'x'.
@@ -87,6 +108,24 @@ AgentToolTest >> testDefineSummonsOneCard [
 	"Re-defining the same tool does not add a second card."
 	AgentTool summonCardFor: tool.
 	self assert: (AgentCanvas current widgets count: [ :w | w isKindOf: AgentToolCard ]) equals: 1
+]
+
+{ #category : 'tests' }
+AgentToolTest >> testDeletingCardKeepsToolDiscoverable [
+	| tool card |
+	tool := self define: #TestDurableTool purpose: 'survives its card'.
+	card := AgentCanvas current widgets
+		detect: [ :w | w isKindOf: AgentToolCard ].
+	card removeFromParent.
+	self assert: (AgentTool tools includes: tool).
+	self assert: (AgentTool contextListing includesSubstring: 'TestDurableTool')
+]
+
+{ #category : 'tests' }
+AgentToolTest >> testToolCardPlacementPlanTargetsBottomRight [
+	self assert: AgentToolCard nextPosition equals: 940 @ 600.
+	self define: #TestCornerToolOne purpose: 'one'.
+	self assert: AgentToolCard nextPosition equals: 956 @ 622
 ]
 
 { #category : 'tests' }

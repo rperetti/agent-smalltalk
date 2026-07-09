@@ -14,7 +14,8 @@ Class {
 		'sandbox',
 		'log',
 		'statusBlock',
-		'transport'
+		'transport',
+		'reportedAsyncFailureCounts'
 	],
 	#classInstVars : [
 		'last',
@@ -90,7 +91,8 @@ AgentGateway >> initialize [
 	sandbox := AgentSandbox new.
 	log := OrderedCollection new.
 	statusBlock := [ :msg |  ].
-	transport := AgentAnthropicTransport new
+	transport := AgentAnthropicTransport new.
+	reportedAsyncFailureCounts := Dictionary new
 ]
 
 { #category : 'accessing' }
@@ -201,9 +203,47 @@ AgentGateway >> runTool: aToolUse [
 					result := AgentImageSearch handle: input ]
 				ifFalse: [ result := 'ERROR: unknown tool ' , name ] ].
 	self logAdd: result.
+	result := self appendPendingAsyncFailuresTo: result.
 	^ { 'type' -> 'tool_result'.
 		'tool_use_id' -> (aToolUse at: 'id').
 		'content' -> result } asDictionary
+]
+
+{ #category : 'running' }
+AgentGateway >> appendPendingAsyncFailuresTo: result [
+	| failures |
+	failures := self pendingAsyncFailures.
+	failures isEmpty ifTrue: [ ^ result ].
+	^ String streamContents: [ :s |
+		s << result.
+		s cr.
+		s << '[system: asynchronous widget update failure(s) occurred. '
+			<< 'Fix and re-verify the live widget before finishing.]'.
+		s cr.
+		failures do: [ :message |
+			s << '- ' << message body.
+			s cr ] ]
+]
+
+{ #category : 'running' }
+AgentGateway >> pendingAsyncFailures [
+	| canvasClass failures |
+	reportedAsyncFailureCounts ifNil: [
+		reportedAsyncFailureCounts := Dictionary new ].
+	canvasClass := Smalltalk globals at: #AgentCanvas ifAbsent: [ ^ #() ].
+	failures := OrderedCollection new.
+	canvasClass current systemMessages do: [ :message |
+		| key previousCount |
+		key := message key.
+		(key notNil and: [
+			key asString beginsWith: 'widgetUpdateFailure-' ]) ifTrue: [
+				previousCount := reportedAsyncFailureCounts
+					at: key
+					ifAbsent: [ 0 ].
+				message count > previousCount ifTrue: [
+					reportedAsyncFailureCounts at: key put: message count.
+					failures add: message ] ] ].
+	^ failures
 ]
 
 { #category : 'running' }

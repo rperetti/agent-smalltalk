@@ -85,9 +85,34 @@ The long game: the base prompt shrinks toward *bootstrapping* knowledge (how to 
 Pharo, the AgentWidget contract, how to build a tool) and the agent's own
 toolbox carries the *accumulated* knowledge. The system teaches itself.
 
-Parked because: only meaningful once the tools feature exists and a real
-toolbox has accumulated. Revisit then — and watch whether base-prompt sections start
-feeling redundant with tools the agent already has.
+Parked because: the tools feature now exists, but the toolbox is still too
+small to justify subtracting proven bootstrap guidance. Revisit once several
+tested tools make specific base-prompt recipes demonstrably redundant.
+
+## Toolbox trust, curation, and lifecycle
+
+*Carried forward from the completed self-built-tools phase (2026-07-09).*
+
+The toolbox currently optimizes for creation and reuse: every `AgentTool`
+subclass is discoverable forever, and deleting its card deliberately does not
+delete the class. That simplicity will eventually need a lifecycle once a real
+toolbox accumulates:
+
+- executable examples or generated self-tests, with last-known health visible
+  on the card;
+- explicit dependencies/dependents so a tool edit can identify affected
+  widgets and other tools;
+- curation for redundant or overlapping capabilities;
+- a deliberate **forget tool** operation distinct from deleting its card;
+- version/history semantics for human and agent edits;
+- evidence-based reduction of base-prompt recipes once a tested tool replaces
+  them.
+
+Parked because: one healthy weather service is proof of the mechanism, not yet
+a toolbox-management problem. Revisit when duplication, API drift, or an
+unclear/broken capability actually creates friction. This is a strong
+alternative to scheduled automations for the next phase if reliability should
+take precedence over new autonomy.
 
 ## Thread-aware reply (full conversation context)
 

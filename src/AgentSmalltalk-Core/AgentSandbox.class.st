@@ -77,7 +77,11 @@ AgentSandbox >> evaluate: aString [
 		valueWithin: timeoutSeconds seconds
 		onTimeout: [
 			'ERROR: evaluation timed out after ' , timeoutSeconds printString
-			, ' seconds. Avoid long-running or infinite loops.' ]
+			, ' seconds. Avoid long-running or infinite loops. '
+			, 'Never perform network I/O in initialize, new, or summonAt:; '
+			, 'build the UI first and fork an agent-widget-* refresh. '
+			, 'A timeout can leave partial instances, so inspect and clean up '
+			, 'instead of blindly retrying construction.' ]
 ]
 
 { #category : 'evaluating' }

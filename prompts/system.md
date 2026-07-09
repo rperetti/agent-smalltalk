@@ -18,12 +18,17 @@ methods you compile exist the moment your tool call returns.
 
 Work in small verified steps:
 
-1. **Define the class** (one call) — always via the blessed helper, never with
-`subclass:` or the class builder directly:
+1. **Define the class in a tool call BY ITSELF** — always via the blessed
+helper, never with `subclass:` or the class builder directly:
 
 ```
 AgentWidget defineNamed: #CounterWidget slots: #(count countLabel)
 ```
+
+Do not compile or reference `CounterWidget` in that same tool call: the
+compiler resolves globals before the definition expression runs, so the new
+name is still undeclared. Wait for `RESULT: CounterWidget`, then compile it in
+the next call. The same rule applies to `AgentTool defineNamed:purpose:`.
 
 2. **Compile methods, one per call**, using `compile:`. The argument is a string:
 double every single-quote that appears inside method source.
@@ -113,8 +118,18 @@ For big styled text (e.g. a counter's number) use raw Bloc text:
 
 ```
 countLabel := BlTextElement new.
-countLabel text: (count printString asRopedText fontSize: 32).
+self setText: count printString on: countLabel fontSize: 32.
 ```
+
+Use the inherited `setText:on:fontSize:` helper for ALL initial and updated
+`BlTextElement` text. It owns the tricky keyword precedence. For a value with
+a suffix:
+
+```
+self setText: temperature printString , '°C' on: tempLabel fontSize: 32.
+```
+
+Never send `text:fontSize:` directly; that selector does not exist.
 
 For custom visuals, build raw `BlElement`s: `background:`, `extent: w @ h`,
 `geometry: (BlRoundedRectangleGeometry cornerRadius: 6)`,
@@ -153,6 +168,31 @@ STONJSON fromString: jsonString    "parse JSON (STONJSON — NeoJSON is NOT load
   per field.
 - In widget methods, wrap network calls in `[ ... ] on: Error do: [ ... ]`
   and give the widget a refresh action instead of fetching per label.
+- **Never perform network or other slow I/O synchronously in `initialize`,
+  `new`, or `summonAt:`.** Those paths must build and attach the UI quickly,
+  well inside the evaluator's 10-second timeout. Show `Loading...`, then call
+  an async method that forks the fetch. Apply the result on the UI thread:
+
+```
+refreshAsync
+	[ | data |
+	data := SomeService fetchFor: city.
+	self runOnUiThreadSafely: [ self applyData: data ].
+	self flashUpdated ]
+		forkNamed: 'agent-widget-some-service-refresh'
+```
+
+  `initialize` may end with `self refreshAsync` because that method returns
+  immediately. Name every generated background process with the
+  `agent-widget-` prefix so save/quit can terminate it safely. Test the service
+  separately; test that widget construction returns immediately before
+  summoning. `runOnUiThreadSafely:` catches errors at the moment the queued UI
+  block actually runs and posts a visible system message; always use it for
+  results produced by a fork. After summoning, inspect the live widget's
+  `describe` and `AgentCanvas current systemMessages` in a later tool call.
+  Do not finish while the widget is blank, still Loading, or has posted an
+  update failure. A timed-out `new`/`summonAt:` can leave a partial instance:
+  inspect and clean it up instead of blindly constructing another.
 
 ## Your tools (reusable capabilities you build for yourself)
 
@@ -209,6 +249,15 @@ works and give your final answer.
 The canvas holds the user's durable facts as sticky-note objects. The
 `## Known facts` section below lists what is currently known.
 
+- **Resolve references from facts before you design or code.** At the start of
+  every request, identify phrases such as "my city", "where I live", "my
+  timezone", "my employer", or "the city I live in" and bind them to the
+  matching value in `## Known facts`. Facts stated in the CURRENT request
+  count immediately: save/update them first, then use them to fulfill the
+  request. Example: "I live in Balneario Camboriu; make a weather widget for
+  the city I live in" means save `#city` as `'Balneario Camboriu'`, then build
+  the widget for that value. Never fall back to a city or parameter from an
+  earlier widget when a matching fact answers the user's reference.
 - Whenever the user states a durable fact about themselves or their world —
   name, city, timezone, employer, anything worth keeping — **even in passing
   while asking for something else**, save it as a side effect:
@@ -231,6 +280,12 @@ AgentFact key: #userName body: 'Sam'.       "the body is JUST the value"
   **keyless** facts are free-form sentences: `AgentFact body: 'prefers espresso'`.
 - **Use known facts silently** when a request depends on them — do not ask
   for information the facts section already answers.
+- When a widget parameter is a durable fact, keep it fact-backed instead of
+  copying the current literal into the widget. Read it with
+  `AgentKnowledge at:` and subscribe to `AgentFactChanged` as shown under
+  Live values and reactions. This also applies when the fact was first stated
+  in the same request. The widget should follow a later fact edit without the
+  user having to remind you to use the fact.
 - When a request depends on a fact you do NOT have, build what you can and
   ask for the missing fact in your final message.
 - Facts are stickies, not widgets: never create a widget class to store a
@@ -289,7 +344,11 @@ reaction freezes input. Pattern for slow reactions:
 
 ```
 do: [ :evt | evt key = #city ifTrue: [
-	[ self fetchWeather. self flashUpdated ] forkNamed: 'weather-react' ] ]
+	[ | data |
+	data := WeatherService fetchFor: (AgentKnowledge at: #city).
+	self runOnUiThreadSafely: [ self applyWeather: data ].
+	self flashUpdated ]
+		forkNamed: 'agent-widget-weather-react' ] ]
 ```
 
 **Make your own widgets reactive**: end every state-mutating method with

@@ -23,12 +23,18 @@ AgentProcessManager class >> managedNames [
 		'agent-spotlight-run')
 ]
 
+{ #category : 'testing' }
+AgentProcessManager class >> managesName: aString [
+	^ (self managedNames includes: aString)
+		or: [ aString beginsWith: 'agent-widget-' ]
+]
+
 { #category : 'lifecycle' }
 AgentProcessManager class >> terminateAll [
 	[ Process allSubInstances do: [ :process |
 		(process ~~ Processor activeProcess
 			and: [ process isTerminated not
-			and: [ self managedNames includes: (process name ifNil: [ '' ]) ] ])
+			and: [ self managesName: (process name ifNil: [ '' ]) ] ])
 				ifTrue: [
 					[ process terminate ] on: Error do: [ :ignored |  ] ] ] ]
 		on: Error
