@@ -153,6 +153,18 @@ AgentGatewayTest >> testSystemPromptRequiresNonblockingWidgetConstruction [
 ]
 
 { #category : 'tests' }
+AgentGatewayTest >> testSystemPromptDefinesSafeAutomationContract [
+	| prompt |
+	prompt := gateway systemPrompt.
+	self assert: (prompt includesSubstring: 'Scheduled automations').
+	self assert: (prompt includesSubstring: 'scheduled run never invokes the LLM').
+	self assert: (prompt includesSubstring: 'registerOn:dependencies:').
+	self assert: (prompt includesSubstring: 'verifyAndEnable').
+	self assert: (prompt includesSubstring: 'AgentAutomationResult unchanged:').
+	self assert: (prompt includesSubstring: 'Deleting the card unregisters')
+]
+
+{ #category : 'tests' }
 AgentGatewayTest >> testScriptedTransportExercisesCompleteToolLoop [
 	| transport result secondRequest toolResult |
 	transport := AgentGatewayFakeTransport responses: {

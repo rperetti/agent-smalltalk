@@ -26,6 +26,7 @@ AgentSandbox class >> shutDown: quitting [
 	a dead socket and crashes the next session's accept loop (observed:
 	headless boots dying in SocketError). startUp: restarts the listener."
 	AgentProcessManager terminateAll.
+	AgentAutomation resetRuntimeState.
 	AgentRemote stop.
 	quitting ifTrue: [
 		(Smalltalk globals at: #AgentCanvas ifAbsent: [ nil ])
@@ -47,7 +48,9 @@ AgentSandbox class >> startUp: resuming [
 	so headless updates/probes that never call open never bind the port.
 	disable also stops any zombie server resurrected from the snapshot."
 	AgentProcessManager terminateAll.
+	AgentAutomation resetRuntimeState.
 	AgentGateway resetRunMutex.
+	AgentScheduler resetMutex.
 	AgentRemote disable
 ]
 

@@ -357,7 +357,7 @@ AgentGateway >> finalTextFrom: content [
 
 { #category : 'running' }
 AgentGateway >> systemPrompt [
-	| base canvasClass dynamic capabilities |
+	| base canvasClass dynamic capabilities automations |
 	base := self class basePrompt.
 	canvasClass := Smalltalk globals at: #AgentCanvas ifAbsent: [ nil ].
 	dynamic := canvasClass
@@ -366,7 +366,10 @@ AgentGateway >> systemPrompt [
 	capabilities := (Smalltalk globals at: #AgentTool ifAbsent: [ nil ])
 		ifNil: [ '' ]
 		ifNotNil: [ :cls | String cr , String cr , cls contextListing ].
-	^ base , dynamic , capabilities
+	automations := (Smalltalk globals at: #AgentAutomation ifAbsent: [ nil ])
+		ifNil: [ '' ]
+		ifNotNil: [ :cls | String cr , String cr , cls contextListing ].
+	^ base , dynamic , capabilities , automations
 ]
 
 { #category : 'private' }

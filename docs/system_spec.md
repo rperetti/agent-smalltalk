@@ -4,8 +4,8 @@ What the living agentic environment does **today**. The long-term vision lives
 in [vision.md](vision.md). This document is kept in sync with the
 code; when behavior changes, change this file in the same commit.
 
-*Last updated: 2026-07-09 (self-built tools, fact-backed asynchronous
-widgets, automatic async-failure repair feedback, and 113 clean-image tests).*
+*Last updated: 2026-07-09 (visible scheduled automations with deterministic
+execution, lifecycle-safe deletion/undo, and 138 clean-image tests).*
 
 ## One-paragraph summary
 
@@ -14,7 +14,9 @@ that is compiled **live** into the running system. The user summons a floating
 prompt bar over a spatial canvas, types a request in English, and a working,
 stateful widget appears — built, tested, and repaired by the model through an
 agentic tool-use loop. Widgets and their state survive image save/reopen: the
-image is the database.
+image is the database. The agent can also author visible, pausable routines
+whose saved Smalltalk continues to run on a schedule without further model
+calls.
 
 ## Components
 
@@ -38,9 +40,9 @@ The bridge to the Anthropic Messages API and the owner of the agentic loop.
   - **`search_image`** — structured image exploration via `AgentImageSearch`:
     `find_classes` (name fragment), `find_selectors` (class + fragment),
     `method_source` (class + selector, `'Foo class'` for class side).
-- System prompt = the base prompt (`prompts/system.md`) + the canvas context
-  in two sections: `## Known facts` (all stickies) and `## Widgets on the
-  canvas` (class, position, `describe`).
+- System prompt = the base prompt (`prompts/system.md`) + canvas context
+  (`## Known facts` and `## Widgets on the canvas`) + the reusable capability
+  catalog + a compact `## Scheduled automations` catalog.
 - Status callbacks (`statusBlock:`) drive the spotlight's status line:
   `thinking... / evaluating... / working (round N of 30)...`.
 - A class-wide mutex makes the gateway the image's **single writer**:
@@ -74,8 +76,9 @@ Evaluates model-generated code with guardrails:
 - Not sandboxed in the capability sense: the model can touch anything in the
   image. Accepted risk for a single-user prototype.
 - `AgentProcessManager` terminates AgentSmalltalk-owned background processes
-  (including generated `agent-widget-*` refreshes) before snapshots and on
-  startup; gateway mutex state is reset on startup.
+  (including generated `agent-widget-*` refreshes and
+  `agent-automation-*` scheduler/runs) before snapshots and on startup;
+  gateway and automation-claim mutex state is reset on startup.
 - Save-and-quit detaches persistent canvas content from the native Bloc
   window, preventing a later headless launch from resurrecting AppKit/SDL
   before AgentSmalltalk's startup hooks can run.
@@ -169,6 +172,8 @@ The contract every generated widget subclasses:
   restores the most recent deletion. Unrestorable entries (instances of
   since-removed broken classes) are discarded silently. Widget-internal
   state and moves are not undoable; code changes are Epicea's job.
+  `removedFromCanvas` / `restoredToCanvas` lifecycle hooks let behavior-owning
+  cards keep durable registration in lockstep with deletion undo.
 
 ### AgentTool + AgentToolCard — the agent's own capabilities
 
@@ -206,6 +211,85 @@ instead of rewriting the fetch; a same-request `#city` fact produced a
 fact-backed reactive weather widget; card source browsing, live tool edits,
 and save/reopen persistence all worked with no duplicate tool.
 
+### AgentAutomation + AgentSchedule + AgentScheduler (Core)
+
+The agent can author a durable routine as a small `AgentAutomation` subclass
+in the live `AgentSmalltalk-Automations` package. Class definition, `run`
+compilation, registration, and verification are deliberately separate:
+
+```smalltalk
+AgentAutomation
+	defineNamed: #MorningWeatherRefresh
+	slots: #(target)
+	purpose: 'refresh my city weather each morning'.
+MorningWeatherRefresh compile: 'run ...'.
+MorningWeatherRefresh
+	registerOn: (AgentSchedule dailyAtHour: 7 minute: 0)
+	dependencies: #(WeatherService).
+MorningWeatherRefresh registeredInstance verifyAndEnable
+```
+
+Registration creates a visible but paused routine. `verifyAndEnable` starts
+one managed background run and enables the schedule only after success.
+Normal control is `runNow`, `pause`, `resume`, `schedule:`, and `unregister`.
+Each routine owns status, next/last run, last result/error, declared tool
+dependencies, and a bounded history of the newest 20 outcomes.
+`registeredInstance` retrieves the durable routine across tool calls, and
+repeating registration updates it instead of creating a duplicate.
+The optional `slots:purpose:` creation form lets a routine retain explicit
+live targets such as the widget it refreshes; `requireLiveTarget:` makes a
+deleted/off-canvas target fail visibly. Declared dependencies are checked
+before every run so a missing tool fails before the generated behavior starts.
+
+`AgentSchedule` intentionally supports only:
+
+- `everyMinutes:` and `everyHours:` intervals;
+- `dailyAtHour:minute:` in the machine's local time.
+
+There is no cron syntax, second-level cadence, weekday vocabulary, or
+fact-based timezone in v1. `nextAfter:` is deterministic and all scheduler
+tests inject `DateAndTime` values rather than sleeping.
+
+`AgentScheduler` owns one supervised `agent-automation-scheduler` ticker.
+It atomically claims due work before forking named
+`agent-automation-<ClassName>` processes, never overlaps one routine with
+itself, contains every error, and continues serving unrelated routines.
+`tickAt:` is the synchronous deterministic seam used by headless tests.
+Runs time out after 30 seconds.
+
+Scheduled runs execute saved Smalltalk only: **they never call the LLM**.
+The accepted v1 path is read-only network access, computation, and image/UI
+updates. The prompt explicitly forbids unattended gateway/LLM calls, shell or
+file deletion, purchases, public messages, and workflows awaiting input.
+This remains a product boundary rather than a security sandbox.
+
+Results are explicit. `AgentAutomationResult unchanged: '...'` records a
+quiet success only on the card; `changed: '...'` additionally posts a
+coalesced system message. Failures always record history and post a keyed
+message. This prevents the scheduler from guessing whether arbitrary values
+represent meaningful change.
+
+Image-closed semantics are honest: nothing runs while Pharo is closed. On
+reopen, one missed entry is recorded on the card, old occurrences are skipped,
+and the next future time is computed—there is no catch-up execution and no
+reopen notification spam. Startup is idempotent and snapshot cleanup removes
+all scheduler/run processes before the live graph is serialized.
+
+### AgentAutomationCard (UI) — the routines shelf
+
+Each registered automation has one muted-purple card in the bottom-center
+**routines shelf**, completing the canvas geography without conflating tools
+(capabilities) with automations (ongoing commitments). It shows purpose,
+schedule, status, next run, latest history, and dependencies, plus **Run now**
+and **Pause/Resume** controls; right-click browses the generated routine class.
+
+Deleting the card immediately unregisters and disables the routine. Normal
+canvas undo restores the exact same card, routine, schedule, and history and
+re-registers it through the generic widget lifecycle hooks. Generated source
+is never deleted implicitly. Automation cards are meta objects and stay out
+of ordinary widget context; the gateway instead receives the compact durable
+registry listing.
+
 ### The sticky family (UI): AgentSticky → AgentFact / AgentNote / AgentSystemMessage
 
 `AgentSticky` (abstract) provides the card: header row (label + `x`-to-delete),
@@ -220,9 +304,9 @@ initiate. `AgentSystemMessage post: '...' key: #someKey`; same-key messages
 **coalesce** (header becomes `system x3 14:32`) instead of stacking.
 Deleting is acknowledging. Out of LLM context unless lassoed. Producers
 today: `AgentUpdater` (every update announces itself — including headless
-updates, whose message waits in the image for the next open) and
-swallowed note-creation failures. This is the seed of the future inbox
-(see ideas: agent-initiated work).
+updates, whose message waits in the image for the next open), swallowed
+note/widget failures, automation failures, and automation-declared meaningful
+changes. This is the seed of a future actionable inbox.
 
 ### AgentFact (UI)
 
@@ -277,11 +361,13 @@ update instantly), the fact-capture policy (implicit, keyed, update-don't-
 duplicate, use silently, never secrets), the network policy (full network
 access via `ZnClient` + `STONJSON`; fetch real data when asked, never
 present invented data as real, explore APIs frugally), Pharo syntax
-pitfalls, and when to reach for `search_image` instead of reflection
-snippets. Every blessed selector has been verified against the loaded
-packages.
+pitfalls, when to reach for `search_image` instead of reflection snippets,
+and the automation discipline (inspect/modify existing routines, reuse tools,
+read live facts, verify before enabling, never call the model in the scheduled
+path, and return structured quiet/changed outcomes). Every blessed selector
+has been verified against the loaded packages.
 
-## Verified capabilities (all cold runs against the live API)
+## Verified capabilities
 
 - **Generate**: "make me a counter with + and − buttons" → class defined,
   methods compiled, logic tested headless, widget summoned. Includes observed
@@ -325,6 +411,12 @@ packages.
   and visible tool card; a comparison widget reused the same service twice;
   a later same-turn city fact built a nonblocking, reactive weather widget.
   Source edits and image persistence benefited every dependent widget.
+- **Keep time without model calls** (verified deterministically 2026-07-09):
+  generated a routine class through the blessed API, registered and verified
+  it, ran one due occurrence exactly once, emitted only an explicitly changed
+  result, skipped a missed occurrence on reopen, and preserved registration
+  through card delete/undo. Failure isolation was exercised with two due
+  routines: one failed visibly while the other completed.
 
 ## Operations
 
@@ -332,7 +424,7 @@ packages.
 |---|---|
 | `./build.sh` | FRESH verified image from `src/` (`core` arg skips UI). Builds into a temp image under an isolated `HOME`, runs SUnit by default, then backs up/replaces `pharo/Agent.image` only after success. Supports `--output`, `--no-verify`, `--no-backup`, `PHARO_VM`, and `PHARO_PRISTINE` |
 | `./update.sh` | reload tooling from `src/`; widgets/facts survive. Live session → updates in place via `AgentRemote` (localhost:8807 `/update`); else patches the file headless. **Guarded**: both paths require an `UPDATE_OK` token (load raised nothing AND sentinel selectors resolve) or fail loudly leaving the image unchanged — a silent stale-code load once cost a multi-session debugging detour. Diffs via TonelReader + `MCPackageLoader`. Backs up first (keeps 5). Not for Bloc/Toplo — use `build.sh` |
-| `./test.sh` | builds a disposable pristine image, loads pinned dependencies, and runs 113 tests; never opens the living image |
+| `./test.sh` | builds a disposable pristine image, loads pinned dependencies, and runs 138 tests; never opens the living image |
 | `./run.sh` | open the canvas UI |
 
 Headless acceptance scripts (`pharo ... st scripts/<name>.st`):
@@ -341,6 +433,8 @@ modification with state preservation), `smoke-textfield.st` (text-input
 widget), `smoke-facts.st` (remember / use / update / implicit capture),
 `smoke-fact-widget.st` (same-request fact resolution into a live widget),
 `smoke-tools.st` (build a tool, then reuse it),
+`smoke-automations.st` (deterministic scheduler/result/missed/delete-undo
+vertical slice; no model call),
 `smoke-selection.st` (selection-scoped context + live Selection globals),
 `smoke-reactive.st` (reactive clock follows a fact edit; live total follows
 counters). Each prints the loop transcript for post-mortems.
@@ -355,6 +449,10 @@ counters). Each prints the loop transcript for post-mortems.
   survived). Fresh builds remain necessary for dependency (Bloc/Toplo)
   changes or an intentional factory reset.
 - **No capability sandbox**: generated code runs with full image authority.
+- **Automations are image-resident**: they run only while the image is open,
+  skip closed-time occurrences, and never perform unattended LLM inference.
+  Running while closed requires an external daemon and is intentionally out
+  of scope.
 - **Latency**: a widget takes roughly 15–60s depending on rounds; the status
   line keeps it honest. base-prompt caching is the obvious next
   optimization.

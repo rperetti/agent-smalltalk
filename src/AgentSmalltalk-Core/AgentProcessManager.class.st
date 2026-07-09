@@ -26,7 +26,8 @@ AgentProcessManager class >> managedNames [
 { #category : 'testing' }
 AgentProcessManager class >> managesName: aString [
 	^ (self managedNames includes: aString)
-		or: [ aString beginsWith: 'agent-widget-' ]
+		or: [ (aString beginsWith: 'agent-widget-')
+		or: [ aString beginsWith: 'agent-automation-' ] ]
 ]
 
 { #category : 'lifecycle' }

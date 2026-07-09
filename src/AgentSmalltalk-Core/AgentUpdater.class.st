@@ -39,10 +39,13 @@ AgentUpdater class >> sentinels [
 		AgentProcessManager class -> #terminateAll.
 		AgentUpdater class -> #verifySentinels.
 		AgentGateway -> #transport:.
+		AgentAutomation class -> #contextListing.
+		AgentScheduler -> #tickAt:.
 		(Smalltalk globals at: #AgentKnowledge) class -> #numberAt:.
 		(Smalltalk globals at: #AgentCanvas) -> #announcer.
 		(Smalltalk globals at: #AgentCanvas) -> #widgetAddVersion.
 		(Smalltalk globals at: #AgentWidget) -> #flashUpdated.
+		(Smalltalk globals at: #AgentAutomationCard) -> #restoredToCanvas.
 		(Smalltalk globals at: #AgentSpotlight) -> #cancel }
 ]
 

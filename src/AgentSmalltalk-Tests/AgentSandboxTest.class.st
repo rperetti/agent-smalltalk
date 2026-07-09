@@ -109,3 +109,13 @@ AgentSandboxTest >> testGeneratedWidgetBackgroundProcessesAreTerminated [
 	AgentProcessManager terminateAll.
 	self assert: process isTerminated
 ]
+
+{ #category : 'tests' }
+AgentSandboxTest >> testAutomationBackgroundProcessesAreTerminated [
+	| process blocker |
+	blocker := Semaphore new.
+	process := [ blocker wait ]
+		forkNamed: 'agent-automation-test-routine'.
+	AgentProcessManager terminateAll.
+	self assert: process isTerminated
+]

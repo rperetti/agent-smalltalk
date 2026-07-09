@@ -28,7 +28,8 @@ AgentWidget defineNamed: #CounterWidget slots: #(count countLabel)
 Do not compile or reference `CounterWidget` in that same tool call: the
 compiler resolves globals before the definition expression runs, so the new
 name is still undeclared. Wait for `RESULT: CounterWidget`, then compile it in
-the next call. The same rule applies to `AgentTool defineNamed:purpose:`.
+the next call. The same rule applies to `AgentTool defineNamed:purpose:` and
+`AgentAutomation defineNamed:purpose:`.
 
 2. **Compile methods, one per call**, using `compile:`. The argument is a string:
 double every single-quote that appears inside method source.
@@ -229,6 +230,102 @@ WeatherService class compile: 'fetchFor: aCity
    not need a tool; a reusable capability does.
 
 Tools may use other tools. Use the blessed helper, never `AgentTool subclass:`.
+
+## Scheduled automations (visible routines, no background model calls)
+
+The `## Scheduled automations` section lists durable routines already in the
+image. An automation is saved Smalltalk that runs on an interval or once each
+day. **A scheduled run never invokes the LLM.** You author or edit its code
+while the user is present; later runs execute that deterministic code only.
+
+Before creating one, inspect the existing automation list. Modify the matching
+routine instead of duplicating it. Do not create an automation for a one-off
+request.
+
+Build a routine in separate verified calls:
+
+```
+AgentAutomation
+	defineNamed: #MorningWeatherRefresh
+	slots: #(target)
+	purpose: 'refresh my city weather each morning'
+```
+
+After that definition call returns, compile its target setter in its own call:
+
+```
+MorningWeatherRefresh compile: 'target: aWidget
+	target := aWidget'
+```
+
+Then compile `run` in the next call:
+
+```
+MorningWeatherRefresh compile: 'run
+	| city weather liveTarget |
+	city := AgentKnowledge at: #city.
+	city isUnknown ifTrue: [ self error: ''city fact is missing'' ].
+	liveTarget := self requireLiveTarget: target.
+	weather := WeatherService fetchFor: city.
+	liveTarget runOnUiThreadSafely: [ liveTarget applyData: weather ].
+	^ AgentAutomationResult unchanged: ''weather refreshed'''
+```
+
+Then register it. Reuse existing `AgentTool` classes and declare their names
+as dependencies so the card makes the relationship visible:
+
+```
+| routine |
+routine := MorningWeatherRefresh
+	registerOn: (AgentSchedule dailyAtHour: 7 minute: 0)
+	dependencies: #(WeatherService).
+routine target: Selection1.
+routine
+```
+
+Registration returns the routine. In the next tool call, retrieve that same
+durable instance through its class and verify it:
+
+```
+MorningWeatherRefresh registeredInstance verifyAndEnable
+```
+
+Available schedules are `AgentSchedule everyMinutes:`, `everyHours:`, and
+`dailyAtHour:minute:`. Do not simulate cron, weekdays, seconds, or timezones.
+Daily schedules use the machine's local time.
+
+`registerOn:dependencies:` creates a visible but paused routine.
+`verifyAndEnable` starts one managed background run and enables the schedule
+only if that run succeeds. It returns immediately: inspect `routine status`,
+`lastResult`, `lastError`, and `history` through `registeredInstance` in a
+later tool call before declaring success. Never perform the verification
+synchronously inside the evaluator.
+Use `registeredInstance` followed by `runNow`, `pause`, `resume`, `schedule:`,
+or `unregister` to modify the same routine. Repeating
+`registerOn:dependencies:` updates the existing instance rather than creating
+a duplicate.
+
+Keep `run` deterministic and bounded:
+
+- reuse tools instead of rebuilding network/parse logic;
+- read `AgentKnowledge` at run time rather than copying current literals;
+  retain target widgets in declared automation slots (as above), not by
+  rediscovering arbitrary instances on every run; call
+  `self requireLiveTarget: target` so a deleted target fails visibly;
+- do not ask for input, invoke `AgentGateway`, call an LLM, execute shell
+  commands, delete files, send messages, make purchases, or perform other
+  irreversible external actions;
+- read-only network fetches, computations, image updates, and widget updates
+  are allowed;
+- apply background-originated UI mutations with the widget's
+  `runOnUiThreadSafely:`;
+- return `AgentAutomationResult unchanged: 'summary'` for an ordinary quiet
+  success, or `AgentAutomationResult changed: 'meaningful change'` when the
+  user should receive a system message.
+
+Every run is recorded on the purple routine card. Failures become coalesced
+system messages and never stop other routines. Deleting the card unregisters
+the routine; canvas undo restores its registration.
 
 ## When you need an API this sheet does not cover
 

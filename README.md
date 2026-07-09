@@ -21,7 +21,7 @@ We found a blueprint for this in the legacy of Smalltalk. Smalltalk wasn't just 
 
 * **Knowledge is Code** *(working today).* We blur the line between a fact (knowledge) and a tool (code). A note about your favorite coffee is an object; a script that orders that coffee is also an object. Because they share one environment, the agent links the two fluidly — no databases required. This is real now: facts live as editable objects on the canvas, and the agent writes its own reusable tools the same way.
 
-* **An Evolving Ecosystem** *(working today).* The agent starts with generic capabilities and morphs into software tailored to your life. As it works, it writes reusable tools for itself instead of re-deriving the same things — accumulating competence over time. You're "programming" a personalized environment just by talking to it, correcting it, and sharing your digital life with it.
+* **An Evolving Ecosystem** *(working today).* The agent starts with generic capabilities and morphs into software tailored to your life. As it works, it writes reusable tools for itself instead of re-deriving the same things, and can attach visible, pausable schedules that run saved Smalltalk without another model call. You're "programming" a personalized environment just by talking to it, correcting it, and sharing your digital life with it.
 
 * **The Spatial Canvas** *(partly built, mostly the direction).* You shouldn't be the sole janitor of your digital workspace. Today the canvas is a shared space where both you and the agent place and manipulate objects, and you can lasso a cluster to hand the agent exactly the context you mean. From here, the aim is an agent that acts as an invisible spatial gardener — using semantic proximity to naturally group your digital life while you focus on the task at hand.
 
@@ -82,7 +82,7 @@ Headless one-shot ask:
 
 ## Layout
 
-- `src/` — Tonel packages (Core: gateway + sandbox; UI: canvas, widget, spotlight; Tests)
+- `src/` — Tonel packages (Core: gateway, sandbox, tools, automation scheduler; UI: canvas, widgets, routines shelf; Tests)
 - `prompts/system.md` — the base prompt that teaches the model
   Pharo/Bloc and the AgentWidget contract. Treat it as code.
 - `scripts/` — image build/test scripts run by the shell wrappers

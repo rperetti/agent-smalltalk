@@ -166,6 +166,7 @@ AgentCanvas >> open [
 			for the UI, but session services must still start."
 			AgentRemote ensureRunning.
 			self startFactWatcher.
+			AgentScheduler current start.
 			^ self ].
 		"Stale space: the image was saved from a headless session (update.sh),
 		so the space object outlived its OS window. Rebuild the window around
@@ -184,6 +185,7 @@ AgentCanvas >> open [
 	self wireNavigation.
 	AgentRemote ensureRunning.
 	self startFactWatcher.
+	AgentScheduler current start.
 	space show
 ]
 
@@ -225,7 +227,8 @@ AgentCanvas >> migrateAfterUpdate [
 		w refreshDeleteButton.
 		w repairElevation.
 		(w isKindOf: AgentSticky) ifTrue: [ w ensureEditAnnouncement ].
-		(w isKindOf: AgentToolCard) ifTrue: [ w repairLayout ] ].
+		(w isKindOf: AgentToolCard) ifTrue: [ w repairLayout ].
+		(w isKindOf: AgentAutomationCard) ifTrue: [ w repairLayout ] ].
 	self isOpen ifFalse: [ ^ self ].
 	self ensureContent.
 	space root background: (Color fromHexString: 'F4F1E8').
@@ -233,6 +236,7 @@ AgentCanvas >> migrateAfterUpdate [
 	self wireNavigation.
 	self pruneStaleSubscriptions.
 	self startFactWatcher.
+	AgentScheduler current start.
 	AgentRemote ensureRunning
 ]
 
@@ -358,7 +362,9 @@ AgentCanvas >> undoDeletion [
 	| w |
 	self undoStack isEmpty ifTrue: [ ^ nil ].
 	w := self undoStack removeLast.
-	[ w parent isNil ifTrue: [ self addWidget: w ] ]
+	[ w parent isNil ifTrue: [
+		self addWidget: w.
+		w restoredToCanvas ] ]
 		on: Error
 		do: [ :e | ^ self undoDeletion ].
 	^ w
@@ -617,7 +623,8 @@ AgentCanvas >> contextWidgets [
 	^ self toolWidgets reject: [ :w |
 		(w isKindOf: AgentNote)
 			or: [ (w isKindOf: AgentSystemMessage)
-			or: [ w isKindOf: AgentToolCard ] ] ]
+			or: [ (w isKindOf: AgentToolCard)
+			or: [ w isKindOf: AgentAutomationCard ] ] ] ]
 ]
 
 { #category : 'agent context' }

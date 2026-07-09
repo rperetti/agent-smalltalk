@@ -153,9 +153,22 @@ AgentWidget >> removeFromParent [
 	"Deletions are undoable: the canvas remembers removed widgets (Cmd+Z).
 	Subscriptions die with the widget so deleted widgets don't leak handlers."
 	(AgentCanvas current containsWidget: self)
-		ifTrue: [ AgentCanvas current recordDeletion: self ].
+		ifTrue: [
+			AgentCanvas current recordDeletion: self.
+			self removedFromCanvas ].
 	AgentCanvas current announcer unsubscribe: self.
 	super removeFromParent
+]
+
+{ #category : 'deleting' }
+AgentWidget >> removedFromCanvas [
+	"Lifecycle hook for widgets whose canvas presence owns durable behavior."
+]
+
+{ #category : 'deleting' }
+AgentWidget >> restoredToCanvas [
+	"Lifecycle hook paired with #removedFromCanvas. AgentCanvas invokes it
+	after deletion undo restores the same live widget."
 ]
 
 { #category : 'reactions' }

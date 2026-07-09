@@ -110,9 +110,8 @@ toolbox accumulates:
 
 Parked because: one healthy weather service is proof of the mechanism, not yet
 a toolbox-management problem. Revisit when duplication, API drift, or an
-unclear/broken capability actually creates friction. This is a strong
-alternative to scheduled automations for the next phase if reliability should
-take precedence over new autonomy.
+unclear/broken capability actually creates friction. Scheduled reuse now gives
+the project a concrete way to observe which trust features matter first.
 
 ## Thread-aware reply (full conversation context)
 
@@ -180,22 +179,20 @@ ephemeral→durable transition a physical act, like deletion already is.
 Parked because: needs so little that it can ride along whenever sticky
 interactions next get touched.
 
-## Agent-initiated work: scheduled automations and the inbox
+## Automation follow-ups: event triggers and an actionable inbox
 
 *From the system-message brainstorm (2026-07-04).*
 
-Today every agent action is a response to a spotlight request. The next
-category: the agent acting on its own schedule — cron-like automations
-("refresh the scores widget every morning", "watch this API"), long-running
-background tasks, and follow-ups. That requires a channel where the agent
-can report without being asked and **request user input** (approve/deny,
-answer a question) — an inbox with actionable messages, not just
-notifications. The system-message widget is deliberately the seed of this:
-same objects, later docked into a tray with buttons.
+Visible, pausable interval/daily automations now exist and execute saved
+Smalltalk without unattended LLM calls. The remaining category is broader:
+event triggers ("when an email arrives"), long-running follow-ups, and work
+that must **request user input** (approve/deny, answer a question). That needs
+an actionable inbox rather than today's notification-only system messages,
+plus explicit approval and capability boundaries.
 
-Parked because: scheduling needs its own design pass (what triggers runs,
-what budget, how to stop a runaway automation) and deserves the phase
-spotlight when it comes.
+Parked because: the safe scheduled/read-only slice should accumulate real use
+before the system adds open-ended triggers, approvals, or workflows that wait
+for a person.
 
 ## Apps on the canvas (beyond widgets)
 
