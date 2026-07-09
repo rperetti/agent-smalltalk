@@ -241,6 +241,24 @@ live targets such as the widget it refreshes; `requireLiveTarget:` makes a
 deleted/off-canvas target fail visibly. Declared dependencies are checked
 before every run so a missing tool fails before the generated behavior starts.
 
+Automations are intended to be glue, not duplicate business logic. Widgets
+that can be scheduled expose a zero-argument `runAutomatedAction` hook; the
+base `AgentWidget` implementation delegates to the common `refresh` method
+when one exists, while specialized widgets can override the hook and return an
+`AgentAutomationResult`. The preferred routine body for an existing selected
+widget is therefore:
+
+```smalltalk
+run
+	^ (self requireLiveTarget: target) runAutomatedAction
+```
+
+If the desired behavior is missing, the agent should add or repair the
+widget/service method first and keep the routine tiny. Services (`AgentTool`
+subclasses) may opt into the same idea with a class-side
+`runAutomatedAction`, but the inherited tool default fails visibly because
+most services need arguments from facts or widgets.
+
 `AgentSchedule` intentionally supports only:
 
 - `everyMinutes:` and `everyHours:` intervals;

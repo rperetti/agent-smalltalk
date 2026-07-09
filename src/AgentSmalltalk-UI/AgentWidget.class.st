@@ -230,6 +230,28 @@ AgentWidget >> announceChanged [
 		(AgentWidgetChanged new widget: self; yourself)
 ]
 
+{ #category : 'automations' }
+AgentWidget >> automationActionDescription [
+	"Short status text for the default scheduled automation hook."
+	^ self class name , ' refreshed'
+]
+
+{ #category : 'automations' }
+AgentWidget >> runAutomatedAction [
+	"Default zero-argument automation contract for widgets. Automations should
+	delegate to this hook instead of copying a widget's fetch/parse/apply
+	behavior. Generated widgets are automatable out of the box when they
+	provide the common #refresh method; specialized widgets may override this
+	method to do something more precise and return AgentAutomationResult."
+	| result |
+	(self respondsTo: #refresh) ifFalse: [
+		self error: self class name
+			, ' has no automated action; add #refresh or override #runAutomatedAction before scheduling it' ].
+	result := self perform: #refresh.
+	(result isKindOf: AgentAutomationResult) ifTrue: [ ^ result ].
+	^ AgentAutomationResult unchanged: self automationActionDescription
+]
+
 { #category : 'agent context' }
 AgentWidget >> describe [
 	"One-line self-description used as LLM context. Subclasses should override."

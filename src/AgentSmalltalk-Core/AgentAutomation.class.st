@@ -8,7 +8,8 @@ Creation is deliberately two-stage:
         defineNamed: #MorningWeather
         slots: #(target)
         purpose: 'refresh weather'.
-    MorningWeather compile: 'run ^ WeatherService refresh...'.
+    MorningWeather compile: 'run
+        ^ (self requireLiveTarget: target) runAutomatedAction'.
     MorningWeather
         registerOn: (AgentSchedule dailyAtHour: 7 minute: 0)
         dependencies: #(WeatherService).

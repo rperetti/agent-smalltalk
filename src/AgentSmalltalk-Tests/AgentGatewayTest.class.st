@@ -160,6 +160,7 @@ AgentGatewayTest >> testSystemPromptDefinesSafeAutomationContract [
 	self assert: (prompt includesSubstring: 'scheduled run never invokes the LLM').
 	self assert: (prompt includesSubstring: 'registerOn:dependencies:').
 	self assert: (prompt includesSubstring: 'verifyAndEnable').
+	self assert: (prompt includesSubstring: 'runAutomatedAction').
 	self assert: (prompt includesSubstring: 'AgentAutomationResult unchanged:').
 	self assert: (prompt includesSubstring: 'Deleting the card unregisters')
 ]

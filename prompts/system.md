@@ -78,6 +78,11 @@ Widget skeleton conventions:
 - Keep a reference to each text element you will need to update.
 - Write a `refresh` method that updates labels from state; call it after every state change.
 - End state-mutating methods with `self announceChanged` (see Live values and reactions).
+- Widgets that can be scheduled should expose their reusable behavior on the
+  widget, not inside the automation. The inherited `runAutomatedAction`
+  delegates to `refresh` when the widget has one; override
+  `runAutomatedAction` only when scheduling needs a more specific
+  zero-argument action/result.
 
 ## Blessed widget vocabulary (Toplo first, raw Bloc for custom visuals)
 
@@ -262,17 +267,14 @@ Then compile `run` in the next call:
 
 ```
 MorningWeatherRefresh compile: 'run
-	| city weather liveTarget |
-	city := AgentKnowledge at: #city.
-	city isUnknown ifTrue: [ self error: ''city fact is missing'' ].
+	| liveTarget |
 	liveTarget := self requireLiveTarget: target.
-	weather := WeatherService fetchFor: city.
-	liveTarget runOnUiThreadSafely: [ liveTarget applyData: weather ].
-	^ AgentAutomationResult unchanged: ''weather refreshed'''
+	^ liveTarget runAutomatedAction'
 ```
 
 Then register it. Reuse existing `AgentTool` classes and declare their names
-as dependencies so the card makes the relationship visible:
+as dependencies so the card makes the relationship visible, even when the
+widget's own action calls those tools internally:
 
 ```
 | routine |
@@ -307,7 +309,16 @@ a duplicate.
 
 Keep `run` deterministic and bounded:
 
-- reuse tools instead of rebuilding network/parse logic;
+- keep automation code as glue. Prefer
+  `^ (self requireLiveTarget: target) runAutomatedAction` for selected
+  widgets that already know how to refresh/update themselves;
+- reuse widget/service methods instead of rebuilding network/parse/apply
+  logic inside the routine. If the selected widget lacks a clean
+  zero-argument action, add or repair `refresh`/`runAutomatedAction` on that
+  widget first, then keep the automation tiny;
+- services may opt into scheduling with a class-side `runAutomatedAction`,
+  but most services need arguments from facts or widgets, so do not invent a
+  vague no-argument service action unless it is genuinely safe and complete;
 - read `AgentKnowledge` at run time rather than copying current literals;
   retain target widgets in declared automation slots (as above), not by
   rediscovering arbitrary instances on every run; call

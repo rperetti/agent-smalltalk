@@ -78,6 +78,20 @@ AgentToolTest >> testCapabilitySelectorsAreClassSideOnly [
 ]
 
 { #category : 'tests' }
+AgentToolTest >> testToolAutomationActionRequiresExplicitOptIn [
+	| tool |
+	tool := self define: #TestUnscheduledTool purpose: 'needs an argument'.
+	self
+		should: [ tool runAutomatedAction ]
+		raise: Error.
+	tool class compile: 'runAutomatedAction
+	^ AgentAutomationResult unchanged: ''ran tool action'''.
+	self
+		assert: tool runAutomatedAction summary
+		equals: 'ran tool action'
+]
+
+{ #category : 'tests' }
 AgentToolTest >> testContextListingIncludesToolAndPurpose [
 	| listing |
 	(self define: #TestListedTool purpose: 'fetch the thing') class

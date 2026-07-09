@@ -71,6 +71,22 @@ AgentTool class >> capabilitySelectors [
 	^ self class selectors asSortedCollection asArray
 ]
 
+{ #category : 'automations' }
+AgentTool class >> automationActionDescription [
+	"Short status text for tools that opt into the zero-argument automation
+	contract by overriding #runAutomatedAction class-side."
+	^ self purpose ifNil: [ self name ]
+]
+
+{ #category : 'automations' }
+AgentTool class >> runAutomatedAction [
+	"Services must opt into scheduled use explicitly. Most tools need
+	arguments from a widget or fact, so a vague inherited default would hide
+	too much intent."
+	self error: self name
+		, ' has no automated action; add a class-side #runAutomatedAction for safe zero-argument scheduled work or call a specific capability method from a widget'
+]
+
 { #category : 'context' }
 AgentTool class >> contextListing [
 	"The '## Capabilities you've built' section the gateway appends to the

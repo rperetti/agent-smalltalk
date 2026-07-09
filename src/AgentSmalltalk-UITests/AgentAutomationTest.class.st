@@ -361,3 +361,39 @@ AgentAutomationTest >> testRequireLiveTargetRejectsDeletedWidget [
 		should: [ automation requireLiveTarget: widget ]
 		raise: Error
 ]
+
+{ #category : 'tests - target contract' }
+AgentAutomationTest >> testWidgetAutomationActionDelegatesToRefresh [
+	| widget result |
+	widget := AgentAutomationTargetProbe new.
+	result := widget runAutomatedAction.
+	self assert: widget refreshCount equals: 1.
+	self deny: result isChanged.
+	self assert: (result summary includesSubstring: 'AgentAutomationTargetProbe')
+]
+
+{ #category : 'tests - target contract' }
+AgentAutomationTest >> testWidgetAutomationActionPreservesExplicitResult [
+	| widget result |
+	widget := AgentAutomationTargetProbe new.
+	widget refreshResult: (AgentAutomationResult changed: 'probe changed').
+	result := widget runAutomatedAction.
+	self assert: widget refreshCount equals: 1.
+	self assert: result isChanged.
+	self assert: result summary equals: 'probe changed'
+]
+
+{ #category : 'tests - target contract' }
+AgentAutomationTest >> testAutomationCanDelegateToLiveTargetAction [
+	| now automation widget |
+	now := self timeAtHour: 9 minute: 0.
+	widget := AgentAutomationTargetProbe new.
+	AgentCanvas current addWidget: widget.
+	automation := self newAutomationAt: now everyMinutes: 5.
+	automation action: [
+		(automation requireLiveTarget: widget) runAutomatedAction ].
+	automation runNowAt: now.
+	self assert: widget refreshCount equals: 1.
+	self assert: automation lastResult summary
+		equals: 'AgentAutomationTargetProbe refreshed'
+]
