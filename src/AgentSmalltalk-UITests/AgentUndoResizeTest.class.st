@@ -155,6 +155,26 @@ AgentUndoResizeTest >> testDeleteKeyNoopWithoutSelection [
 ]
 
 { #category : 'tests' }
+AgentUndoResizeTest >> testDeleteKeyIgnoredWhileEditingText [
+	"Backspace/Delete originating inside a text editor (the spotlight, a sticky
+	body) must edit text -- it must NOT delete the lassoed selection, even
+	though the event bubbles up to the canvas root unconsumed."
+	| widget editor innerTarget evt |
+	widget := AgentWidget new.
+	AgentCanvas current addWidget: widget.
+	AgentCanvas current selectWidgets: { widget }.
+	editor := ToAlbum new.
+	innerTarget := BlElement new.
+	editor addChild: innerTarget.
+	evt := BlKeyDownEvent new key: KeyboardKey backspace.
+	evt target: innerTarget.
+	AgentCanvas current handleDeleteKey: evt.
+	self assert: (AgentCanvas current widgets includes: widget).
+	self assert: (AgentCanvas current selectedWidgets includes: widget).
+	self deny: evt isConsumed
+]
+
+{ #category : 'tests' }
 AgentUndoResizeTest >> testResizeGripIsIdempotent [
 	| w n |
 	w := AgentWidget new.

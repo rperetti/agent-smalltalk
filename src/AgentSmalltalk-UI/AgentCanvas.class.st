@@ -286,15 +286,32 @@ AgentCanvas >> handleKeyDown: evt [
 AgentCanvas >> handleDeleteKey: evt [
 	"Delete/Backspace on the canvas removes the current selection (undoable
 	via Cmd+Z). Guarded on a non-empty selection so a stray keypress with
-	nothing selected does nothing; text editors consume these keys first
-	when focused, so this only fires with canvas focus."
+	nothing selected does nothing. Text editors (the spotlight, a sticky body)
+	do NOT consume these keys -- the BlKeyDownEvent bubbles up to the space
+	root unconsumed -- so we must inspect the event's origin ourselves: a
+	keystroke from inside an editor edits text and must not delete widgets."
 	evt isConsumed ifTrue: [ ^ self ].
 	(evt key = KeyboardKey delete or: [ evt key = KeyboardKey backspace ])
 		ifFalse: [ ^ self ].
+	(self isTextEditingTarget: evt) ifTrue: [ ^ self ].
 	self selection ifEmpty: [ ^ self ].
 	evt consume.
 	self selection asArray do: [ :w | w removeFromParent ].
 	self clearSelection ]
+
+{ #category : 'navigation' }
+AgentCanvas >> isTextEditingTarget: evt [
+	"True when a key event originates inside a text editor (ToAlbum) or the
+	spotlight -- Backspace/Delete there edit text and must not trigger the
+	canvas delete-selection shortcut. Walks up from the event target (the
+	focused element), since the event bubbles to the root handler unconsumed."
+	| node |
+	node := evt target.
+	[ node notNil ] whileTrue: [
+		((node isKindOf: ToAlbum) or: [ node isKindOf: AgentSpotlight ])
+			ifTrue: [ ^ true ].
+		node := node parent ].
+	^ false ]
 
 { #category : 'reactions' }
 AgentCanvas >> announcePendingFactEdits [

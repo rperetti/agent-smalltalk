@@ -6,7 +6,7 @@ code; when behavior changes, change this file in the same commit.
 
 *Last updated: 2026-07-09 (Agent Canvas redesign — white cards with colored
 category-chip headers across every card type — plus base-prompt guidance for
-good-looking generated widgets; 142 clean-image tests).*
+good-looking generated widgets; 143 clean-image tests).*
 
 ## One-paragraph summary
 
@@ -461,7 +461,7 @@ has been verified against the loaded packages.
 |---|---|
 | `./build.sh` | FRESH verified image from `src/` (`core` arg skips UI). Builds into a temp image under an isolated `HOME`, runs SUnit by default, then backs up/replaces `pharo/Agent.image` only after success. Supports `--output`, `--no-verify`, `--no-backup`, `PHARO_VM`, and `PHARO_PRISTINE` |
 | `./update.sh` | reload tooling from `src/`; widgets/facts survive. Live session → updates in place via `AgentRemote` (localhost:8807 `/update`); else patches the file headless. **Guarded**: both paths require an `UPDATE_OK` token (load raised nothing AND sentinel selectors resolve) or fail loudly leaving the image unchanged — a silent stale-code load once cost a multi-session debugging detour. Diffs via TonelReader + `MCPackageLoader`. Backs up first (keeps 5). Not for Bloc/Toplo — use `build.sh` |
-| `./test.sh` | builds a disposable pristine image, loads pinned dependencies, and runs 142 tests; never opens the living image |
+| `./test.sh` | builds a disposable pristine image, loads pinned dependencies, and runs 143 tests; never opens the living image |
 | `./run.sh` | open the canvas UI |
 
 Headless acceptance scripts (`pharo ... st scripts/<name>.st`):
