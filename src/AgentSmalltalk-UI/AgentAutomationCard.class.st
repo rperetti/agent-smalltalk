@@ -1,8 +1,11 @@
 "
 I am the visible face of one AgentAutomation. I live on the bottom-center
-routines shelf and show its commitment, schedule, dependencies, state, next
-run, and most recent outcome. Deleting me unregisters the routine; canvas undo
-restores both this card and the same registration.
+routines shelf. In the redesign I am a white card with a purple SCHEDULED chip
+carrying a status badge (the last run's outcome), the routine name in bold, its
+purpose muted, an aligned key-value table (Schedule / Next run / Last run /
+Uses), and a filled Run now + outline Pause/Resume button row. Deleting me
+unregisters the routine; canvas undo restores both this card and the same
+registration.
 "
 Class {
 	#name : 'AgentAutomationCard',
@@ -17,7 +20,8 @@ Class {
 		'lastLabel',
 		'dependenciesLabel',
 		'runButton',
-		'toggleButton'
+		'toggleButton',
+		'statusBadge'
 	],
 	#category : 'AgentSmalltalk-UI',
 	#package : 'AgentSmalltalk-UI'
@@ -69,31 +73,76 @@ AgentAutomationCard class >> nextPosition [
 { #category : 'initialization' }
 AgentAutomationCard >> initialize [
 	super initialize.
-	self width: 280.
-	self minHeight: 190.
+	self width: 300.
+	self minHeight: 200.
 	self vFitContent.
-	self background: (Color fromHexString: 'EAE2F2').
-	self border: self defaultBorder.
-	self geometry: (BlRoundedRectangleGeometry cornerRadius: 7).
-	self padding: (BlInsets all: 10).
-	nameLabel := ToLabel new text: 'routine'.
-	nameLabel constraintsDo: [ :c |
+	self buildHeader.
+	self buildBody.
+	self applyCardChrome
+]
+
+{ #category : 'deleting' }
+AgentAutomationCard >> showsDeleteButton [
+	"The x lives in the chip header."
+	^ false
+]
+
+{ #category : 'defaults' }
+AgentAutomationCard >> chipAccent [
+	^ Color fromHexString: 'E7DEF4'
+]
+
+{ #category : 'defaults' }
+AgentAutomationCard >> chipIconColor [
+	^ Color fromHexString: 'B29AD0'
+]
+
+{ #category : 'defaults' }
+AgentAutomationCard >> chipCategory [
+	^ 'SCHEDULED'
+]
+
+{ #category : 'selection' }
+AgentAutomationCard >> defaultBorder [
+	^ self chipCardBorder
+]
+
+{ #category : 'initialization' }
+AgentAutomationCard >> buildHeader [
+	| header |
+	header := self chipHeaderElement.
+	statusBadge := self chipBadge: ''.
+	header addChild: statusBadge.
+	header addChild: self chipDeleteButton.
+	self addChild: header
+]
+
+{ #category : 'initialization' }
+AgentAutomationCard >> buildBody [
+	| box |
+	box := BlElement new.
+	box layout: BlLinearLayout vertical.
+	box padding: (BlInsets top: 10 right: 12 bottom: 12 left: 12).
+	box constraintsDo: [ :c |
 		c horizontal matchParent.
 		c vertical fitContent ].
+	nameLabel := BlTextElement new text: ('routine' asRopedText fontSize: 14; bold).
+	nameLabel margin: (BlInsets top: 0 right: 0 bottom: 2 left: 0).
 	purposeLabel := self multilineLabel.
+	purposeLabel opacity: 0.7.
+	purposeLabel margin: (BlInsets top: 0 right: 0 bottom: 8 left: 0).
 	scheduleLabel := self multilineLabel.
-	stateLabel := self multilineLabel.
 	nextLabel := self multilineLabel.
 	lastLabel := self multilineLabel.
 	dependenciesLabel := self multilineLabel.
-	self addChild: nameLabel.
-	self addChild: purposeLabel.
-	self addChild: scheduleLabel.
-	self addChild: stateLabel.
-	self addChild: nextLabel.
-	self addChild: lastLabel.
-	self addChild: dependenciesLabel.
-	self buildActions
+	box addChild: nameLabel.
+	box addChild: purposeLabel.
+	box addChild: (self tableRow: 'Schedule' value: scheduleLabel).
+	box addChild: (self tableRow: 'Next run' value: nextLabel).
+	box addChild: (self tableRow: 'Last run' value: lastLabel).
+	box addChild: (self tableRow: 'Uses' value: dependenciesLabel).
+	box addChild: self actionsRow.
+	self addChild: box
 ]
 
 { #category : 'initialization' }
@@ -108,41 +157,71 @@ AgentAutomationCard >> multilineLabel [
 ]
 
 { #category : 'initialization' }
-AgentAutomationCard >> buildActions [
-	| row spacer |
+AgentAutomationCard >> tableRow: aKey value: aValueLabel [
+	"A two-column row: a fixed-width muted key, then the value label."
+	| row key |
 	row := BlElement new.
 	row layout: BlLinearLayout horizontal.
-	row margin: (BlInsets top: 6).
+	row margin: (BlInsets top: 2 right: 0 bottom: 0 left: 0).
 	row constraintsDo: [ :c |
 		c horizontal matchParent.
 		c vertical fitContent ].
-	runButton := self actionLabel: 'run now'.
+	key := BlTextElement new text: (aKey asRopedText fontSize: 11).
+	key opacity: 0.5.
+	key constraintsDo: [ :c | c horizontal exact: 80 ].
+	row addChild: key.
+	row addChild: aValueLabel.
+	^ row
+]
+
+{ #category : 'initialization' }
+AgentAutomationCard >> actionsRow [
+	| row spacer |
+	row := BlElement new.
+	row layout: BlLinearLayout horizontal.
+	row margin: (BlInsets top: 10 right: 0 bottom: 0 left: 0).
+	row constraintsDo: [ :c |
+		c horizontal matchParent.
+		c vertical fitContent ].
+	runButton := self filledButton: 'Run now'.
 	runButton addEventHandlerOn: BlClickEvent do: [ :event |
 		event consume.
 		automation ifNotNil: [ automation runNow ] ].
 	spacer := BlElement new.
 	spacer constraintsDo: [ :c |
-		c horizontal exact: 18.
+		c horizontal exact: 8.
 		c vertical exact: 1 ].
-	toggleButton := self actionLabel: 'resume'.
+	toggleButton := self outlineButton: 'Resume'.
 	toggleButton addEventHandlerOn: BlClickEvent do: [ :event |
 		event consume.
 		self toggleEnabled ].
 	row addChild: runButton.
 	row addChild: spacer.
 	row addChild: toggleButton.
-	self addChild: row
+	^ row
 ]
 
 { #category : 'initialization' }
-AgentAutomationCard >> actionLabel: aString [
-	| label |
-	label := ToLabel new text: aString.
-	label background: (Color white alpha: 0.55).
-	label geometry: (BlRoundedRectangleGeometry cornerRadius: 4).
-	label padding: (BlInsets top: 3 right: 7 bottom: 3 left: 7).
-	label constraintsDo: [ :c | c vertical fitContent ].
-	^ label
+AgentAutomationCard >> filledButton: aString [
+	| button |
+	button := ToLabel new text: aString.
+	button background: self chipIconColor.
+	button geometry: (BlRoundedRectangleGeometry cornerRadius: 12).
+	button padding: (BlInsets top: 5 right: 12 bottom: 5 left: 12).
+	button constraintsDo: [ :c | c vertical fitContent ].
+	^ button
+]
+
+{ #category : 'initialization' }
+AgentAutomationCard >> outlineButton: aString [
+	| button |
+	button := ToLabel new text: aString.
+	button background: Color white.
+	button border: (BlBorder paint: self chipIconColor width: 1).
+	button geometry: (BlRoundedRectangleGeometry cornerRadius: 12).
+	button padding: (BlInsets top: 5 right: 12 bottom: 5 left: 12).
+	button constraintsDo: [ :c | c vertical fitContent ].
+	^ button
 ]
 
 { #category : 'accessing' }
@@ -164,18 +243,25 @@ AgentAutomationCard >> refresh [
 { #category : 'updating' }
 AgentAutomationCard >> refreshNow [
 	automation ifNil: [ ^ self ].
-	nameLabel text: (automation name asRopedText fontSize: 13; bold).
+	nameLabel text: (automation name asRopedText fontSize: 14; bold).
 	purposeLabel text: automation purpose.
-	scheduleLabel text: 'schedule: ' , automation schedule describe.
-	stateLabel text: 'status: ' , automation status asString.
-	nextLabel text: 'next: ' , (automation nextRun
+	scheduleLabel text: automation schedule describe.
+	nextLabel text: (automation nextRun
 		ifNil: [ 'not scheduled' ]
 		ifNotNil: [ :date | date printString ]).
-	lastLabel text: 'last: ' , self lastSummary.
-	dependenciesLabel text: 'uses: ' , self dependencySummary.
+	lastLabel text: self lastSummary.
+	dependenciesLabel text: self dependencySummary.
+	statusBadge ifNotNil: [ statusBadge text: self statusText ].
 	toggleButton text: (automation enabled
-		ifTrue: [ 'pause' ]
-		ifFalse: [ 'resume' ])
+		ifTrue: [ 'Pause' ]
+		ifFalse: [ 'Resume' ])
+]
+
+{ #category : 'updating' }
+AgentAutomationCard >> statusText [
+	automation ifNil: [ ^ '' ].
+	automation history ifNotEmpty: [ :h | ^ h last status asString ].
+	^ automation status asString
 ]
 
 { #category : 'updating' }
@@ -225,14 +311,9 @@ AgentAutomationCard >> restoredToCanvas [
 
 { #category : 'migration' }
 AgentAutomationCard >> repairLayout [
-	self minHeight: 190.
+	self minHeight: 200.
 	self vFitContent.
 	self refresh
-]
-
-{ #category : 'selection' }
-AgentAutomationCard >> defaultBorder [
-	^ BlBorder paint: (Color fromHexString: 'B49ACB') width: 1
 ]
 
 { #category : 'agent context' }

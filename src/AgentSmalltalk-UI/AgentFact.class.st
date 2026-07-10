@@ -1,9 +1,13 @@
 "
-I am a yellow sticky: one durable fact the user wants remembered, living as a
-visible object on the canvas. Editing my body IS editing the memory; deleting
-me IS forgetting. An optional key gives me an identity: AgentFact key:body:
-updates the existing sticky with that key instead of creating a duplicate.
-Facts are ALWAYS in the LLM context ('## Known facts').
+I am a fact: one durable truth the user wants remembered, living as a visible
+object on the canvas. Editing my body IS editing the memory; deleting me IS
+forgetting. An optional key gives me an identity: AgentFact key:body: updates the
+existing fact with that key instead of creating a duplicate. Facts are ALWAYS in
+the LLM context ('## Known facts').
+
+In the redesign I am a white card with an amber FACT chip; my key shows as the
+muted meta label over the value in bold. The card chrome is inherited from
+AgentSticky/AgentWidget -- I only supply my colours and the value styling.
 "
 Class {
 	#name : 'AgentFact',
@@ -18,7 +22,7 @@ Class {
 
 { #category : 'instance creation' }
 AgentFact class >> key: aSymbol body: aString [
-	"Create-or-update: one sticky per key, ever."
+	"Create-or-update: one fact per key, ever."
 	| existing fact |
 	existing := AgentCanvas current factWithKey: aSymbol.
 	existing ifNotNil: [
@@ -40,13 +44,18 @@ AgentFact class >> body: aString [
 ]
 
 { #category : 'defaults' }
-AgentFact >> stickyColor [
-	^ Color fromHexString: 'FFF6BF'
+AgentFact >> defaultExtent [
+	^ 240 @ 120
 ]
 
-{ #category : 'selection' }
-AgentFact >> defaultBorder [
-	^ BlBorder paint: (Color fromHexString: 'E8D98A') width: 1
+{ #category : 'defaults' }
+AgentFact >> chipAccent [
+	^ Color fromHexString: 'FBEBBE'
+]
+
+{ #category : 'defaults' }
+AgentFact >> chipIconColor [
+	^ Color fromHexString: 'E6C35B'
 ]
 
 { #category : 'defaults' }
@@ -66,14 +75,23 @@ AgentFact >> key [
 
 { #category : 'accessing' }
 AgentFact >> key: aSymbol [
+	"The key is surfaced as the muted meta label, not in the chip (which always
+	reads FACT)."
 	key := aSymbol.
-	self headerText: 'fact[' , aSymbol asString , ']'
+	self setMetaText: aSymbol asString
 ]
 
 { #category : 'accessing' }
 AgentFact >> body: aString [
-	super body: aString.
+	"The value renders bold, a size above the key label; kept editable."
+	bodyEditor ifNotNil: [
+		bodyEditor text: (aString asString asRopedText fontSize: 16; bold) ].
 	self announceFactChanged
+]
+
+{ #category : 'migration' }
+AgentFact >> restoreAfterRepair [
+	key ifNotNil: [ self setMetaText: key asString ]
 ]
 
 { #category : 'reactions' }

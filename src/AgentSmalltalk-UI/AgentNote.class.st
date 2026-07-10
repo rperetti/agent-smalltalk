@@ -1,9 +1,9 @@
 "
-I am a blue sticky: the agent's answer as an object on the canvas. Unlike
+I am a blue note: the agent's answer as an object on the canvas. Unlike
 AgentFact (durable truths, always in context), I am conversation residue --
 deletable paper. I do NOT feed the LLM context by default; lasso me to make
-a follow-up question about my content. My header records the question I
-answer (provenance).
+a follow-up question about my content. The question I answer shows as my muted
+meta line (provenance), and a Reply footer continues the thread from here.
 "
 Class {
 	#name : 'AgentNote',
@@ -43,17 +43,17 @@ AgentNote class >> nextPosition [
 
 { #category : 'defaults' }
 AgentNote >> defaultExtent [
-	^ 210 @ 130
+	^ 220 @ 150
 ]
 
 { #category : 'defaults' }
-AgentNote >> stickyColor [
-	^ Color fromHexString: 'DCE9F7'
+AgentNote >> chipAccent [
+	^ Color fromHexString: 'D6E6F7'
 ]
 
-{ #category : 'selection' }
-AgentNote >> defaultBorder [
-	^ BlBorder paint: (Color fromHexString: '9FBEDC') width: 1
+{ #category : 'defaults' }
+AgentNote >> chipIconColor [
+	^ Color fromHexString: '84A9D6'
 ]
 
 { #category : 'defaults' }
@@ -74,7 +74,13 @@ AgentNote >> question [
 { #category : 'accessing' }
 AgentNote >> question: aString [
 	question := aString.
-	self headerText: 're: ' , (self truncate: aString to: 32)
+	self setMetaText: 're: ' , (self truncate: aString to: 40)
+]
+
+{ #category : 'migration' }
+AgentNote >> restoreAfterRepair [
+	question ifNotNil: [
+		self setMetaText: 're: ' , (self truncate: question to: 40) ]
 ]
 
 { #category : 'initialization' }
@@ -84,14 +90,21 @@ AgentNote >> buildFooter [
 	Q+A, via phase-3 selection) and opens the spotlight. The follow-up
 	answer then lands as a new note beside this one (AgentNote nextPosition
 	places near the selection), so threads grow spatially, not as a log."
-	| reply |
+	| footer reply |
+	footer := BlElement new.
+	footer layout: BlLinearLayout horizontal.
+	footer padding: (BlInsets top: 0 right: 12 bottom: 10 left: 12).
+	footer constraintsDo: [ :c |
+		c horizontal matchParent.
+		c vertical fitContent ].
 	reply := ToLabel new text: '↩ reply'.
+	reply opacity: 0.7.
 	reply constraintsDo: [ :c | c vertical fitContent ].
-	reply margin: (BlInsets top: 4).
 	reply addEventHandlerOn: BlClickEvent do: [ :evt |
 		evt consume.
 		self reply ].
-	self addChild: reply
+	footer addChild: reply.
+	self addChild: footer
 ]
 
 { #category : 'actions' }
@@ -103,13 +116,6 @@ AgentNote >> reply [
 	canvas := AgentCanvas current.
 	canvas selectWidgets: { self }.
 	canvas isOpen ifTrue: [ AgentSpotlight openOn: canvas ]
-]
-
-{ #category : 'private' }
-AgentNote >> repairHeader [
-	"Kept for migrations of notes built before the header width cap."
-	headerLabel ifNotNil: [
-		headerLabel constraintsDo: [ :c | c horizontal exact: 160 ] ]
 ]
 
 { #category : 'agent context' }

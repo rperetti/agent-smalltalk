@@ -220,13 +220,25 @@ AgentCanvas >> migrateAfterUpdate [
 	"Run by scripts/update.st after reloading code into a living image:
 	repair persistent widgets even when the image is closed, then perform
 	session setup that only makes sense for an already-open space."
-	self notes do: [ :n | n repairHeader ].
 	self widgets do: [ :w |
 		w ensureResizeGrip.
 		w ensureRaisesOnClick.
 		w refreshDeleteButton.
 		w repairElevation.
-		(w isKindOf: AgentSticky) ifTrue: [ w ensureEditAnnouncement ].
+		"Redesign: rebuild existing stickies (fact/note/system) into the new
+		chip chrome. Guarded so one card that fails to rebuild cannot abort the
+		migration -- and the failure surfaces as a system message instead of
+		vanishing, so a silent no-op restyle is diagnosable on the canvas."
+		(w isKindOf: AgentSticky) ifTrue: [
+			[ w repairChrome ]
+				on: Error
+				do: [ :e |
+					[ AgentSystemMessage
+						post: 'Card restyle failed in ' , w class name , ': '
+							, e class name , ' -- '
+							, (e messageText ifNil: [ '(no message)' ])
+						key: ('cardRepairFailure-' , w class name) asSymbol ]
+						on: Error do: [ :ignored |  ] ] ].
 		(w isKindOf: AgentToolCard) ifTrue: [ w repairLayout ].
 		(w isKindOf: AgentAutomationCard) ifTrue: [ w repairLayout ] ].
 	self isOpen ifFalse: [ ^ self ].

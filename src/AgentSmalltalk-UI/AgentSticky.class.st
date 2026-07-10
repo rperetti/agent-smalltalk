@@ -1,11 +1,13 @@
 "
-I am the abstract sticky: a small card with a header row (label + x-to-delete)
-and an editable ToAlbum body. My species are AgentFact (yellow, durable
-truths, always in context), AgentNote (blue, answers, context only when
-selected) and AgentSystemMessage (gray, the system's own voice, context only
-when selected). Subclasses override the default* hooks and stickyColor.
-Slot names (headerLabel, bodyEditor) are preserved from the pre-refactor
-classes so live instances migrate with their state.
+I am the abstract sticky: a redesigned card with an edge-to-edge coloured header
+chip (icon + category label + x) over a white, editable ToAlbum body. My species
+are AgentFact (amber, durable truths, always in context), AgentNote (blue,
+answers, context only when selected) and AgentSystemMessage (gray, the system's
+own voice, context only when selected). Subclasses override the default* hooks
+plus #chipAccent / #chipIconColor for their category colour. Slot names
+(headerLabel, bodyEditor) are preserved from the pre-refactor classes so live
+instances migrate with their state; #repairChrome rebuilds an old sticky into the
+new card.
 "
 Class {
 	#name : 'AgentSticky',
@@ -13,7 +15,8 @@ Class {
 	#instVars : [
 		'headerLabel',
 		'bodyEditor',
-		'editWired'
+		'editWired',
+		'metaLabel'
 	],
 	#category : 'AgentSmalltalk-UI',
 	#package : 'AgentSmalltalk-UI'
@@ -42,60 +45,80 @@ AgentSticky class >> place: aSticky [
 AgentSticky >> initialize [
 	super initialize.
 	self extent: self defaultExtent.
-	self background: self stickyColor.
-	self geometry: (BlRoundedRectangleGeometry cornerRadius: 4).
-	self padding: (BlInsets all: 8).
 	self buildHeader.
 	self buildBody.
-	self buildFooter
+	self buildFooter.
+	self applyCardChrome
 ]
 
 { #category : 'deleting' }
 AgentSticky >> showsDeleteButton [
-	"Stickies already have an x in their header row -- no floating one."
+	"Stickies carry the x in their chip header -- no floating one."
 	^ false
 ]
 
-{ #category : 'initialization' }
-AgentSticky >> buildFooter [
-	"Hook: species with a footer action override (AgentNote adds Reply).
-	Body is matchParent, footer is fitContent, so the footer sits under it."
+{ #category : 'defaults' }
+AgentSticky >> chipCategory [
+	^ self defaultHeaderText asUppercase
+]
+
+{ #category : 'selection' }
+AgentSticky >> defaultBorder [
+	^ self chipCardBorder
 ]
 
 { #category : 'initialization' }
 AgentSticky >> buildHeader [
-	| header spacer deleteButton |
-	header := BlElement new.
-	header layout: BlLinearLayout horizontal.
-	header constraintsDo: [ :c |
-		c horizontal matchParent.
-		c vertical fitContent ].
-	headerLabel := ToLabel new text: self defaultHeaderText.
-	"Width-capped so a long header can never push the x off the card."
-	headerLabel constraintsDo: [ :c | c horizontal exact: 160 ].
-	spacer := BlElement new.
-	spacer constraintsDo: [ :c |
-		c horizontal matchParent.
-		c vertical exact: 1 ].
-	deleteButton := BlTextElement new text: ('x' asRopedText fontSize: 14).
-	deleteButton addEventHandlerOn: BlClickEvent do: [ :evt |
-		evt consume.
-		self removeFromParent ].
-	header addChild: headerLabel.
-	header addChild: spacer.
-	header addChild: deleteButton.
+	| header |
+	header := self chipHeaderElement.
+	header addChild: self chipDeleteButton.
 	self addChild: header
 ]
 
 { #category : 'initialization' }
 AgentSticky >> buildBody [
+	"A padded white body: an optional muted meta label (the fact key, the note's
+	question) above the editable value. #showsMetaLabel gates the meta line."
+	| box |
+	box := BlElement new.
+	box layout: BlLinearLayout vertical.
+	box padding: (BlInsets top: 10 right: 12 bottom: 12 left: 12).
+	box constraintsDo: [ :c |
+		c horizontal matchParent.
+		c vertical matchParent ].
+	self showsMetaLabel ifTrue: [
+		metaLabel := BlTextElement new text: ('' asRopedText fontSize: 11).
+		metaLabel opacity: 0.5.
+		metaLabel margin: (BlInsets top: 0 right: 0 bottom: 2 left: 0).
+		metaLabel constraintsDo: [ :c | c vertical fitContent ].
+		box addChild: metaLabel ].
 	bodyEditor := ToAlbum new.
 	bodyEditor placeholderText: self bodyPlaceholder.
 	bodyEditor constraintsDo: [ :c |
 		c horizontal matchParent.
 		c vertical matchParent ].
-	self addChild: bodyEditor.
+	box addChild: bodyEditor.
+	self addChild: box.
 	self ensureEditAnnouncement
+]
+
+{ #category : 'initialization' }
+AgentSticky >> buildFooter [
+	"Hook: species with a footer override (AgentNote adds Reply, AgentSystemMessage
+	a timestamp). Body is matchParent so the footer sits under it."
+]
+
+{ #category : 'defaults' }
+AgentSticky >> showsMetaLabel [
+	"True for cards with a muted meta line above the body (Fact key, Note
+	provenance). AgentSystemMessage has none."
+	^ true
+]
+
+{ #category : 'accessing' }
+AgentSticky >> setMetaText: aString [
+	metaLabel ifNotNil: [
+		metaLabel text: (aString asString asRopedText fontSize: 11) ]
 ]
 
 { #category : 'reactions' }
@@ -115,12 +138,7 @@ AgentSticky >> noteBodyEdited [
 
 { #category : 'defaults' }
 AgentSticky >> defaultExtent [
-	^ 190 @ 110
-]
-
-{ #category : 'defaults' }
-AgentSticky >> stickyColor [
-	^ Color veryLightGray
+	^ 220 @ 120
 ]
 
 { #category : 'defaults' }
@@ -141,12 +159,42 @@ AgentSticky >> body [
 
 { #category : 'accessing' }
 AgentSticky >> body: aString [
-	bodyEditor text: aString asRopedText
+	bodyEditor ifNotNil: [ bodyEditor text: aString asRopedText ]
 ]
 
 { #category : 'accessing' }
 AgentSticky >> headerText: aString [
+	"Legacy no-op path: headerLabel is unused in the redesign (the chip label is
+	the static category). Kept so old instances that still send it don't error."
 	headerLabel ifNotNil: [ headerLabel text: aString ]
+]
+
+{ #category : 'migration' }
+AgentSticky >> repairChrome [
+	"Rebuild an existing sticky with the redesigned chip chrome. Captures the
+	value, tears down the old children, re-runs the new builders, then restores
+	the value and any subclass meta/footer state via #restoreAfterRepair. Run
+	by AgentCanvas>>migrateAfterUpdate."
+	| savedBody |
+	savedBody := [ self body ] on: Error do: [ :e | '' ].
+	self removeChildren.
+	headerLabel := nil.
+	bodyEditor := nil.
+	metaLabel := nil.
+	resizeGrip := nil.
+	deleteButton := nil.
+	self buildHeader.
+	self buildBody.
+	self buildFooter.
+	self ensureResizeGrip.
+	self applyCardChrome.
+	self body: savedBody.
+	self restoreAfterRepair
+]
+
+{ #category : 'migration' }
+AgentSticky >> restoreAfterRepair [
+	"Hook: subclasses re-apply their meta label / footer after a chrome rebuild."
 ]
 
 { #category : 'private' }

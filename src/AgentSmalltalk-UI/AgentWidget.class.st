@@ -44,7 +44,7 @@ AgentWidget >> initialize [
 	self extent: 240 @ 160.
 	self background: Color white.
 	self border: self defaultBorder.
-	self geometry: (BlRoundedRectangleGeometry cornerRadius: 10).
+	self geometry: (BlRoundedRectangleGeometry cornerRadius: 12).
 	self layout: BlLinearLayout vertical.
 	self padding: (BlInsets all: 12).
 	self addEventHandler: BlPullHandler new.
@@ -54,7 +54,10 @@ AgentWidget >> initialize [
 			self browseSource ] ].
 	self ensureResizeGrip.
 	self ensureRaisesOnClick.
-	self ensureDeleteButton
+	self ensureDeleteButton.
+	"Redesign: every card floats off the paper with a soft shadow. Categorised
+	cards additionally call #applyCardChrome for the white body + chip header."
+	self applyDropShadow
 ]
 
 { #category : 'deleting' }
@@ -265,7 +268,9 @@ AgentWidget >> browseSource [
 
 { #category : 'selection' }
 AgentWidget >> defaultBorder [
-	^ BlBorder paint: (Color gray alpha: 0.4) width: 1
+	"The redesign hairline: every card (plain widgets included) reads as one
+	family -- the soft shadow lifts it, not a heavy outline."
+	^ self chipCardBorder
 ]
 
 { #category : 'selection' }
@@ -276,4 +281,124 @@ AgentWidget >> highlightSelected [
 { #category : 'selection' }
 AgentWidget >> unhighlight [
 	self border: self defaultBorder
+]
+
+{ #category : 'redesign chrome' }
+AgentWidget >> chipAccent [
+	"The header-chip background -- the category colour. Overridden per card."
+	^ Color fromHexString: 'E8E8E5'
+]
+
+{ #category : 'redesign chrome' }
+AgentWidget >> chipIconColor [
+	"The small rounded square in the chip, a deeper shade of the accent."
+	^ Color fromHexString: 'B9B9B3'
+]
+
+{ #category : 'redesign chrome' }
+AgentWidget >> chipCategory [
+	"The uppercased word shown in the chip (FACT, NOTE, SERVICE...)."
+	^ 'WIDGET'
+]
+
+{ #category : 'redesign chrome' }
+AgentWidget >> chipCardBorder [
+	"A hairline; the drop shadow does the lifting, not a heavy border."
+	^ BlBorder paint: (Color black alpha: 0.06) width: 1
+]
+
+{ #category : 'redesign chrome' }
+AgentWidget >> applyDropShadow [
+	"Soft drop shadow so the card floats off the paper. Guarded: the exact Bloc
+	shadow-effect class/selector varies across pinned revisions, and a mismatch
+	must never stop a card from rendering -- it just loses the shadow."
+	| shadowClass |
+	shadowClass := Smalltalk globals at: #BlGaussianShadowEffect ifAbsent: [ nil ].
+	shadowClass ifNil: [ ^ self ].
+	[ self effect: (shadowClass
+		color: (Color black alpha: 0.12)
+		width: 14
+		offset: 0 @ 5) ]
+		on: Error do: [ :e |  ]
+]
+
+{ #category : 'redesign chrome' }
+AgentWidget >> applyCardChrome [
+	"The redesigned card shell: white body, rounded, clipped so an edge-to-edge
+	chip header's top corners follow the card, hairline border, soft shadow.
+	Card padding is 0 -- the header is edge-to-edge and each body owns its own."
+	self background: Color white.
+	self border: self chipCardBorder.
+	self geometry: (BlRoundedRectangleGeometry cornerRadius: 12).
+	self padding: (BlInsets all: 0).
+	self clipChildren: true.
+	self applyDropShadow.
+	self bringGripToFront
+]
+
+{ #category : 'redesign chrome' }
+AgentWidget >> bringGripToFront [
+	"Re-add the resize grip as the last child so it paints on top of a
+	full-bleed body and still receives the resize drag. Cards with 0 padding
+	(the chip cards) have a body element that would otherwise cover the corner
+	grip and swallow the gesture."
+	resizeGrip ifNotNil: [
+		resizeGrip removeFromParent.
+		self addChild: resizeGrip ]
+]
+
+{ #category : 'redesign chrome' }
+AgentWidget >> chipHeaderElement [
+	"An edge-to-edge coloured category chip: icon + uppercased label + a spacer
+	that pushes any trailing elements (status badge, delete x) to the right.
+	Callers append those and add the returned header to the card."
+	| header icon label spacer |
+	header := BlElement new.
+	header layout: BlLinearLayout horizontal.
+	header background: self chipAccent.
+	header padding: (BlInsets top: 7 right: 10 bottom: 7 left: 10).
+	header constraintsDo: [ :c |
+		c horizontal matchParent.
+		c vertical fitContent ].
+	icon := BlElement new.
+	icon extent: 14 @ 14.
+	icon background: self chipIconColor.
+	icon geometry: (BlRoundedRectangleGeometry cornerRadius: 4).
+	icon margin: (BlInsets top: 0 right: 8 bottom: 0 left: 0).
+	label := BlTextElement new
+		text: (self chipCategory asUppercase asRopedText fontSize: 11; bold).
+	label opacity: 0.75.
+	spacer := BlElement new.
+	spacer constraintsDo: [ :c |
+		c horizontal matchParent.
+		c vertical exact: 1 ].
+	header addChild: icon.
+	header addChild: label.
+	header addChild: spacer.
+	^ header
+]
+
+{ #category : 'redesign chrome' }
+AgentWidget >> chipDeleteButton [
+	"The delete x for the right of a chip header, wired to remove the card."
+	| deleteX |
+	deleteX := BlTextElement new text: ('x' asRopedText fontSize: 14).
+	deleteX opacity: 0.5.
+	deleteX addEventHandlerOn: BlClickEvent do: [ :evt |
+		evt consume.
+		self removeFromParent ].
+	^ deleteX
+]
+
+{ #category : 'redesign chrome' }
+AgentWidget >> chipBadge: aString [
+	"A small rounded status pill for the right of a chip (e.g. 'succeeded')."
+	| badge |
+	badge := ToLabel new text: aString asString.
+	badge background: (Color white alpha: 0.5).
+	badge geometry: (BlRoundedRectangleGeometry cornerRadius: 8).
+	badge padding: (BlInsets top: 1 right: 7 bottom: 1 left: 7).
+	badge margin: (BlInsets top: 0 right: 8 bottom: 0 left: 0).
+	badge constraintsDo: [ :c | c vertical fitContent ].
+	^ badge
 ]

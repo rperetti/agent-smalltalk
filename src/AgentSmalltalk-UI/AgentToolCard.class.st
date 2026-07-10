@@ -1,11 +1,12 @@
 "
-I am the visible face of an AgentTool: a small sage card in the bottom-right
-toolbox corner (facts top-left, notes top-right, system bottom-left, tools
-bottom-right -- the canvas geography completed). I show the tool's name and
-purpose; right-click opens the TOOL class's source so a human can read and
-tweak it, and the fix benefits every reuse. I am meta (a handle on a
-capability, not a capability myself), so I stay out of the LLM's widget
-context -- the tool itself is listed under '## Capabilities you've built'.
+I am the visible face of an AgentTool: a card in the bottom-right toolbox corner
+(facts top-left, notes top-right, system bottom-left, tools bottom-right -- the
+canvas geography completed). In the redesign I am a white card with a green
+SERVICE chip, the tool's name in bold, and its purpose muted below. Right-click
+opens the TOOL class's source so a human can read and tweak it, and the fix
+benefits every reuse. I am meta (a handle on a capability, not a capability
+myself), so I stay out of the LLM's widget context -- the tool itself is listed
+under '## Capabilities you've built'.
 "
 Class {
 	#name : 'AgentToolCard',
@@ -46,28 +47,77 @@ AgentToolCard class >> nextPosition [
 { #category : 'initialization' }
 AgentToolCard >> initialize [
 	super initialize.
-	self width: 240.
-	self minHeight: 84.
+	self width: 260.
+	self minHeight: 96.
 	self vFitContent.
-	self background: (Color fromHexString: 'E4EAD9').
-	self border: (BlBorder paint: (Color fromHexString: 'B6C39E') width: 1).
-	self geometry: (BlRoundedRectangleGeometry cornerRadius: 4).
-	self padding: (BlInsets all: 8).
-	nameLabel := BlTextElement new text: ('tool' asRopedText fontSize: 13).
+	self buildHeader.
+	self buildBody.
+	self applyCardChrome
+]
+
+{ #category : 'deleting' }
+AgentToolCard >> showsDeleteButton [
+	"The x lives in the chip header."
+	^ false
+]
+
+{ #category : 'defaults' }
+AgentToolCard >> chipAccent [
+	^ Color fromHexString: 'DBEDD2'
+]
+
+{ #category : 'defaults' }
+AgentToolCard >> chipIconColor [
+	^ Color fromHexString: '8FC08A'
+]
+
+{ #category : 'defaults' }
+AgentToolCard >> chipCategory [
+	^ 'SERVICE'
+]
+
+{ #category : 'selection' }
+AgentToolCard >> defaultBorder [
+	^ self chipCardBorder
+]
+
+{ #category : 'initialization' }
+AgentToolCard >> buildHeader [
+	| header |
+	header := self chipHeaderElement.
+	header addChild: self chipDeleteButton.
+	self addChild: header
+]
+
+{ #category : 'initialization' }
+AgentToolCard >> buildBody [
+	| box |
+	box := BlElement new.
+	box layout: BlLinearLayout vertical.
+	box padding: (BlInsets top: 10 right: 12 bottom: 12 left: 12).
+	box constraintsDo: [ :c |
+		c horizontal matchParent.
+		c vertical fitContent ].
+	nameLabel := BlTextElement new text: ('tool' asRopedText fontSize: 14; bold).
+	nameLabel margin: (BlInsets top: 0 right: 0 bottom: 4 left: 0).
 	purposeLabel := ToLabel new text: ''.
+	purposeLabel opacity: 0.7.
 	purposeLabel beMultiLine.
 	purposeLabel constraintsDo: [ :c |
 		c horizontal matchParent.
 		c vertical fitContent ].
-	self addChild: nameLabel.
-	self addChild: purposeLabel
+	box addChild: nameLabel.
+	box addChild: purposeLabel.
+	self addChild: box
 ]
 
 { #category : 'migration' }
 AgentToolCard >> repairLayout [
-	"Repair cards created before purpose text wrapped. Match-parent also
-	makes horizontal resizing useful instead of leaving the label at 184px."
-	self minHeight: 84.
+	"Repair cards created before purpose text wrapped -- IN PLACE, so callers
+	holding the same purposeLabel (and the migration test) see it fixed. Match-
+	parent also makes horizontal resizing useful instead of leaving the label at
+	a fixed width."
+	self minHeight: 96.
 	self vFitContent.
 	purposeLabel ifNotNil: [
 		purposeLabel beMultiLine.
@@ -84,7 +134,7 @@ AgentToolCard >> toolClass [
 { #category : 'accessing' }
 AgentToolCard >> toolClass: aClass [
 	toolClass := aClass.
-	nameLabel text: (aClass name asRopedText fontSize: 13; bold).
+	nameLabel text: (aClass name asRopedText fontSize: 14; bold).
 	purposeLabel text: (aClass purpose ifNil: [ '' ])
 ]
 

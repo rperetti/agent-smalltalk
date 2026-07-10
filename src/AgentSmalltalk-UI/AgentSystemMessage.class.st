@@ -1,8 +1,8 @@
 "
-I am a gray sticky: the system's own voice. I announce things the user did
+I am a gray system card: the system's own voice. I announce things the user did
 NOT initiate -- 'tooling updated', a swallowed error -- and pile at the
-bottom-left corner. Deleting me is acknowledging me. Repeated messages with
-the same key coalesce into one sticky ('system x3 14:32') instead of
+bottom-left corner. Deleting me is acknowledging me. Repeated messages with the
+same key coalesce into one card (my footer shows the time and 'x3') instead of
 stacking. I am out of the LLM context unless lassoed. I am the seed of the
 future inbox (see docs/ideas.md: agent-initiated work).
 "
@@ -11,7 +11,9 @@ Class {
 	#superclass : 'AgentSticky',
 	#instVars : [
 		'key',
-		'count'
+		'count',
+		'stamp',
+		'footerLabel'
 	],
 	#category : 'AgentSmalltalk-UI',
 	#package : 'AgentSmalltalk-UI'
@@ -42,13 +44,13 @@ AgentSystemMessage class >> pileOrigin [
 ]
 
 { #category : 'defaults' }
-AgentSystemMessage >> stickyColor [
+AgentSystemMessage >> chipAccent [
 	^ Color fromHexString: 'E8E8E5'
 ]
 
-{ #category : 'selection' }
-AgentSystemMessage >> defaultBorder [
-	^ BlBorder paint: (Color fromHexString: 'B9B9B3') width: 1
+{ #category : 'defaults' }
+AgentSystemMessage >> chipIconColor [
+	^ Color fromHexString: 'B9B9B3'
 ]
 
 { #category : 'defaults' }
@@ -59,6 +61,40 @@ AgentSystemMessage >> defaultHeaderText [
 { #category : 'defaults' }
 AgentSystemMessage >> bodyPlaceholder [
 	^ 'system message'
+]
+
+{ #category : 'defaults' }
+AgentSystemMessage >> showsMetaLabel [
+	"The system card puts its time/count in a footer, not a meta line."
+	^ false
+]
+
+{ #category : 'initialization' }
+AgentSystemMessage >> buildFooter [
+	footerLabel := BlTextElement new text: ('' asRopedText fontSize: 10).
+	footerLabel opacity: 0.5.
+	footerLabel margin: (BlInsets top: 0 right: 12 bottom: 10 left: 12).
+	footerLabel constraintsDo: [ :c | c vertical fitContent ].
+	self addChild: footerLabel.
+	self refreshFooter
+]
+
+{ #category : 'updating' }
+AgentSystemMessage >> refreshFooter [
+	footerLabel ifNil: [ ^ self ].
+	footerLabel text: (self footerText asRopedText fontSize: 10)
+]
+
+{ #category : 'updating' }
+AgentSystemMessage >> footerText [
+	^ String streamContents: [ :s |
+		stamp ifNotNil: [ s << stamp ].
+		self count > 1 ifTrue: [ s << '  ·  x' << self count printString ] ]
+]
+
+{ #category : 'migration' }
+AgentSystemMessage >> restoreAfterRepair [
+	self refreshFooter
 ]
 
 { #category : 'accessing' }
@@ -79,18 +115,16 @@ AgentSystemMessage >> count [
 { #category : 'accessing' }
 AgentSystemMessage >> message: aString [
 	count := (count ifNil: [ 0 ]) + 1.
+	stamp := Time now print24 first: 5.
 	self body: aString.
-	self headerText: (String streamContents: [ :s |
-		s << 'system'.
-		self count > 1 ifTrue: [ s << ' x' << self count printString ].
-		s << ' ' << (Time now print24 first: 5) ])
+	self refreshFooter
 ]
 
 { #category : 'accessing' }
 AgentSystemMessage >> coalesce: aString [
-	"Update the existing sticky AND raise it to the front -- a repeat
-	announcement the user should still notice, not one buried behind
-	whatever was raised since."
+	"Update the existing card AND raise it to the front -- a repeat announcement
+	the user should still notice, not one buried behind whatever was raised
+	since."
 	self message: aString.
 	self raise
 ]
