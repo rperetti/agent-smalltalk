@@ -30,8 +30,10 @@ AgentFact class >> key: aSymbol body: aString [
 		^ existing ].
 	fact := self new.
 	fact key: aSymbol.
-	fact body: aString.
-	^ self place: fact
+	fact setBody: aString.
+	fact := self place: fact.
+	fact announceFactChanged.
+	^ fact
 ]
 
 { #category : 'instance creation' }
@@ -39,8 +41,10 @@ AgentFact class >> body: aString [
 	"A keyless, free-form fact."
 	| fact |
 	fact := self new.
-	fact body: aString.
-	^ self place: fact
+	fact setBody: aString.
+	fact := self place: fact.
+	fact announceFactChanged.
+	^ fact
 ]
 
 { #category : 'defaults' }
@@ -83,10 +87,19 @@ AgentFact >> key: aSymbol [
 
 { #category : 'accessing' }
 AgentFact >> body: aString [
-	"The value renders bold, a size above the key label; kept editable."
+	"Update an already-live fact and announce the new value. New facts use
+	#setBody: before placement, then announce after they are discoverable through
+	AgentKnowledge."
+	self setBody: aString.
+	self announceFactChanged
+]
+
+{ #category : 'private' }
+AgentFact >> setBody: aString [
+	"Render the value without announcing. Creation places the fact before its
+	first announcement so subscribers can resolve it through AgentKnowledge."
 	bodyEditor ifNotNil: [
 		bodyEditor text: (aString asString asRopedText fontSize: 16; bold) ].
-	self announceFactChanged
 ]
 
 { #category : 'migration' }

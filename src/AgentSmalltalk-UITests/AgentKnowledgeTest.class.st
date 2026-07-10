@@ -75,6 +75,29 @@ AgentKnowledgeTest >> testAgentUpdatesAnnounceFactChanged [
 ]
 
 { #category : 'tests' }
+AgentKnowledgeTest >> testNewFactAnnouncementSeesLiveFact [
+	| observations fact observation |
+	observations := OrderedCollection new.
+	AgentCanvas current announcer
+		when: AgentFactChanged
+		do: [ :event |
+			observations add: {
+				event key.
+				AgentKnowledge at: #city.
+				AgentCanvas current facts includes: event fact } ]
+		for: self.
+	[
+		fact := AgentFact key: #city body: 'Tokyo'.
+		self assert: observations size equals: 1.
+		observation := observations first.
+		self assert: observation first equals: #city.
+		self assert: observation second equals: 'Tokyo'.
+		self assert: observation third.
+		self assert: (AgentCanvas current factWithKey: #city) identicalTo: fact ]
+		ensure: [ AgentCanvas current announcer unsubscribe: self ]
+]
+
+{ #category : 'tests' }
 AgentKnowledgeTest >> testBlurHookIsInert [
 	"The blur path must NOT announce (it ran on the UI thread; subscribers
 	doing network work froze input). Drift sweep covers manual edits."
