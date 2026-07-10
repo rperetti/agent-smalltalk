@@ -66,7 +66,9 @@ w position: 300@200. AgentCanvas current addWidget: w
 
 Every widget must subclass `AgentWidget` (itself a `BlElement`). It already provides:
 
-- a white rounded 240×160 card, `BlLinearLayout vertical`, 12px padding
+- a white rounded 240×160 card with a soft drop shadow and a hairline border,
+  `BlLinearLayout vertical`, 12px padding. It is **already styled** — build your
+  content INSIDE it and do not restyle the root (see *Making widgets look good*)
 - dragging, and right-click opens the source browser
 - `summonAt: aPoint` (class side) — creates, positions, adds to canvas
 - you should **override** `describe` to answer a one-line description of the widget and its current state, e.g. `'a counter, currently at 3'`. It is how you will recognize the widget in future requests.
@@ -137,10 +139,11 @@ self setText: temperature printString , '°C' on: tempLabel fontSize: 32.
 
 Never send `text:fontSize:` directly; that selector does not exist.
 
-For custom visuals, build raw `BlElement`s: `background:`, `extent: w @ h`,
-`geometry: (BlRoundedRectangleGeometry cornerRadius: 6)`,
-`border: (BlBorder paint: Color gray width: 1)`, `margin:`/`padding:` with
-`BlInsets`, `Color fromHexString:`, click via
+For custom visuals, style **child** `BlElement`s (never the card root — see
+*Making widgets look good*): `background:`, `extent: w @ h`,
+`geometry: (BlRoundedRectangleGeometry cornerRadius: 8)`,
+`opacity:` (for muted text), `margin:`/`padding:` with `BlInsets`,
+`Color fromHexString:`, click via
 `addEventHandlerOn: BlClickEvent do: [ :evt | evt consume. ... ]`.
 
 Horizontal rows of children:
@@ -155,6 +158,57 @@ self addChild: row
 
 Sizing: `extent: w @ h` or `constraintsDo:` with `fitContent`/`matchParent`
 (`size:` is deprecated — never use it).
+
+## Making widgets look good
+
+A widget is a small piece of interface, not a debug dump — make it something the
+user is glad to have on their canvas. The card shell is already designed for you
+(white, rounded, soft shadow, hairline border); your job is a calm, legible
+INTERIOR. Style child elements only; never set `background:`/`border:`/`geometry:`
+on the widget root — that fights the shell and reads as bolted-on.
+
+**Match the effort to the request.** A quick utility (a counter, a timer) just
+needs clean hierarchy and spacing — don't gold-plate it. When the user asks for
+something nice, or builds a dashboard/status card they'll keep around, invest
+more: panels, an accent, a considered layout. Never burn extra tool rounds on
+decoration the request didn't call for.
+
+Principles that separate a nice widget from a bland one:
+
+- **Hierarchy, not uniform text.** Give the widget ONE hero — the number, the
+  headline, the current value — at ~28-36pt, with the title at ~15 bold and
+  supporting labels/captions at ~11-12. A stack of same-size lines always looks
+  cheap.
+- **Mute secondary text with `opacity`, not colour.** `label opacity: 0.55`
+  turns a caption grey and reliably; keep the hero at full strength. (Text
+  foreground-colour APIs are fiddly here; opacity is the safe lever.)
+- **Let it breathe.** Space stacked groups with `margin: (BlInsets top: 8)`;
+  size the card a little larger than its content instead of cramming.
+- **One accent colour, used sparingly** — a value, a dot, a small bar; not five.
+  Reads well on white: blue `4A90D9`, green `4CA66B`, amber `E6A817`, red
+  `D9534F`. Everything else stays ink-on-white.
+- **Group with a soft panel, not lines.** A light rounded box behind a section
+  is cleaner than borders everywhere:
+
+```
+panel := BlElement new.
+panel layout: BlLinearLayout vertical.
+panel background: (Color fromHexString: 'F4F5F7').
+panel geometry: (BlRoundedRectangleGeometry cornerRadius: 8).
+panel padding: (BlInsets all: 10).
+panel constraintsDo: [ :c | c horizontal matchParent. c vertical fitContent ].
+```
+
+- **Label/value rows read as a table:** a muted label, a `matchParent` spacer,
+  then the value — the same spacer trick as the horizontal-row example above.
+  Keep rows consistent.
+- **Inner corners small and consistent** (6-8, lighter than the card's 12).
+- At most ONE emoji, in the title, and only when it suits the content
+  (`'☀ ' , city`). Never decorate for its own sake.
+
+Restyle the root ONLY for a deliberate full-bleed visual (e.g. a gradient hero —
+`search_image` for the gradient paint class) — and then own the whole card edge
+to edge, on purpose. Default is: leave the shell alone, design the inside.
 
 ## Real data from the network
 
