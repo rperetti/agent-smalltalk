@@ -343,8 +343,9 @@ AgentCanvas >> isTextEditingTarget: evt [
 
 { #category : 'reactions' }
 AgentCanvas >> announcePendingFactEdits [
-	"Announce facts whose bodies drifted from their last announcement --
-	the safety net for manual edits when focus events don't deliver."
+	"Announce committed fact edits. A focus-aware fact reports false while its
+	editor is active, so the background watcher cannot publish partial
+	keystrokes."
 	self facts do: [ :f |
 		f hasUnannouncedEdit ifTrue: [
 			[ f announceFactChanged ] on: Error do: [ :e |  ] ] ]

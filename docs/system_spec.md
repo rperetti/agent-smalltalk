@@ -11,8 +11,9 @@ in [security.md](security.md), and command/recovery procedures in
 to explain behavior but is not the canonical planning queue or runbook.
 
 *Last updated: 2026-07-10 (gateway round-cap semantics, fact number scanner,
-canvas-space liveness, reaction lifecycle, compiler-enforced reaction and
-fact-write policies, and result-reporting fallback; 159 clean-image tests).*
+canvas-space liveness, focus-gated manual fact reactions, compiler-enforced
+reaction and fact-write policies, and result-reporting fallback; 161
+clean-image tests).*
 
 ## One-paragraph summary
 
@@ -105,13 +106,13 @@ cannot propagate invisibly.
 ### Reactions (phase 4)
 
 One canvas-wide `announcer`. `AgentFactChanged` fires on agent updates
-(`AgentFact key:body:`) and manual sticky edits — announced on focus loss
-when Bloc delivers the blur, and guaranteed within ~3s regardless by a
-drift sweep (facts remember their last-announced body; a GUI-only watcher
-process announces any drift). New facts are rendered and placed on the canvas
-before their first `AgentFactChanged` announcement, so subscribers can resolve
-a same-request fact through `AgentKnowledge` during that event; existing fact
-edits continue to announce after their updated body is rendered.
+(`AgentFact key:body:`) and committed manual edits. A focused fact editor is a
+draft: its intermediate text is invisible to reactions. Clicking empty canvas
+ends editing; a GUI-only ~3s background sweep then publishes the completed
+edit, and also catches other unfocused drift. New facts are rendered and placed
+on the canvas before their first `AgentFactChanged` announcement, so subscribers
+can resolve a same-request fact through `AgentKnowledge` during that event;
+existing fact edits continue to announce after their updated body is rendered.
 `AgentWidgetChanged` fires via the widget convention `self announceChanged`
 in state mutators. Reactive widgets put `when:do:for: self` subscriptions in
 `installReactions`, never `initialize`. The canvas calls `reconnectReactions`

@@ -116,9 +116,14 @@ AgentFact >> announceFactChanged [
 
 { #category : 'reactions' }
 AgentFact >> hasUnannouncedEdit [
-	"True when the editor's text has drifted from what was last announced
-	-- i.e. a manual edit that no event delivered."
-	^ lastAnnouncedBody ~= self body
+	"Focused editor text is a draft, not durable fact state. The canvas watcher
+	must therefore ignore it until the editor has lost focus and committed it."
+	^ self isEditing not and: [ lastAnnouncedBody ~= self body ]
+]
+
+{ #category : 'testing' }
+AgentFact >> isEditing [
+	^ bodyEditor notNil and: [ bodyEditor hasFocus ]
 ]
 
 { #category : 'agent context' }

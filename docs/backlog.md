@@ -22,11 +22,10 @@ the `Now` decisions clarify the architecture.
 
 | rank | ID | title | categories | priority | effort |
 |---:|---|---|---|---|---|
-| 5 | [AS-23](#as-23--emit-fact-changes-only-after-an-edit-is-committed) | Emit fact changes only after an edit is committed | bug, ux, reliability | P1 | M |
-| 6 | [AS-13](#as-13--turn-smoke-scripts-into-real-verification-gates) | Turn smoke scripts into real verification gates | testing, reliability | P1 | M |
-| 7 | [AS-05](#as-05--coordinate-all-world-mutations) | Coordinate all world mutations | architecture, reliability | P1 | L |
-| 8 | [AS-06](#as-06--decide-whether-automation-restrictions-are-policy-or-enforcement) | Decide whether automation restrictions are policy or enforcement | security, product, architecture | P1 | L |
-| 9 | [AS-19](#as-19--make-the-base-prompt-a-tested-consistent-contract) | Make the base prompt a tested, consistent contract | testing, architecture, maintenance | P1 | M |
+| 5 | [AS-13](#as-13--turn-smoke-scripts-into-real-verification-gates) | Turn smoke scripts into real verification gates | testing, reliability | P1 | M |
+| 6 | [AS-05](#as-05--coordinate-all-world-mutations) | Coordinate all world mutations | architecture, reliability | P1 | L |
+| 7 | [AS-06](#as-06--decide-whether-automation-restrictions-are-policy-or-enforcement) | Decide whether automation restrictions are policy or enforcement | security, product, architecture | P1 | L |
+| 8 | [AS-19](#as-19--make-the-base-prompt-a-tested-consistent-contract) | Make the base prompt a tested, consistent contract | testing, architecture, maintenance | P1 | M |
 
 ## Later
 
@@ -34,14 +33,14 @@ Real work, but not proposed as part of the next foundation milestone.
 
 | rank | ID | title | categories | priority | effort |
 |---:|---|---|---|---|---|
-| 10 | [AS-21](#as-21--auto-resize-the-spotlight-for-long-prompts) | Auto-resize the spotlight for long prompts | bug, ux | P2 | S |
-| 11 | [AS-12](#as-12--specify-whether-run-now-shifts-the-schedule) | Specify whether Run now shifts the schedule | product, bug | P2 | S |
-| 12 | [AS-14](#as-14--introduce-a-provider-neutral-inference-boundary) | Introduce a provider-neutral inference boundary | architecture, reliability | P2 | L |
-| 13 | [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts) | Add provenance, health, and rollback for generated artifacts | architecture, feature, reliability | P1 | L |
-| 14 | [AS-16](#as-16--make-tool-card-removal-match-its-visible-meaning) | Make tool-card removal match its visible meaning | ux, product, reliability | P2 | M |
-| 15 | [AS-17](#as-17--preserve-history-when-system-messages-coalesce) | Preserve history when system messages coalesce | reliability, ux | P2 | S |
-| 16 | [AS-18](#as-18--reduce-the-dependency-load-surface) | Reduce the dependency load surface | performance, maintenance, operations | P2 | M |
-| 17 | [AS-20](#as-20--complete-the-open-source-readiness-pass) | Complete the open-source readiness pass | documentation, operations, product | P2 | M |
+| 9 | [AS-21](#as-21--auto-resize-the-spotlight-for-long-prompts) | Auto-resize the spotlight for long prompts | bug, ux | P2 | S |
+| 10 | [AS-12](#as-12--specify-whether-run-now-shifts-the-schedule) | Specify whether Run now shifts the schedule | product, bug | P2 | S |
+| 11 | [AS-14](#as-14--introduce-a-provider-neutral-inference-boundary) | Introduce a provider-neutral inference boundary | architecture, reliability | P2 | L |
+| 12 | [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts) | Add provenance, health, and rollback for generated artifacts | architecture, feature, reliability | P1 | L |
+| 13 | [AS-16](#as-16--make-tool-card-removal-match-its-visible-meaning) | Make tool-card removal match its visible meaning | ux, product, reliability | P2 | M |
+| 14 | [AS-17](#as-17--preserve-history-when-system-messages-coalesce) | Preserve history when system messages coalesce | reliability, ux | P2 | S |
+| 15 | [AS-18](#as-18--reduce-the-dependency-load-surface) | Reduce the dependency load surface | performance, maintenance, operations | P2 | M |
+| 16 | [AS-20](#as-20--complete-the-open-source-readiness-pass) | Complete the open-source readiness pass | documentation, operations, product | P2 | M |
 
 ## Category views
 
@@ -51,54 +50,17 @@ cross-category priority order above.
 
 | lens | items |
 |---|---|
-| Bugs and behavioral correctness | [AS-23](#as-23--emit-fact-changes-only-after-an-edit-is-committed), [AS-21](#as-21--auto-resize-the-spotlight-for-long-prompts), [AS-12](#as-12--specify-whether-run-now-shifts-the-schedule) |
+| Bugs and behavioral correctness | [AS-21](#as-21--auto-resize-the-spotlight-for-long-prompts), [AS-12](#as-12--specify-whether-run-now-shifts-the-schedule) |
 | Security and authority | [AS-01](#as-01--authenticate-or-remove-the-local-evaluator), [AS-04](#as-04--treat-model-context-as-untrusted-bounded-data), [AS-06](#as-06--decide-whether-automation-restrictions-are-policy-or-enforcement), [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts) |
-| Reliability and persistence | [AS-02](#as-02--make-live-updates-verifiable-and-atomic), [AS-03](#as-03--define-persistence-and-recovery-semantics), [AS-05](#as-05--coordinate-all-world-mutations), [AS-13](#as-13--turn-smoke-scripts-into-real-verification-gates), [AS-23](#as-23--emit-fact-changes-only-after-an-edit-is-committed), [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts), [AS-17](#as-17--preserve-history-when-system-messages-coalesce) |
+| Reliability and persistence | [AS-02](#as-02--make-live-updates-verifiable-and-atomic), [AS-03](#as-03--define-persistence-and-recovery-semantics), [AS-05](#as-05--coordinate-all-world-mutations), [AS-13](#as-13--turn-smoke-scripts-into-real-verification-gates), [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts), [AS-17](#as-17--preserve-history-when-system-messages-coalesce) |
 | Operations and testing | [AS-01](#as-01--authenticate-or-remove-the-local-evaluator), [AS-02](#as-02--make-live-updates-verifiable-and-atomic), [AS-03](#as-03--define-persistence-and-recovery-semantics), [AS-13](#as-13--turn-smoke-scripts-into-real-verification-gates), [AS-18](#as-18--reduce-the-dependency-load-surface), [AS-19](#as-19--make-the-base-prompt-a-tested-consistent-contract), [AS-20](#as-20--complete-the-open-source-readiness-pass) |
 | Architecture and evolution | [AS-03](#as-03--define-persistence-and-recovery-semantics), [AS-04](#as-04--treat-model-context-as-untrusted-bounded-data), [AS-05](#as-05--coordinate-all-world-mutations), [AS-06](#as-06--decide-whether-automation-restrictions-are-policy-or-enforcement), [AS-14](#as-14--introduce-a-provider-neutral-inference-boundary), [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts), [AS-19](#as-19--make-the-base-prompt-a-tested-consistent-contract) |
-| Product, feature, and UX | [AS-23](#as-23--emit-fact-changes-only-after-an-edit-is-committed), [AS-06](#as-06--decide-whether-automation-restrictions-are-policy-or-enforcement), [AS-21](#as-21--auto-resize-the-spotlight-for-long-prompts), [AS-12](#as-12--specify-whether-run-now-shifts-the-schedule), [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts), [AS-16](#as-16--make-tool-card-removal-match-its-visible-meaning), [AS-17](#as-17--preserve-history-when-system-messages-coalesce), [AS-20](#as-20--complete-the-open-source-readiness-pass) |
+| Product, feature, and UX | [AS-06](#as-06--decide-whether-automation-restrictions-are-policy-or-enforcement), [AS-21](#as-21--auto-resize-the-spotlight-for-long-prompts), [AS-12](#as-12--specify-whether-run-now-shifts-the-schedule), [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts), [AS-16](#as-16--make-tool-card-removal-match-its-visible-meaning), [AS-17](#as-17--preserve-history-when-system-messages-coalesce), [AS-20](#as-20--complete-the-open-source-readiness-pass) |
 | Performance and maintenance | [AS-04](#as-04--treat-model-context-as-untrusted-bounded-data), [AS-18](#as-18--reduce-the-dependency-load-surface), [AS-19](#as-19--make-the-base-prompt-a-tested-consistent-contract) |
 
 ---
 
 ## Detailed entries
-
-## AS-23 — Emit fact changes only after an edit is committed
-
-**Status:** candidate<br>
-**Categories:** bug, ux, reliability<br>
-**Priority:** P1<br>
-**Effort:** M<br>
-**Dependencies:** none<br>
-**Source:** user report, 2026-07-10
-
-### Problem and argument
-
-While the user types a new city into a fact, dependent widgets receive partial
-values and react repeatedly: City Watch visibly changes before the city name is
-complete and increments its counter for intermediate keystrokes. A fact-change
-event currently means both “the editor text drifted” and “a durable value was
-committed,” making reactive behavior noisy and semantically wrong.
-
-### Proposed outcome
-
-Manual fact editing has a clear commit boundary. Dependents observe at most one
-`AgentFactChanged` event for a completed edit, carrying the complete committed
-body; an in-progress focused editor is never published by a background sweep.
-
-### Acceptance criteria
-
-- Typing or pasting `Lisbon` into a focused fact produces no dependent update
-  for `L`, `Li`, or other intermediate text.
-- Moving focus away (or the explicitly chosen commit action) publishes the
-  completed body once; a City Watch-style counter increases exactly once.
-- A background drift/safety sweep does not publish any fact whose body editor
-  is actively focused, even if the user pauses while typing.
-- Agent-driven `AgentFact key:body:` updates remain immediate, rendered before
-  notification, and emit exactly once.
-- Repeating a commit with an unchanged body emits no event.
-- Headless and UI tests cover typing, paste, focus loss, a long typing pause,
-  unchanged commit, and a direct agent update.
 
 ## AS-21 — Auto-resize the spotlight for long prompts
 

@@ -160,6 +160,59 @@ AgentKnowledgeTest >> testManualDriftIsDetectedAndSwept [
 ]
 
 { #category : 'tests' }
+AgentKnowledgeTest >> testFocusedFactDraftIsNotPublishedBySweep [
+	| canvas space fact editor heard |
+	canvas := AgentCanvas current.
+	space := BlSpace new.
+	canvas instVarNamed: #space put: space.
+	space root addChild: canvas ensureContent.
+	fact := AgentFact key: #city body: 'Tokyo'.
+	heard := OrderedCollection new.
+	canvas announcer
+		when: AgentFactChanged
+		do: [ :evt | heard add: evt key ]
+		for: self.
+	editor := fact instVarNamed: #bodyEditor.
+	editor requestFocus.
+	editor text: 'Lis' asRopedText.
+	self assert: fact isEditing.
+	self deny: fact hasUnannouncedEdit.
+	canvas announcePendingFactEdits.
+	self assert: heard isEmpty.
+	canvas announcer unsubscribe: self
+]
+
+{ #category : 'tests' }
+AgentKnowledgeTest >> testCanvasClickMakesCompletedFactDraftAvailableToSweep [
+	| canvas space fact editor heard clickEvt |
+	canvas := AgentCanvas current.
+	space := BlSpace new.
+	canvas instVarNamed: #space put: space.
+	space root addChild: canvas ensureContent.
+	fact := AgentFact key: #city body: 'Tokyo'.
+	heard := OrderedCollection new.
+	canvas announcer
+		when: AgentFactChanged
+		do: [ :evt |
+			evt fact == fact ifTrue: [
+				heard add: fact body ] ]
+		for: self.
+	editor := fact instVarNamed: #bodyEditor.
+	editor requestFocus.
+	editor text: 'Lisbon' asRopedText.
+	clickEvt := BlMouseDownEvent new.
+	clickEvt target: fact parent.
+	canvas handleMouseDown: clickEvt.
+	self deny: fact isEditing.
+	self assert: fact hasUnannouncedEdit.
+	canvas announcePendingFactEdits.
+	self assert: heard asArray equals: #('Lisbon').
+	canvas announcePendingFactEdits.
+	self assert: heard size equals: 1.
+	canvas announcer unsubscribe: self
+]
+
+{ #category : 'tests' }
 AgentKnowledgeTest >> testWidgetAnnounceChanged [
 	| w heard |
 	w := AgentWidget new.
