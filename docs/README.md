@@ -43,9 +43,10 @@ System spec, operations, security, or ADR updated
 ```
 
 An idea can instead move to `postponed.md` when it has been evaluated but there
-is a deliberate reason not to pursue it. Completed backlog items leave the
-active register; the lasting truth belongs in the system specification,
-supporting reference document, commit history, or an ADR.
+is a deliberate reason not to pursue it. When a backlog item is implemented and
+verified, remove it from `backlog.md` rather than retaining a growing completed
+archive. The lasting truth belongs in the system specification, supporting
+reference document, tests, commit history, or an ADR.
 
 ## Backlog fields
 

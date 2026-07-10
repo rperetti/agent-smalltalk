@@ -105,7 +105,10 @@ One canvas-wide `announcer`. `AgentFactChanged` fires on agent updates
 (`AgentFact key:body:`) and manual sticky edits — announced on focus loss
 when Bloc delivers the blur, and guaranteed within ~3s regardless by a
 drift sweep (facts remember their last-announced body; a GUI-only watcher
-process announces any drift);
+process announces any drift). New facts are rendered and placed on the canvas
+before their first `AgentFactChanged` announcement, so subscribers can resolve
+a same-request fact through `AgentKnowledge` during that event; existing fact
+edits continue to announce after their updated body is rendered.
 `AgentWidgetChanged` fires via the widget convention `self announceChanged`
 in state mutators. Widgets subscribe `when:do:for: self` (the base-prompt pattern);
 deletion auto-unsubscribes. Verified with generated code: a clock retuned on
