@@ -10,8 +10,8 @@ in [security.md](security.md), and command/recovery procedures in
 [operations.md](operations.md). This specification keeps enough summary context
 to explain behavior but is not the canonical planning queue or runbook.
 
-*Last updated: 2026-07-10 (gateway round-cap semantics and result-reporting
-fallback; 148 clean-image tests).*
+*Last updated: 2026-07-10 (gateway round-cap semantics, fact number scanner,
+and result-reporting fallback; 150 clean-image tests).*
 
 ## One-paragraph summary
 

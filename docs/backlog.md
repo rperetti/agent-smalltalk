@@ -22,13 +22,12 @@ the `Now` decisions clarify the architecture.
 
 | rank | ID | title | categories | priority | effort |
 |---:|---|---|---|---|---|
-| 5 | [AS-10](#as-10--parse-the-first-number-correctly) | Parse the first number correctly | bug | P1 | S |
-| 6 | [AS-11](#as-11--distinguish-an-open-space-from-a-stale-space) | Distinguish an open space from a stale space | bug, reliability | P1 | S |
-| 7 | [AS-09](#as-09--restore-reactivity-when-deletion-is-undone) | Restore reactivity when deletion is undone | bug, architecture | P1 | M |
-| 8 | [AS-13](#as-13--turn-smoke-scripts-into-real-verification-gates) | Turn smoke scripts into real verification gates | testing, reliability | P1 | M |
-| 9 | [AS-05](#as-05--coordinate-all-world-mutations) | Coordinate all world mutations | architecture, reliability | P1 | L |
-| 10 | [AS-06](#as-06--decide-whether-automation-restrictions-are-policy-or-enforcement) | Decide whether automation restrictions are policy or enforcement | security, product, architecture | P1 | L |
-| 11 | [AS-19](#as-19--make-the-base-prompt-a-tested-consistent-contract) | Make the base prompt a tested, consistent contract | testing, architecture, maintenance | P1 | M |
+| 5 | [AS-11](#as-11--distinguish-an-open-space-from-a-stale-space) | Distinguish an open space from a stale space | bug, reliability | P1 | S |
+| 6 | [AS-09](#as-09--restore-reactivity-when-deletion-is-undone) | Restore reactivity when deletion is undone | bug, architecture | P1 | M |
+| 7 | [AS-13](#as-13--turn-smoke-scripts-into-real-verification-gates) | Turn smoke scripts into real verification gates | testing, reliability | P1 | M |
+| 8 | [AS-05](#as-05--coordinate-all-world-mutations) | Coordinate all world mutations | architecture, reliability | P1 | L |
+| 9 | [AS-06](#as-06--decide-whether-automation-restrictions-are-policy-or-enforcement) | Decide whether automation restrictions are policy or enforcement | security, product, architecture | P1 | L |
+| 10 | [AS-19](#as-19--make-the-base-prompt-a-tested-consistent-contract) | Make the base prompt a tested, consistent contract | testing, architecture, maintenance | P1 | M |
 
 ## Later
 
@@ -36,13 +35,13 @@ Real work, but not proposed as part of the next foundation milestone.
 
 | rank | ID | title | categories | priority | effort |
 |---:|---|---|---|---|---|
-| 12 | [AS-12](#as-12--specify-whether-run-now-shifts-the-schedule) | Specify whether Run now shifts the schedule | product, bug | P2 | S |
-| 13 | [AS-14](#as-14--introduce-a-provider-neutral-inference-boundary) | Introduce a provider-neutral inference boundary | architecture, reliability | P2 | L |
-| 14 | [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts) | Add provenance, health, and rollback for generated artifacts | architecture, feature, reliability | P1 | L |
-| 15 | [AS-16](#as-16--make-tool-card-removal-match-its-visible-meaning) | Make tool-card removal match its visible meaning | ux, product, reliability | P2 | M |
-| 16 | [AS-17](#as-17--preserve-history-when-system-messages-coalesce) | Preserve history when system messages coalesce | reliability, ux | P2 | S |
-| 17 | [AS-18](#as-18--reduce-the-dependency-load-surface) | Reduce the dependency load surface | performance, maintenance, operations | P2 | M |
-| 18 | [AS-20](#as-20--complete-the-open-source-readiness-pass) | Complete the open-source readiness pass | documentation, operations, product | P2 | M |
+| 11 | [AS-12](#as-12--specify-whether-run-now-shifts-the-schedule) | Specify whether Run now shifts the schedule | product, bug | P2 | S |
+| 12 | [AS-14](#as-14--introduce-a-provider-neutral-inference-boundary) | Introduce a provider-neutral inference boundary | architecture, reliability | P2 | L |
+| 13 | [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts) | Add provenance, health, and rollback for generated artifacts | architecture, feature, reliability | P1 | L |
+| 14 | [AS-16](#as-16--make-tool-card-removal-match-its-visible-meaning) | Make tool-card removal match its visible meaning | ux, product, reliability | P2 | M |
+| 15 | [AS-17](#as-17--preserve-history-when-system-messages-coalesce) | Preserve history when system messages coalesce | reliability, ux | P2 | S |
+| 16 | [AS-18](#as-18--reduce-the-dependency-load-surface) | Reduce the dependency load surface | performance, maintenance, operations | P2 | M |
+| 17 | [AS-20](#as-20--complete-the-open-source-readiness-pass) | Complete the open-source readiness pass | documentation, operations, product | P2 | M |
 
 ## Category views
 
@@ -52,7 +51,7 @@ cross-category priority order above.
 
 | lens | items |
 |---|---|
-| Bugs and behavioral correctness | [AS-09](#as-09--restore-reactivity-when-deletion-is-undone), [AS-10](#as-10--parse-the-first-number-correctly), [AS-11](#as-11--distinguish-an-open-space-from-a-stale-space), [AS-12](#as-12--specify-whether-run-now-shifts-the-schedule) |
+| Bugs and behavioral correctness | [AS-09](#as-09--restore-reactivity-when-deletion-is-undone), [AS-11](#as-11--distinguish-an-open-space-from-a-stale-space), [AS-12](#as-12--specify-whether-run-now-shifts-the-schedule) |
 | Security and authority | [AS-01](#as-01--authenticate-or-remove-the-local-evaluator), [AS-04](#as-04--treat-model-context-as-untrusted-bounded-data), [AS-06](#as-06--decide-whether-automation-restrictions-are-policy-or-enforcement), [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts) |
 | Reliability and persistence | [AS-02](#as-02--make-live-updates-verifiable-and-atomic), [AS-03](#as-03--define-persistence-and-recovery-semantics), [AS-05](#as-05--coordinate-all-world-mutations), [AS-09](#as-09--restore-reactivity-when-deletion-is-undone), [AS-11](#as-11--distinguish-an-open-space-from-a-stale-space), [AS-13](#as-13--turn-smoke-scripts-into-real-verification-gates), [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts), [AS-17](#as-17--preserve-history-when-system-messages-coalesce) |
 | Operations and testing | [AS-01](#as-01--authenticate-or-remove-the-local-evaluator), [AS-02](#as-02--make-live-updates-verifiable-and-atomic), [AS-03](#as-03--define-persistence-and-recovery-semantics), [AS-13](#as-13--turn-smoke-scripts-into-real-verification-gates), [AS-18](#as-18--reduce-the-dependency-load-surface), [AS-19](#as-19--make-the-base-prompt-a-tested-consistent-contract), [AS-20](#as-20--complete-the-open-source-readiness-pass) |
@@ -303,33 +302,6 @@ deletion restores behavior without duplicate subscriptions.
 - Old generated widgets have a migration or a clearly documented limitation.
 - A regression test covers a reactive total or fact-backed widget.
 
-## AS-10 — Parse the first number correctly
-
-**Status:** ready<br>
-**Categories:** bug<br>
-**Priority:** P1<br>
-**Effort:** S<br>
-**Dependencies:** none<br>
-**Source:** repository review, 2026-07-09
-
-### Problem and argument
-
-`AgentKnowledge class>>numberAt:` claims to return the first number but selects
-every digit, dot, and minus sign in the fact body. For example, "between 10 and
-20" becomes `1020` rather than `10`.
-
-### Proposed outcome
-
-The method implements its documented first-number contract. Typed facts remain
-a possible later evolution rather than a prerequisite.
-
-### Acceptance criteria
-
-- A real scanner extracts the first complete numeric token.
-- Tests cover integers, negatives, decimals, separators, multiple numbers,
-  malformed text, and absent values.
-- Non-numeric facts continue to answer `AgentUnknown`.
-
 ## AS-11 — Distinguish an open space from a stale space
 
 **Status:** ready<br>
@@ -389,7 +361,7 @@ or explicitly reset it from the manual run.
 **Categories:** testing, reliability, operations<br>
 **Priority:** P1<br>
 **Effort:** M<br>
-**Dependencies:** AS-10, AS-11<br>
+**Dependencies:** AS-11<br>
 **Source:** repository review and first hosted-CI experiment
 
 ### Problem and argument

@@ -53,6 +53,33 @@ AgentKnowledgeTest >> testNumberAt [
 ]
 
 { #category : 'tests' }
+AgentKnowledgeTest >> testNumberAtScansTheFirstCompleteNumericToken [
+	AgentFact key: #integer body: 'there are 42 widgets'.
+	AgentFact key: #negative body: 'outside temperature is -12 degrees'.
+	AgentFact key: #decimal body: 'tax rate is 3.14, then 2.71'.
+	AgentFact key: #grouped body: 'budget is $1,234.50 this month'.
+	AgentFact key: #multiple body: 'between 10 and 20'.
+	AgentFact key: #separated body: 'values: 7 / 8'.
+	self assert: (AgentKnowledge numberAt: #integer) equals: 42.
+	self assert: (AgentKnowledge numberAt: #negative) equals: -12.
+	self assert: (AgentKnowledge numberAt: #decimal) equals: 3.14.
+	self assert: (AgentKnowledge numberAt: #grouped) equals: 1234.50.
+	self assert: (AgentKnowledge numberAt: #multiple) equals: 10.
+	self assert: (AgentKnowledge numberAt: #separated) equals: 7
+]
+
+{ #category : 'tests' }
+AgentKnowledgeTest >> testNumberAtAnswersUnknownForMalformedOrAbsentValues [
+	AgentFact key: #dash body: '-'.
+	AgentFact key: #punctuation body: '...'.
+	AgentFact key: #words body: 'not a numeric fact'.
+	self assert: (AgentKnowledge numberAt: #dash) isUnknown.
+	self assert: (AgentKnowledge numberAt: #punctuation) isUnknown.
+	self assert: (AgentKnowledge numberAt: #words) isUnknown.
+	self assert: (AgentKnowledge numberAt: #missing) isUnknown
+]
+
+{ #category : 'tests' }
 AgentKnowledgeTest >> testEverythingElseIsNotUnknown [
 	self deny: 'a string' isUnknown.
 	self deny: 42 isUnknown.
