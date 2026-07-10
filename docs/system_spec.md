@@ -166,13 +166,19 @@ The contract every generated widget subclasses:
   converts errors into visible system messages; `setText:on:fontSize:` is the
   blessed styled-Bloc-text path, avoiding generated keyword-precedence bugs.
 - **Resize grip**: bottom-right corner of every widget (facts and notes
-  included), drag-event based, zoom-aware, clamped to 120×80 minimum.
+  included), drag-event based, zoom-aware, clamped to 120×80 minimum. It is
+  raised above the zero-padding chip-card body so the full-bleed body never
+  swallows the drag. Service/scheduled cards auto-fit to content on creation,
+  then resize freely on both axes once dragged (via `width:`/`height:`), their
+  wrapping labels reflowing to the new width.
 - **Click-to-front**: pressing anywhere on a widget raises it (monotonic
   elevation counter on the canvas), so overlapping cards behave like paper.
 - **Delete**: categorised cards carry the delete x in their chip header; plain
   widgets get a floating x (top-right, ignoreByLayout so it never disturbs the
-  layout). Delete/Backspace on the canvas removes the current lasso selection.
-  Both are undoable (Cmd/Ctrl+Z).
+  layout). Delete/Backspace on the canvas removes the current lasso selection —
+  but not while a text editor (the spotlight, a sticky body) has focus: a
+  keystroke originating inside an editor edits its text instead of deleting
+  widgets. Both are undoable (Cmd/Ctrl+Z).
 - **Deletion undo**: `removeFromParent` on a canvas widget records it on the
   canvas undo stack (capped at 50, survives image save/reopen); Cmd/Ctrl+Z
   restores the most recent deletion. Unrestorable entries (instances of
@@ -205,8 +211,9 @@ framework and private instance methods out of context.
 chip, auto-summoned into the **bottom-right toolbox corner** (completing the
 geography: facts ↖, notes ↗, system ↙, tools ↘), showing name + purpose,
 right-click opening the *tool's*
-source to read/tweak. Purpose text wraps and the card grows vertically to fit;
-its label follows horizontal resizing rather than staying at a fixed width.
+source to read/tweak. Purpose text wraps to the card width; the card auto-fits
+its height on creation, then resizes freely on both axes once the grip is
+dragged, the purpose label reflowing to the new width.
 Cards are meta and stay out of the widget context. There is at most one card
 per tool. Deleting a card does not delete or hide the capability: the class
 continues to persist and appear in the capabilities context.
