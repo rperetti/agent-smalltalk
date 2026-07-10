@@ -316,6 +316,14 @@ AgentAutomationCard >> repairLayout [
 	self refresh
 ]
 
+{ #category : 'resizing' }
+AgentAutomationCard >> resizeTo: aPoint [
+	"Width-only resize: height keeps fitting the content so the wrapping labels
+	(purpose, table values) reflow to the new width instead of being clipped."
+	self width: (aPoint x max: 220).
+	self vFitContent
+]
+
 { #category : 'agent context' }
 AgentAutomationCard >> describe [
 	^ automation

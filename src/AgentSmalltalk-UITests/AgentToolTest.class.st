@@ -174,6 +174,22 @@ AgentToolTest >> testToolCardRepairMigratesOldFixedLabel [
 ]
 
 { #category : 'tests' }
+AgentToolTest >> testToolCardResizeIsWidthOnlyAndKeepsWrap [
+	"Dragging the grip resizes width only; height keeps fitting the wrapped
+	content and the purpose label still matches the card width so it reflows."
+	| card purpose |
+	self define: #TestResizeTool purpose:
+		'a long service purpose that should re-wrap when the card is narrowed'.
+	card := AgentCanvas current widgets
+		detect: [ :w | w isKindOf: AgentToolCard ].
+	card resizeTo: 170 @ 400.
+	self assert: card constraints vertical resizer isFitContent.
+	purpose := card instVarNamed: #purposeLabel.
+	self assert: purpose isMultiLine.
+	self assert: purpose constraints horizontal resizer isMatchParent
+]
+
+{ #category : 'tests' }
 AgentToolTest >> testToolCardIsOutOfWidgetContext [
 	self define: #TestHiddenCardTool purpose: 'x'.
 	self deny: (AgentCanvas current contextDescription includesSubstring: 'TestHiddenCardTool')

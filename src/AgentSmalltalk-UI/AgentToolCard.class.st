@@ -126,6 +126,16 @@ AgentToolCard >> repairLayout [
 			c vertical fitContent ] ]
 ]
 
+{ #category : 'resizing' }
+AgentToolCard >> resizeTo: aPoint [
+	"Width-only resize: height keeps fitting the wrapped content. The purpose
+	label matches the card width, so narrowing the card re-wraps the text
+	instead of clipping it. (The base resizeTo: sets an exact extent, which
+	fights vFitContent and leaves the text unwrapped.)"
+	self width: (aPoint x max: 160).
+	self vFitContent
+]
+
 { #category : 'accessing' }
 AgentToolCard >> toolClass [
 	^ toolClass
