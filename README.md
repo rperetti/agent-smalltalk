@@ -2,11 +2,10 @@
 
 A living agentic environment: an LLM writes Pharo Smalltalk that is compiled
 live into a running image, materializing widgets on a spatial canvas.
-See [docs/vision.md](docs/vision.md) for the full vision,
-[docs/system_spec.md](docs/system_spec.md) for what is built and working
-today, [docs/ideas.md](docs/ideas.md) for the parking lot of what's being
-considered, and [docs/postponed.md](docs/postponed.md) for ideas worked out
-then consciously deferred.
+Start with the [documentation map](docs/README.md): the
+[vision](docs/vision.md) describes the north star, the
+[system specification](docs/system_spec.md) records what works today, and the
+[backlog](docs/backlog.md) is the ordered register of actionable work.
 
 Project planning and issue tracking are file-based and live under `docs/`;
 this project does not use GitHub Issues.
@@ -48,7 +47,9 @@ an unconstrained living environment, so:
 - It calls the Anthropic API, so **it costs money** per request.
 
 Treat it as a toy to explore, not a tool to depend on. No warranty; use at your
-own risk — and have fun with it.
+own risk — and have fun with it. The current authority boundaries, data flows,
+and known exposures are documented in the [security and trust
+model](docs/security.md).
 
 ## Setup
 
@@ -72,6 +73,8 @@ own risk — and have fun with it.
 It runs Pharo with an isolated temporary `HOME`, so builds do not mutate your
 global Pharo preferences. Use `--output /tmp/Some.image` when you want to
 test a fresh build without replacing the living `pharo/Agent.image`.
+For the state model, update paths, backup limitations, smoke scripts, logs, and
+recovery procedures, see [docs/operations.md](docs/operations.md).
 
 Headless one-shot ask:
 
@@ -83,6 +86,9 @@ Headless one-shot ask:
 ## Layout
 
 - `src/` — Tonel packages (Core: gateway, sandbox, tools, automation scheduler; UI: canvas, widgets, routines shelf; Tests)
+- `docs/` — vision, as-built specification, ordered backlog, ideas incubator,
+  security/trust model, operations guide, postponed designs, and architectural
+  decisions
 - `prompts/system.md` — the base prompt that teaches the model
   Pharo/Bloc and the AgentWidget contract. Treat it as code.
 - `scripts/` — image build/test scripts run by the shell wrappers

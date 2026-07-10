@@ -1,10 +1,14 @@
 # Postponed
 
 Ideas we drafted or worked out in real detail, then **consciously deferred**.
-Different from [ideas.md](ideas.md) (raw, unevaluated possibilities): each
-entry here was considered seriously, and each records *why* it was set aside
-and *what would bring it back*. Nothing here is rejected — it's waiting for
-a reason to exist.
+Different from [ideas.md](ideas.md) (product and feature possibilities not yet
+ready to order): each entry here was considered seriously, and each records
+*why* it was set aside and *what would bring it back*. Nothing here is rejected
+— it's waiting for a reason to exist.
+
+Actionable work, including bugs and reliability/security/operations changes,
+lives in the ordered [backlog](backlog.md). See the
+[documentation map](README.md) for the complete lifecycle.
 
 ---
 

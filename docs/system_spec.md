@@ -4,6 +4,12 @@ What the living agentic environment does **today**. The long-term vision lives
 in [vision.md](vision.md). This document is kept in sync with the
 code; when behavior changes, change this file in the same commit.
 
+Document boundaries: planned changes belong in the [backlog](backlog.md),
+feature possibilities in [ideas.md](ideas.md), authority and data-flow details
+in [security.md](security.md), and command/recovery procedures in
+[operations.md](operations.md). This specification keeps enough summary context
+to explain behavior but is not the canonical planning queue or runbook.
+
 *Last updated: 2026-07-09 (Agent Canvas redesign — white cards with colored
 category-chip headers across every card type — plus base-prompt guidance for
 good-looking generated widgets; 144 clean-image tests).*
@@ -464,24 +470,15 @@ has been verified against the loaded packages.
 
 ## Operations
 
-| command | what it does |
-|---|---|
-| `./build.sh` | FRESH verified image from `src/` (`core` arg skips UI). Builds into a temp image under an isolated `HOME`, runs SUnit by default, then backs up/replaces `pharo/Agent.image` only after success. Supports `--output`, `--no-verify`, `--no-backup`, `PHARO_VM`, and `PHARO_PRISTINE` |
-| `./update.sh` | reload tooling from `src/`; widgets/facts survive. Live session → updates in place via `AgentRemote` (localhost:8807 `/update`); else patches the file headless. **Guarded**: both paths require an `UPDATE_OK` token (load raised nothing AND sentinel selectors resolve) or fail loudly leaving the image unchanged — a silent stale-code load once cost a multi-session debugging detour. Diffs via TonelReader + `MCPackageLoader`. Backs up first (keeps 5). Not for Bloc/Toplo — use `build.sh` |
-| `./test.sh` | builds a disposable pristine image, loads pinned dependencies, and runs 144 tests; never opens the living image |
-| `./run.sh` | open the canvas UI |
+The canonical command, state, update, testing, logging, backup, and recovery
+reference is [operations.md](operations.md). In short: `build.sh` creates a
+fresh world, `update.sh` reloads platform source into the living world,
+`test.sh` verifies a disposable pristine image, and `run.sh` opens the canvas.
 
-Headless acceptance scripts (`pharo ... st scripts/<name>.st`):
-`smoke-widget.st` (cold counter generation), `smoke-modify.st` (live
-modification with state preservation), `smoke-textfield.st` (text-input
-widget), `smoke-facts.st` (remember / use / update / implicit capture),
-`smoke-fact-widget.st` (same-request fact resolution into a live widget),
-`smoke-tools.st` (build a tool, then reuse it),
-`smoke-automations.st` (deterministic scheduler/result/missed/delete-undo
-vertical slice; no model call),
-`smoke-selection.st` (selection-scoped context + live Selection globals),
-`smoke-reactive.st` (reactive clock follows a fact edit; live total follows
-counters). Each prints the loop transcript for post-mortems.
+The operations guide also distinguishes diagnostic smoke scripts from scripts
+whose exit status currently represents a real acceptance result. Making every
+smoke script a trustworthy gate is tracked as
+[AS-13](backlog.md#as-13--turn-smoke-scripts-into-real-verification-gates).
 
 ## Known limitations / accepted risks
 

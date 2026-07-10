@@ -1,4 +1,9 @@
-# Project Specification: Living Agentic Environment (Smalltalk-Inspired OS) 
+# Vision: Living Agentic Environment (Smalltalk-Inspired OS)
+
+This document is the project's aspirational north star, not a statement that
+every capability below exists today. See the [system specification](system_spec.md)
+for current behavior, the [backlog](backlog.md) for actionable work, and the
+[ideas incubator](ideas.md) for possibilities that are not yet ready to order.
 
 ## Product Vision & Core Philosophy 
 

@@ -1,0 +1,198 @@
+# Operations
+
+How to build, update, test, run, diagnose, back up, and recover Agent Smalltalk.
+This describes current behavior. Planned improvements belong in the
+[backlog](backlog.md).
+
+## State model
+
+Agent Smalltalk has two different kinds of source and state:
+
+- **Platform source:** hand-maintained Tonel packages under `src/`. This is the
+  reproducible source of truth for the gateway, canvas, runtime, and tests.
+- **Living-world state:** generated widget/tool/automation classes, live
+  instances, facts, notes, positions, histories, and user edits stored in
+  `pharo/Agent.image` with source history in its matching `.changes` file.
+
+`build.sh` creates a new world from platform source. `update.sh` reloads platform
+source into the existing world. Confusing those operations is the main
+operational hazard.
+
+## Prerequisites
+
+The currently documented local setup is Pharo 13 on macOS/Apple Silicon:
+
+1. Download `pharoImage-arm64.zip` and
+   `pharo-vm-Darwin-arm64-stable.zip` from
+   `https://files.pharo.org/get-files/130/`.
+2. Unzip the image under `pharo/` and the VM under `pharo/vm/`.
+3. Export `ANTHROPIC_API_KEY` for real gateway requests.
+
+`build.sh` and `test.sh` accept `PHARO_VM` and `PHARO_PRISTINE` overrides, which
+are also the path for other supported local arrangements. `run.sh` and
+`update.sh` currently use the macOS bundle path directly.
+
+## Command summary
+
+| command | purpose | effect on living world |
+|---|---|---|
+| `./build.sh` | Build a fresh full image from pristine Pharo and `src/`; run tests before replacement by default. | Replaces the target world after success. Existing default target is backed up first. |
+| `./build.sh core` | Build gateway/sandbox/core tests without Bloc UI. | Creates/replaces the requested target image. |
+| `./build.sh --output /tmp/Review.image` | Build a disposable full image at another path. | Does not replace `pharo/Agent.image`. |
+| `./update.sh` | Reload platform packages into the living image. | Preserves generated classes and canvas state; backs up the image first. |
+| `./test.sh` | Build a disposable pristine image and run the project SUnit suites. | Never opens or changes `pharo/Agent.image`. |
+| `./run.sh` | Open the Agent canvas. | Opens the living image and enables interactive session services. |
+
+## Fresh build
+
+`build.sh`:
+
+1. Locates the VM, pristine image, matching `.changes`, and optional `.sources`.
+2. Creates a temporary build root and isolated `HOME`.
+3. Links `src/`, `prompts/`, and the shared `pharo-local` dependency cache.
+4. Loads the selected Metacello group into a copied pristine image.
+5. Runs `scripts/run-tests.st` unless `--no-verify` was requested.
+6. Backs up an existing output image and `.changes` unless `--no-backup` was
+   requested.
+7. Moves the verified staged image and `.changes` into the output path.
+
+Use a fresh build for dependency changes, a deliberate factory reset, or an
+independent verification image. Use `update.sh` for routine platform changes to
+the living world.
+
+## Living-image update
+
+`update.sh` has two delivery paths:
+
+- If a process using `Agent.image` is detected, it posts to the interactive
+  image's loopback `POST /update` endpoint on port 8807.
+- Otherwise it loads `scripts/update.st` headlessly into the image file.
+
+`AgentUpdater` reloads the five platform packages with Tonel diff semantics,
+runs canvas migrations, and posts a keyed system message. The interactive path
+performs migration on the UI thread when possible.
+
+Current limitations are tracked by
+[AS-01](backlog.md#as-01--authenticate-or-remove-the-local-evaluator) and
+[AS-02](backlog.md#as-02--make-live-updates-verifiable-and-atomic): the local
+endpoint is unauthenticated, sentinel verification is not a complete revision
+proof, and the live path can snapshot before endpoint-level verification.
+
+Until AS-02 is resolved:
+
+- run `./test.sh` before updating important living worlds;
+- keep the pre-update backup;
+- inspect the update system message and behavior after a live update;
+- treat a failed live update as potentially partial in memory;
+- do not save a failed live-update session over the known-good backup.
+
+## Testing
+
+`./test.sh` creates a disposable image, loads the pinned default dependency
+graph and all project packages, then runs the suite enumerated in
+`scripts/run-tests.st`. As of 2026-07-09, the clean suite contains 144 tests.
+
+The suite is strongest for deterministic object behavior: gateway tool
+plumbing with a fake transport, sandbox results and timeouts, fact/note/context
+behavior, selection math, scheduler timing, histories, widget lifecycle, and
+tool cards. It does not make paid provider calls or prove the living image's
+full snapshot/recovery path.
+
+The current pinned UI load emits many upstream undeclared-reference warnings
+while still passing. Dependency-surface reduction is tracked by
+[AS-18](backlog.md#as-18--reduce-the-dependency-load-surface).
+
+## Smoke and acceptance scripts
+
+| script | model/API call | current role |
+|---|---:|---|
+| `smoke-automations.st` | no | Deterministic automation vertical slice with real pass/fail exit. |
+| `smoke-fact-widget.st` | yes | Same-request fact-backed weather widget with real pass/fail exit. |
+| `smoke-widget.st` | yes | Diagnostic cold generation transcript; currently always exits success. |
+| `smoke-modify.st` | yes | Live modification demonstration; some failures exit, final outcome does not gate exit. |
+| `smoke-textfield.st` | yes | Diagnostic generation/round transcript; currently always exits success. |
+| `smoke-facts.st` | yes | Multi-request fact demonstration; currently always exits success. |
+| `smoke-tools.st` | yes | Tool creation/reuse demonstration; currently always exits success. |
+| `smoke-selection.st` | yes | Selection/live-reference demonstration; currently always exits success. |
+| `smoke-reactive.st` | yes | Fact/widget reaction demonstration; currently always exits success. |
+
+Do not treat a zero exit status from the diagnostic scripts as proof of their
+printed semantic outcome. Converting every smoke into a trustworthy gate is
+[AS-13](backlog.md#as-13--turn-smoke-scripts-into-real-verification-gates).
+
+## Running and asking headlessly
+
+Open the canvas:
+
+```bash
+./run.sh
+```
+
+Cmd/Ctrl+Enter opens the spotlight. A headless one-shot request can be issued
+with:
+
+```bash
+./pharo/vm/Pharo.app/Contents/MacOS/Pharo --headless pharo/Agent.image \
+  eval "AgentGateway ask: 'make me a counter widget'"
+```
+
+Real requests require `ANTHROPIC_API_KEY` and incur provider cost.
+
+## Logs and diagnostics
+
+Files under `logs/` are gitignored:
+
+- `gateway.log` — append-only user requests, status events, generated code,
+  tool results/errors, and complete HTTP request/response JSON;
+- `remote.log` — failures while starting or reviving the local listener;
+- `session.status` — listener heartbeat written roughly every 30 seconds while
+  the interactive watchdog is active.
+
+In the image, `AgentGateway last log` returns the in-memory transcript of the
+most recent gateway run. The API key is sent as an HTTP header and is not
+intentionally logged. Canvas facts and request content do appear in full HTTP
+payload logs. `gateway.log` currently has no rotation.
+
+## Backups and recovery
+
+Current backup behavior differs by path:
+
+- `build.sh` backs up the previous default output `.image` and matching
+  `.changes` before replacing it.
+- `update.sh` backs up the `.image` before a headless update, keeping the newest
+  five `pre-update-*.image` files; it does not currently copy `.changes`.
+- `AgentSandbox>>backupImage` copies the last on-disk `.image` before a gateway
+  request and keeps five `agent-backup-*.image` files; it does not currently
+  copy `.changes` or unsaved in-memory work.
+
+Restore only after preserving the current failed files for post-mortem. A
+coherent checkpoint/recovery unit and generated-world export are tracked by
+[AS-03](backlog.md#as-03--define-persistence-and-recovery-semantics).
+
+## Remote-listener recovery
+
+Only `AgentCanvas open` enables the loopback listener. Session startup resets
+it to disabled and terminates saved AgentSmalltalk-owned processes so a
+headless launch does not inherit a stale GUI listener.
+
+If a legacy or wedged image cannot be reached by `update.sh`,
+`scripts/heal-in-image.st` is the manual repair kit:
+
+1. Open a Playground inside the running image.
+2. Paste and execute the script.
+3. It neutralizes stale SSL session handles, reloads platform packages, runs
+   canvas migration, and snapshots the image.
+
+The script is an emergency bootstrap, not a normal update path.
+
+## Operational change checklist
+
+For changes to platform source:
+
+1. Update code and its deterministic tests.
+2. Run `./test.sh`.
+3. Update `system_spec.md` if observable behavior changed.
+4. Update this document if commands, state, diagnostics, backup, or recovery
+   behavior changed.
+5. Update `security.md` if authority or data flow changed.
+6. Use `update.sh` only after the relevant verification passes.

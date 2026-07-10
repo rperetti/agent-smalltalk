@@ -1,237 +1,199 @@
-# Ideas parking lot
+# Ideas incubator
 
-Things we've deliberately deferred, so they don't evaporate. Each entry says
-where it came from and why it's parked. This file and the other files under
-`docs/` are the project's planning and issue tracker; GitHub Issues are not
-used.
+Product opportunities and feature possibilities that should not evaporate, but
+are not yet understood or validated well enough to order in the
+[backlog](backlog.md). An idea becomes backlog work when there is enough
+evidence to state a proposed outcome and observable acceptance criteria.
 
-## Undo should re-establish a reactive widget's subscriptions
-
-*From a delete+undo crash on a reactive widget (2026-07-06).*
-
-`removeFromParent` unsubscribes a widget from the canvas announcer (so deleted
-widgets don't react); `undoDeletion` re-adds the instance but does **not**
-re-run its subscription setup (which lives inline in the generated
-`initialize`). So undoing a *reactive* widget restores its presence but not its
-live wiring — a restored total/chart sits inert until rebuilt. (The dangerous
-half — a stale off-canvas subscriber crashing the UI — is already prevented by
-`pruneStaleSubscriptions`; this entry is only about restoring liveness.)
-
-Approaches when picked up:
-- **Reaction-setup hook**: crib teaches reactive widgets to put subscriptions
-  in a `subscribeReactions` method called from `initialize`; `undoDeletion`
-  re-invokes it on restore. Clean, but only helps widgets built after the
-  convention exists.
-- **Canvas-mediated dispatch**: widgets declare interest declaratively and the
-  canvas delivers only to on-canvas widgets, so subscription lifecycle follows
-  canvas membership automatically. The correct architecture, but a real
-  refactor that changes how all generated reactions are written.
-
-Parked because: it's an edge case (delete *then* undo a *reactive* widget),
-the crash risk is already structurally handled, and the proper fix
-(canvas-mediated dispatch) deserves its own pass. Workaround: rebuild the
-widget, or ask the agent to re-wire it.
-
-## Hosted GitHub CI
-
-*From the first GitHub Actions experiment (2026-07-08).*
-
-Testing currently runs only on the user's machine through `./test.sh`, which
-builds a disposable pristine image and leaves the living `Agent.image`
-untouched. The first hosted Linux workflow crashed inside the official Pharo
-VM's bundled `libgit2` during Iceberg dependency fetching, before any project
-test ran.
-
-Parked because: local clean-image testing is reliable and sufficient for the
-current single-user prototype. Revisit hosted GitHub CI when broader
-collaboration makes it valuable, ideally with an upstream Pharo/Linux Git fix
-or a deliberately prebuilt dependency image.
-
-## Open-source readiness pass
-
-*From the base-prompt rename discussion (2026-07-06), with an OSS release in mind.*
-
-Before (or as part of) making the repo public, a dedicated polish pass:
-- **LICENSE** — none yet; pick one (MIT is the usual default for a prototype).
-- **README for newcomers** — currently assumes Pharo familiarity; add a
-  "what is this / why Pharo / how the pieces fit" intro and a screenshot/gif
-  of the canvas in action.
-- **Explain the load-bearing oddities** — `scripts/heal-in-image.st`, the
-  `logs/` breadcrumbs (`startup.log`, `remote.log`, `session.status`), and the
-  `update.sh` vs `build.sh` distinction each deserve a sentence on *why* they
-  exist, so a contributor doesn't mistake them for cruft.
-- **Naming sweep** — one more read for anything else that reads as
-  internal-jargon rather than industry-standard (the base-prompt rename was
-  the first of these).
-- **Contributing notes** — how to run tests, the src/-is-truth vs image-is-
-  world model, the "update.sh not build.sh" habit.
-
-Parked because: the code should settle a bit more first; do this pass when a
-release actually feels near.
+This file is intentionally not a bug list, security register, or operations
+queue. Known defects and actionable maintenance belong in `backlog.md`. Ideas
+that were seriously evaluated and consciously deferred belong in
+[postponed.md](postponed.md).
 
 ## Agent-written tools may subsume parts of the base prompt
 
 *From the self-evolving-tools brainstorm (2026-07-06).*
 
-The base prompt (`prompts/system.md`) is **hand-written** capability knowledge —
-blessed APIs, recipes, examples we maintain by hand. Once the agent builds its
-own reusable **tools** (see the tools feature: library classes it writes and
-reuses), those are **agent-written** capability knowledge that lives in the
-image and is already listed in context. Over time the two converge: a mature
-toolbox could replace whole sections of the base prompt (why teach the Bloc-button
-recipe by hand if the agent has a tested `LabeledButton` tool it reuses?).
+The base prompt (`prompts/system.md`) is hand-written capability knowledge:
+blessed APIs, recipes, and examples maintained by the platform. Agent-written
+tools are executable capability knowledge that already lives in the image and
+is listed in context. Over time the two may converge: a mature, tested toolbox
+could replace prompt recipes that teach the same capability by hand.
 
-The long game: the base prompt shrinks toward *bootstrapping* knowledge (how to write
-Pharo, the AgentWidget contract, how to build a tool) and the agent's own
-toolbox carries the *accumulated* knowledge. The system teaches itself.
+The long game is a base prompt focused on bootstrapping—Pharo syntax, the
+`AgentWidget` contract, tool creation, and safety disciplines—while the agent's
+own healthy toolbox carries accumulated domain knowledge. The system teaches
+itself without making the bootstrap prompt grow forever.
 
-Parked because: the tools feature now exists, but the toolbox is still too
-small to justify subtracting proven bootstrap guidance. Revisit once several
-tested tools make specific base-prompt recipes demonstrably redundant.
+Open questions:
 
-## Toolbox trust, curation, and lifecycle
+- What evidence proves a tool is reliable enough to replace a prompt recipe?
+- How are examples, tests, versions, and dependent widgets attached to a tool?
+- How does the agent recover when a previously healthy external API drifts?
+- What is the minimum bootstrap vocabulary that must always remain available?
 
-*Carried forward from the completed self-built-tools phase (2026-07-09).*
+Promotion trigger: several tested tools make specific prompt recipes
+demonstrably redundant. The actionable toolbox lifecycle foundation is tracked
+as [AS-15](backlog.md#as-15--add-provenance-health-and-rollback-for-generated-artifacts),
+[AS-16](backlog.md#as-16--make-tool-card-removal-match-its-visible-meaning),
+and [AS-19](backlog.md#as-19--make-the-base-prompt-a-tested-consistent-contract).
 
-The toolbox currently optimizes for creation and reuse: every `AgentTool`
-subclass is discoverable forever, and deleting its card deliberately does not
-delete the class. That simplicity will eventually need a lifecycle once a real
-toolbox accumulates:
-
-- executable examples or generated self-tests, with last-known health visible
-  on the card;
-- explicit dependencies/dependents so a tool edit can identify affected
-  widgets and other tools;
-- curation for redundant or overlapping capabilities;
-- a deliberate **forget tool** operation distinct from deleting its card;
-- version/history semantics for human and agent edits;
-- evidence-based reduction of base-prompt recipes once a tested tool replaces
-  them.
-
-Parked because: one healthy weather service is proof of the mechanism, not yet
-a toolbox-management problem. Revisit when duplication, API drift, or an
-unclear/broken capability actually creates friction. Scheduled reuse now gives
-the project a concrete way to observe which trust features matter first.
-
-## Thread-aware reply (full conversation context)
+## Thread-aware reply
 
 *From using the reply button (2026-07-06).*
 
-The ↩ reply on a note scopes context to **that one note** (its Q+A). In a
-multi-turn thread this means a follow-up only sees the immediately previous
-answer, not the whole conversation — for full history the user must lasso all
-the notes in the thread. Fine for now, but worth handling: replies could
-automatically include the **whole thread** a note belongs to.
+The reply action on a note scopes context to that one note's question and
+answer. In a multi-turn thread, a follow-up therefore sees only the immediately
+previous answer unless the user lassos the whole thread.
 
-Approaches to explore when it matters:
-- **Provenance chain**: each follow-up note remembers its parent note; reply
-  walks the chain and selects/serializes the lineage (root → this note).
-- **Thread id**: notes born from a reply share a thread tag; reply scopes to
-  all notes with that tag.
-- **Spatial**: since threads already grow rightward from their parent, group
-  by proximity/row — but that's brittle once the user rearranges.
+Approaches worth exploring:
 
-Recommendation when picked up: the provenance chain — it's explicit, survives
-rearrangement, and the note already carries a `question`; adding a `parent`
-reference is small. Current workaround (lasso the whole thread) stays as the
-manual escape hatch.
+- **Provenance chain:** each follow-up note remembers its parent; reply walks
+  the lineage from root to the selected note.
+- **Thread ID:** notes born from a reply share a thread identity.
+- **Spatial inference:** notes in one row/proximity are treated as a thread,
+  though this becomes brittle after rearrangement.
+
+Current preference: provenance chain. It is explicit, survives rearrangement,
+and builds naturally on the note's existing question provenance. The current
+manual workaround is to lasso every note that should participate.
+
+Promotion trigger: real multi-turn note use makes repeatedly selecting the
+whole thread a noticeable burden.
 
 ## Variables on the canvas
 
-*From the phase 2 brainstorm (2026-07-03), sparked by fact keys like `#city`.*
+*From the phase-2 brainstorm (2026-07-03), sparked by fact keys such as
+`#city`.*
 
-A fact key is secretly a **global variable**: set it once, use it as input
-anywhere on the canvas (`AgentKnowledge at: #city` — the lookup queries the
-sticky widgets, so the canvas remains the single store). Widgets could bind
-to variables at build time or hold live references so editing the sticky
-re-parameterizes every widget wired to it.
+A keyed fact already behaves like a visible global variable:
+`AgentKnowledge at: #city` queries the fact object on the canvas, keeping the
+canvas as the store. Widgets can bind to that value and react when the fact is
+edited.
 
-The rabbit hole underneath (later / maybe never): local/temporary variables;
-visually **wiring** a variable to a widget; scoping rules where a local
-overrides a global for one widget or one region of canvas. This starts to be
-a visual programming language — which is also where the original spec's
-"draw a line from Email to To-Do" use case lives.
+Possible extensions:
 
-Parked because: phase 2 only needs keys as identity-for-updates. The variable
-semantics deserve their own phase with the wiring UX thought through.
+- temporary or local variables;
+- visible binding of a variable to a widget;
+- regional scope where a local value overrides a canvas-wide value;
+- transforms between a value and one consumer;
+- a direct-manipulation vocabulary for inspecting which objects depend on a
+  variable.
+
+This begins to form a visual programming language and connects to the original
+"draw a line from Email to To-Do" use case.
+
+Promotion trigger: global keyed facts become insufficient or users cannot
+understand which widgets depend on which values. Visible wiring itself remains
+consciously deferred in [postponed.md](postponed.md).
 
 ## Preferences and settings as scoped knowledge
 
-*From the phase 2 brainstorm.*
+*From the phase-2 brainstorm.*
 
-"I like dark widgets" is knowledge *about how to build*, not about the world
-— a preference. Preferences feel like **scoped variables**: scoped to a
-widget class, to a region, or to the whole canvas. The deep end: the agent's
-own instructions (base prompt fragments) becoming visible, editable objects on
-the canvas — the system's behavior becomes direct-manipulable.
+"I like dark widgets" is knowledge about how the environment should behave,
+not a fact about the external world. Preferences may be scoped to the whole
+canvas, one region, one class, or one request. At the deep end, prompt fragments
+and system behavior could become visible, editable objects on the canvas.
 
-Parked because: needs the variables story first, and it changes how the base prompt is
-assembled per request.
+Open questions:
+
+- How is a preference distinguished from an ordinary fact?
+- Which scope wins when preferences conflict?
+- Which preferences may influence generated code versus only appearance?
+- How does the user see why a preference was applied?
+
+Promotion trigger: the variable/scope model is concrete enough to state
+resolution rules and a user interaction.
 
 ## Promote a note to a fact
 
 *From the answer-notes brainstorm (2026-07-03).*
 
-A note sometimes turns out to contain something durable ("actually, keep
-this"). Today the path is asking the agent to copy it into a fact; a direct
-gesture (drag note onto the facts pile? a button?) would make the
-ephemeral→durable transition a physical act, like deletion already is.
-Parked because: needs so little that it can ride along whenever sticky
-interactions next get touched.
+A note sometimes becomes durable knowledge: "actually, keep this." Today the
+user asks the agent to copy it into a fact. A direct gesture—perhaps a menu
+action or dragging the note to the facts area—could make the transition from
+ephemeral answer to durable memory a visible physical act.
+
+Open questions:
+
+- Does promotion preserve the original note as provenance?
+- How is a fact key selected or suggested?
+- What happens when the proposed key already exists?
+- Should edited or externally fetched notes require confirmation before they
+  become always-sent facts?
+
+Promotion trigger: note/fact interactions are next being changed, or users
+repeatedly ask the agent to remember existing notes.
 
 ## Automation follow-ups: event triggers and an actionable inbox
 
 *From the system-message brainstorm (2026-07-04).*
 
-Visible, pausable interval/daily automations now exist and execute saved
-Smalltalk without unattended LLM calls. The remaining category is broader:
-event triggers ("when an email arrives"), long-running follow-ups, and work
-that must **request user input** (approve/deny, answer a question). That needs
-an actionable inbox rather than today's notification-only system messages,
-plus explicit approval and capability boundaries.
+Visible interval/daily automations now execute saved Smalltalk without
+unattended model calls. A broader category remains:
 
-Parked because: the safe scheduled/read-only slice should accumulate real use
-before the system adds open-ended triggers, approvals, or workflows that wait
-for a person.
+- event triggers such as an incoming email;
+- long-running follow-ups;
+- work that must ask the user for input;
+- approve/deny decisions;
+- actions with externally visible or irreversible effects.
 
-## Apps on the canvas (beyond widgets)
+This requires an actionable inbox, explicit approval states, idempotency, and a
+clear capability model rather than today's notification-only system messages.
+
+Promotion trigger: the current read-only scheduled slice accumulates real use,
+and the automation authority decision in
+[AS-06](backlog.md#as-06--decide-whether-automation-restrictions-are-policy-or-enforcement)
+has been made.
+
+## Apps on the canvas
 
 *From the apps brainstorm (2026-07-04).*
 
-When a request outgrows a card ("build me an expense tracker with views and
-forms"), the agent needs an app-grade container. Candidate paths:
+Some requests will outgrow a 240x160 card: an expense tracker with forms,
+multiple views, or substantial navigation needs an app-grade container.
 
-- **Toplo inner windows** (`ToInnerWindow`): window elements INSIDE the Bloc
-  space -- richest container available today, everything already built
-  (drag, lasso, context, persistence, live modification) keeps working.
-  Nearest-term path.
-- **Spec2 on the Toplo/Bloc backend** (in development upstream): real app
-  framework rendering onto the canvas. Two under-appreciated advantages:
-  Spec2 is deeply present in LLM training data (books, MOOC) so generation
-  reliability may be HIGHER than raw Bloc; and presenters are headless-
-  testable, letting the agent click its own app's buttons during the build
-  loop. Watch upstream maturity.
-- **Spec2 satellite windows + proxy card on canvas**: works today, no
-  bridging; the canvas holds a describable handle, the app lives in its own
-  window.
+Candidate paths:
 
-The toolkit-agnostic core to design first: the **AgentApp contract** -- an
-app is a canvas citizen (describe, browsable source, selection, image
-persistence) with a model object separate from its views so features can be
-iterated against the model and views regenerated cheaply.
+- **Toplo inner windows (`ToInnerWindow`):** app windows inside the existing
+  Bloc space, preserving drag, selection, context, persistence, and live
+  modification.
+- **Spec2 on the Toplo/Bloc backend:** an app framework with stronger model/view
+  separation and potentially more reliable generation from existing training
+  material; maturity must be checked when the need is real.
+- **Spec2 satellite windows with canvas proxies:** a describable handle remains
+  on the canvas while a separate native window hosts the app.
 
-Parked because: no user request has outgrown a card yet; revisit at the
-first real "build me an app" moment, and check Spec2-on-Toplo maturity then.
+The toolkit-independent concept to design first is an `AgentApp` contract: a
+canvas citizen with a model separate from its views, browsable source,
+description, selection semantics, image persistence, and testable behavior.
+
+Promotion trigger: a concrete request cannot be served comfortably or legibly
+inside a card.
 
 ## Theming the canvas and widgets
 
-*From the phase 2 brainstorm.*
+*From the phase-2 brainstorm.*
 
-User-controlled look of the whole environment: canvas colors, widget default
-style, dark mode. Toplo ships a theme system (`ToBeeTheme`, `ToBeeDarkTheme`,
-style sheets) we already install — theming could start as "expose theme
-choice" and grow into "the agent restyles widgets on request", which
-connects back to preferences-as-knowledge.
+Possible scope ranges from exposing `ToBeeTheme`/`ToBeeDarkTheme` selection to
+letting the agent restyle generated widgets in response to a scoped preference.
 
-Parked because: cosmetic until knowledge + variables give it something to
-hang on (a `#theme` fact scoped to the canvas is the natural shape).
+The useful version is likely connected to preferences-as-knowledge rather than
+being a standalone color toggle: a visible `#theme` or design preference should
+have clear scope, precedence, and an explanation of what it changes.
+
+Promotion trigger: preferences/scoping provide a product model for theme state,
+or visual inconsistency becomes a concrete usability problem.
+
+## Adding an idea
+
+New entries should answer, briefly:
+
+- What user opportunity or product hypothesis is this exploring?
+- What evidence or observation prompted it?
+- What important questions are still unresolved?
+- What concrete event would justify promoting it to the backlog?
+
+Avoid adding implementation checklists here. Once the outcome and acceptance
+criteria are clear enough for a checklist, create a backlog item instead.
