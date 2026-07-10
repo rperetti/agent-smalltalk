@@ -11,7 +11,7 @@ in [security.md](security.md), and command/recovery procedures in
 to explain behavior but is not the canonical planning queue or runbook.
 
 *Last updated: 2026-07-10 (gateway round-cap semantics, fact number scanner,
-and result-reporting fallback; 150 clean-image tests).*
+canvas-space liveness, and result-reporting fallback; 151 clean-image tests).*
 
 ## One-paragraph summary
 
@@ -129,8 +129,13 @@ generated-code path for styled Bloc text, avoiding keyword-precedence mistakes.
 
 Singleton owning the Bloc space (`AgentCanvas open`, 1280×840, `ToBeeTheme`).
 
+- Canvas liveness is explicit: `hasSpace` means an object is retained,
+  `isDisplayed` reports Bloc's `isOpened` marker, and `isInteractive` requires
+  both that marker and the fresh-session `AgentRemote` enablement flag. `isOpen`
+  is the compatibility alias for `isInteractive`; stale serialized spaces never
+  qualify for UI work.
 - Widgets live on a content element; `addWidget:` defers to the UI thread via
-  `enqueueTask:` when the space is open.
+  `enqueueTask:` only when the canvas is interactive.
 - Additions advance a synchronous monotonic version before that enqueue. The
   gateway observes the version, so its pure-answer heuristic cannot race the
   next Bloc pulse and create a duplicate note.

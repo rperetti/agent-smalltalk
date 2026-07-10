@@ -76,7 +76,7 @@ AgentUpdater class >> runMigrations [
 	| canvasClass canvas |
 	canvasClass := Smalltalk globals at: #AgentCanvas ifAbsent: [ ^ self ].
 	canvas := canvasClass current.
-	(canvas isOpen and: [ self isInteractive ])
+	canvas isInteractive
 		ifTrue: [ self migrateOnUiThreadOf: canvas ]
 		ifFalse: [
 			canvas migrateAfterUpdate.

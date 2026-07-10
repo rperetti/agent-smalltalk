@@ -126,3 +126,24 @@ AgentCanvasSelectionTest >> testHighlightRestoresClassSpecificBorder [
 	self assert: w border equals: w defaultBorder.
 	self assert: f border equals: f defaultBorder
 ]
+
+{ #category : 'tests' }
+AgentCanvasSelectionTest >> testStaleSpaceDoesNotQueueBackgroundWidgetUpdate [
+	| canvas space didRun |
+	AgentRemote disable.
+	canvas := AgentCanvasInteractiveTestProbe new.
+	space := AgentCanvasStaleSpaceProbe new.
+	canvas space: space.
+	AgentCanvas instVarNamed: #current put: canvas.
+	[
+		self assert: canvas hasSpace.
+		self assert: canvas isDisplayed.
+		self deny: canvas isInteractive.
+		self deny: canvas isOpen.
+		didRun := false.
+		AgentWidget new runOnUiThreadSafely: [ didRun := true ].
+		self assert: didRun.
+		self assert: space queuedTasks isEmpty.
+		self assert: space pulseRequests equals: 0 ]
+		ensure: [ AgentRemote disable. AgentCanvas reset ]
+]

@@ -193,7 +193,7 @@ AgentWidget >> flashUpdated [
 AgentWidget >> runOnUiThread: aBlock [
 	| canvas |
 	canvas := AgentCanvas current.
-	(canvas isOpen and: [ canvas isHeadlessSession not ])
+	canvas isInteractive
 		ifTrue: [
 			canvas space enqueueTask: (BlTaskAction new action: aBlock).
 			canvas space requestNextPulse ]

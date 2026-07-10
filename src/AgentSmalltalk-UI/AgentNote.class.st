@@ -115,7 +115,7 @@ AgentNote >> reply [
 	| canvas |
 	canvas := AgentCanvas current.
 	canvas selectWidgets: { self }.
-	canvas isOpen ifTrue: [ AgentSpotlight openOn: canvas ]
+	canvas isInteractive ifTrue: [ AgentSpotlight openOn: canvas ]
 ]
 
 { #category : 'agent context' }

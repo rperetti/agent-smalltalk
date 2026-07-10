@@ -50,11 +50,11 @@ AgentCanvas class >> reunite [
 	canvas is displayed -- e.g. a unit test's `AgentCanvas reset` run in a
 	live session. Displayed widgets then talk to the orphaned instance's
 	announcer, so reactions silently break. One call restores routing.
-	(Not auto-run in the getter: `space isOpened` reads stale-true in
+	(Not auto-run in the getter: `space isOpened` can read stale-true in
 	headless test runs, which would break test isolation.)"
 	| shown |
 	shown := self allInstances
-		detect: [ :c | c space notNil and: [ c space isOpened ] ]
+		detect: [ :c | c isInteractive ]
 		ifNone: [ nil ].
 	shown ifNil: [ ^ nil ].
 	current := shown.
@@ -105,7 +105,30 @@ AgentCanvas >> selection [
 
 { #category : 'testing' }
 AgentCanvas >> isOpen [
+	"Compatibility alias for callers that need a live UI space. A non-nil
+	space can be a serialized, closed leftover, so it is not enough."
+	^ self isInteractive
+]
+
+{ #category : 'testing' }
+AgentCanvas >> hasSpace [
+	"The canvas owns a Bloc space object, whether live or stale."
 	^ space notNil
+]
+
+{ #category : 'testing' }
+AgentCanvas >> isDisplayed [
+	"Bloc's display marker. It is useful diagnostically, but can be stale
+	after image resume and must not by itself justify UI scheduling."
+	^ self hasSpace and: [ space isOpened ]
+]
+
+{ #category : 'testing' }
+AgentCanvas >> isInteractive [
+	"A fresh-session proof plus Bloc's display marker means queued UI work
+	will pulse. AgentRemote's flag is reset at every boot and enabled only by
+	the GUI #open path, so it rejects serialized stale spaces."
+	^ self isDisplayed and: [ AgentRemote isEnabled ]
 ]
 
 { #category : 'testing' }
@@ -241,7 +264,7 @@ AgentCanvas >> migrateAfterUpdate [
 						on: Error do: [ :ignored |  ] ] ].
 		(w isKindOf: AgentToolCard) ifTrue: [ w repairLayout ].
 		(w isKindOf: AgentAutomationCard) ifTrue: [ w repairLayout ] ].
-	self isOpen ifFalse: [ ^ self ].
+	self isInteractive ifFalse: [ ^ self ].
 	self ensureContent.
 	space root background: (Color fromHexString: 'F4F1E8').
 	self wireKeyboard.
@@ -602,9 +625,9 @@ AgentCanvas >> addWidget: aWidget [
 	"Raise on add so a freshly created widget is never hidden behind ones
 	already raised by click-to-front -- creations always land visible."
 	(aWidget isKindOf: AgentWidget) ifTrue: [ aWidget raise ].
-	(space isNil or: [ self isHeadlessSession ])
-		ifTrue: [ content addChild: aWidget ]
-		ifFalse: [ space enqueueTask: (BlTaskAction new action: [ content addChild: aWidget ]) ]
+	self isInteractive
+		ifTrue: [ space enqueueTask: (BlTaskAction new action: [ content addChild: aWidget ]) ]
+		ifFalse: [ content addChild: aWidget ]
 ]
 
 { #category : 'widgets' }
