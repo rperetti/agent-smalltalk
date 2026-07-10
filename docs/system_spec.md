@@ -10,9 +10,8 @@ in [security.md](security.md), and command/recovery procedures in
 [operations.md](operations.md). This specification keeps enough summary context
 to explain behavior but is not the canonical planning queue or runbook.
 
-*Last updated: 2026-07-09 (Agent Canvas redesign — white cards with colored
-category-chip headers across every card type — plus base-prompt guidance for
-good-looking generated widgets; 144 clean-image tests).*
+*Last updated: 2026-07-10 (gateway round-cap semantics and result-reporting
+fallback; 148 clean-image tests).*
 
 ## One-paragraph summary
 
@@ -38,8 +37,11 @@ The bridge to the Anthropic Messages API and the owner of the agentic loop.
 
 - Model `claude-sonnet-5`, max 8192 output tokens, up to **30 tool rounds**
   per request; when ≤3 rounds remain, a note is appended to the tool result
-  telling the model to ship instead of polishing. API key from
-  `ANTHROPIC_API_KEY` (never logged, never stored).
+  telling the model to ship instead of polishing. After the final permitted
+  tool execution, one tools-disabled inference consumes its result and returns
+  the final answer. If that inference fails or has no text, the gateway reports
+  the final tool results directly so an already-executed mutation is not hidden.
+  API key from `ANTHROPIC_API_KEY` (never logged, never stored).
 - Declares two tools to the model:
   - **`evaluate_smalltalk`** — code is evaluated by `AgentSandbox`; the tool
     result is `RESULT: <printString>` or `ERROR: <report>`, and the model
@@ -51,7 +53,7 @@ The bridge to the Anthropic Messages API and the owner of the agentic loop.
   (`## Known facts` and `## Widgets on the canvas`) + the reusable capability
   catalog + a compact `## Scheduled automations` catalog.
 - Status callbacks (`statusBlock:`) drive the spotlight's status line:
-  `thinking... / evaluating... / working (round N of 30)...`.
+  `thinking... / evaluating... / working (round N of 30)... / finishing...`.
 - A class-wide mutex makes the gateway the image's **single writer**:
   concurrent asks wait rather than interleaving tool calls and class changes.
 - HTTP lives behind `AgentAnthropicTransport`; tests substitute a scripted

@@ -22,14 +22,13 @@ the `Now` decisions clarify the architecture.
 
 | rank | ID | title | categories | priority | effort |
 |---:|---|---|---|---|---|
-| 5 | [AS-08](#as-08--fix-the-gateway-round-cap-boundary) | Fix the gateway round-cap boundary | bug, reliability | P1 | S |
-| 6 | [AS-10](#as-10--parse-the-first-number-correctly) | Parse the first number correctly | bug | P1 | S |
-| 7 | [AS-11](#as-11--distinguish-an-open-space-from-a-stale-space) | Distinguish an open space from a stale space | bug, reliability | P1 | S |
-| 8 | [AS-09](#as-09--restore-reactivity-when-deletion-is-undone) | Restore reactivity when deletion is undone | bug, architecture | P1 | M |
-| 9 | [AS-13](#as-13--turn-smoke-scripts-into-real-verification-gates) | Turn smoke scripts into real verification gates | testing, reliability | P1 | M |
-| 10 | [AS-05](#as-05--coordinate-all-world-mutations) | Coordinate all world mutations | architecture, reliability | P1 | L |
-| 11 | [AS-06](#as-06--decide-whether-automation-restrictions-are-policy-or-enforcement) | Decide whether automation restrictions are policy or enforcement | security, product, architecture | P1 | L |
-| 12 | [AS-19](#as-19--make-the-base-prompt-a-tested-consistent-contract) | Make the base prompt a tested, consistent contract | testing, architecture, maintenance | P1 | M |
+| 5 | [AS-10](#as-10--parse-the-first-number-correctly) | Parse the first number correctly | bug | P1 | S |
+| 6 | [AS-11](#as-11--distinguish-an-open-space-from-a-stale-space) | Distinguish an open space from a stale space | bug, reliability | P1 | S |
+| 7 | [AS-09](#as-09--restore-reactivity-when-deletion-is-undone) | Restore reactivity when deletion is undone | bug, architecture | P1 | M |
+| 8 | [AS-13](#as-13--turn-smoke-scripts-into-real-verification-gates) | Turn smoke scripts into real verification gates | testing, reliability | P1 | M |
+| 9 | [AS-05](#as-05--coordinate-all-world-mutations) | Coordinate all world mutations | architecture, reliability | P1 | L |
+| 10 | [AS-06](#as-06--decide-whether-automation-restrictions-are-policy-or-enforcement) | Decide whether automation restrictions are policy or enforcement | security, product, architecture | P1 | L |
+| 11 | [AS-19](#as-19--make-the-base-prompt-a-tested-consistent-contract) | Make the base prompt a tested, consistent contract | testing, architecture, maintenance | P1 | M |
 
 ## Later
 
@@ -37,13 +36,13 @@ Real work, but not proposed as part of the next foundation milestone.
 
 | rank | ID | title | categories | priority | effort |
 |---:|---|---|---|---|---|
-| 13 | [AS-12](#as-12--specify-whether-run-now-shifts-the-schedule) | Specify whether Run now shifts the schedule | product, bug | P2 | S |
-| 14 | [AS-14](#as-14--introduce-a-provider-neutral-inference-boundary) | Introduce a provider-neutral inference boundary | architecture, reliability | P2 | L |
-| 15 | [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts) | Add provenance, health, and rollback for generated artifacts | architecture, feature, reliability | P1 | L |
-| 16 | [AS-16](#as-16--make-tool-card-removal-match-its-visible-meaning) | Make tool-card removal match its visible meaning | ux, product, reliability | P2 | M |
-| 17 | [AS-17](#as-17--preserve-history-when-system-messages-coalesce) | Preserve history when system messages coalesce | reliability, ux | P2 | S |
-| 18 | [AS-18](#as-18--reduce-the-dependency-load-surface) | Reduce the dependency load surface | performance, maintenance, operations | P2 | M |
-| 19 | [AS-20](#as-20--complete-the-open-source-readiness-pass) | Complete the open-source readiness pass | documentation, operations, product | P2 | M |
+| 12 | [AS-12](#as-12--specify-whether-run-now-shifts-the-schedule) | Specify whether Run now shifts the schedule | product, bug | P2 | S |
+| 13 | [AS-14](#as-14--introduce-a-provider-neutral-inference-boundary) | Introduce a provider-neutral inference boundary | architecture, reliability | P2 | L |
+| 14 | [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts) | Add provenance, health, and rollback for generated artifacts | architecture, feature, reliability | P1 | L |
+| 15 | [AS-16](#as-16--make-tool-card-removal-match-its-visible-meaning) | Make tool-card removal match its visible meaning | ux, product, reliability | P2 | M |
+| 16 | [AS-17](#as-17--preserve-history-when-system-messages-coalesce) | Preserve history when system messages coalesce | reliability, ux | P2 | S |
+| 17 | [AS-18](#as-18--reduce-the-dependency-load-surface) | Reduce the dependency load surface | performance, maintenance, operations | P2 | M |
+| 18 | [AS-20](#as-20--complete-the-open-source-readiness-pass) | Complete the open-source readiness pass | documentation, operations, product | P2 | M |
 
 ## Category views
 
@@ -53,9 +52,9 @@ cross-category priority order above.
 
 | lens | items |
 |---|---|
-| Bugs and behavioral correctness | [AS-08](#as-08--fix-the-gateway-round-cap-boundary), [AS-09](#as-09--restore-reactivity-when-deletion-is-undone), [AS-10](#as-10--parse-the-first-number-correctly), [AS-11](#as-11--distinguish-an-open-space-from-a-stale-space), [AS-12](#as-12--specify-whether-run-now-shifts-the-schedule) |
+| Bugs and behavioral correctness | [AS-09](#as-09--restore-reactivity-when-deletion-is-undone), [AS-10](#as-10--parse-the-first-number-correctly), [AS-11](#as-11--distinguish-an-open-space-from-a-stale-space), [AS-12](#as-12--specify-whether-run-now-shifts-the-schedule) |
 | Security and authority | [AS-01](#as-01--authenticate-or-remove-the-local-evaluator), [AS-04](#as-04--treat-model-context-as-untrusted-bounded-data), [AS-06](#as-06--decide-whether-automation-restrictions-are-policy-or-enforcement), [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts) |
-| Reliability and persistence | [AS-02](#as-02--make-live-updates-verifiable-and-atomic), [AS-03](#as-03--define-persistence-and-recovery-semantics), [AS-05](#as-05--coordinate-all-world-mutations), [AS-08](#as-08--fix-the-gateway-round-cap-boundary), [AS-09](#as-09--restore-reactivity-when-deletion-is-undone), [AS-11](#as-11--distinguish-an-open-space-from-a-stale-space), [AS-13](#as-13--turn-smoke-scripts-into-real-verification-gates), [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts), [AS-17](#as-17--preserve-history-when-system-messages-coalesce) |
+| Reliability and persistence | [AS-02](#as-02--make-live-updates-verifiable-and-atomic), [AS-03](#as-03--define-persistence-and-recovery-semantics), [AS-05](#as-05--coordinate-all-world-mutations), [AS-09](#as-09--restore-reactivity-when-deletion-is-undone), [AS-11](#as-11--distinguish-an-open-space-from-a-stale-space), [AS-13](#as-13--turn-smoke-scripts-into-real-verification-gates), [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts), [AS-17](#as-17--preserve-history-when-system-messages-coalesce) |
 | Operations and testing | [AS-01](#as-01--authenticate-or-remove-the-local-evaluator), [AS-02](#as-02--make-live-updates-verifiable-and-atomic), [AS-03](#as-03--define-persistence-and-recovery-semantics), [AS-13](#as-13--turn-smoke-scripts-into-real-verification-gates), [AS-18](#as-18--reduce-the-dependency-load-surface), [AS-19](#as-19--make-the-base-prompt-a-tested-consistent-contract), [AS-20](#as-20--complete-the-open-source-readiness-pass) |
 | Architecture and evolution | [AS-03](#as-03--define-persistence-and-recovery-semantics), [AS-04](#as-04--treat-model-context-as-untrusted-bounded-data), [AS-05](#as-05--coordinate-all-world-mutations), [AS-06](#as-06--decide-whether-automation-restrictions-are-policy-or-enforcement), [AS-09](#as-09--restore-reactivity-when-deletion-is-undone), [AS-14](#as-14--introduce-a-provider-neutral-inference-boundary), [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts), [AS-19](#as-19--make-the-base-prompt-a-tested-consistent-contract) |
 | Product, feature, and UX | [AS-06](#as-06--decide-whether-automation-restrictions-are-policy-or-enforcement), [AS-12](#as-12--specify-whether-run-now-shifts-the-schedule), [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts), [AS-16](#as-16--make-tool-card-removal-match-its-visible-meaning), [AS-17](#as-17--preserve-history-when-system-messages-coalesce), [AS-20](#as-20--complete-the-open-source-readiness-pass) |
@@ -274,35 +273,6 @@ Choose and consistently communicate one model:
 - Any externally visible or irreversible capability has an explicit approval
   model.
 
-## AS-08 — Fix the gateway round-cap boundary
-
-**Status:** ready<br>
-**Categories:** bug, reliability<br>
-**Priority:** P1<br>
-**Effort:** S<br>
-**Dependencies:** none<br>
-**Source:** repository review, 2026-07-09
-
-### Problem and argument
-
-If the model requests a tool in the last permitted round, the gateway executes
-the mutation, appends its result, then exits the loop without letting the model
-consume that result. The requested work can succeed while the user receives a
-"Gave up" failure.
-
-### Proposed outcome
-
-Tool-execution budget and final-response inference have explicit, unsurprising
-semantics.
-
-### Acceptance criteria
-
-- After the final permitted tool execution, the model can return one no-tool
-  final response; or the final tool is refused before execution.
-- A fake-transport test covers successful work at the exact boundary.
-- No terminal failure can hide an already-successful final mutation without
-  reporting that mutation clearly.
-
 ## AS-09 — Restore reactivity when deletion is undone
 
 **Status:** candidate<br>
@@ -419,7 +389,7 @@ or explicitly reset it from the manual run.
 **Categories:** testing, reliability, operations<br>
 **Priority:** P1<br>
 **Effort:** M<br>
-**Dependencies:** AS-08, AS-10, AS-11<br>
+**Dependencies:** AS-10, AS-11<br>
 **Source:** repository review and first hosted-CI experiment
 
 ### Problem and argument
@@ -454,7 +424,7 @@ structured evidence, and one local command provides an honest release signal.
 **Categories:** architecture, reliability<br>
 **Priority:** P2<br>
 **Effort:** L<br>
-**Dependencies:** AS-08, AS-19<br>
+**Dependencies:** AS-19<br>
 **Source:** repository review, 2026-07-09
 
 ### Problem and argument
@@ -594,7 +564,7 @@ requested.
 
 - Required upstream runtime packages/groups are identified explicitly.
 - Default build and test paths avoid unused examples and upstream test suites.
-- AgentSmalltalk's 144 current tests still pass after the reduction.
+- AgentSmalltalk's clean-image suite still passes after the reduction.
 - Build duration, resulting image size, cache size, and warning count are
   measured before and after.
 
@@ -604,7 +574,7 @@ requested.
 **Categories:** testing, architecture, maintenance<br>
 **Priority:** P1<br>
 **Effort:** M<br>
-**Dependencies:** AS-04, AS-08<br>
+**Dependencies:** AS-04<br>
 **Source:** repository review, 2026-07-09
 
 ### Problem and argument

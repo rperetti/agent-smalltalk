@@ -109,17 +109,24 @@ AgentGatewayTest >> testBudgetNoteAppendedWhenRoundsRunLow [
 ]
 
 { #category : 'tests' }
-AgentGatewayTest >> testNoBudgetNoteEarlyOrAtEnd [
-	| early atEnd |
+AgentGatewayTest >> testBudgetNoteExplainsWhenToolsAreExhausted [
+	| atEnd |
+	gateway maxRounds: 20.
+	atEnd := gateway
+		appendBudgetNoteTo: { { 'content' -> 'RESULT: ok' } asDictionary }
+		afterRound: 20.
+	self assert: ((atEnd last at: 'content') includesSubstring: 'tool-round budget is exhausted').
+	self assert: ((atEnd last at: 'content') includesSubstring: 'No more tools are available')
+]
+
+{ #category : 'tests' }
+AgentGatewayTest >> testNoBudgetNoteEarly [
+	| early |
 	gateway maxRounds: 20.
 	early := gateway
 		appendBudgetNoteTo: { { 'content' -> 'RESULT: ok' } asDictionary }
 		afterRound: 5.
-	atEnd := gateway
-		appendBudgetNoteTo: { { 'content' -> 'RESULT: ok' } asDictionary }
-		afterRound: 20.
-	self assert: (early last at: 'content') equals: 'RESULT: ok'.
-	self assert: (atEnd last at: 'content') equals: 'RESULT: ok'
+	self assert: (early last at: 'content') equals: 'RESULT: ok'
 ]
 
 { #category : 'tests' }
@@ -189,4 +196,51 @@ AgentGatewayTest >> testScriptedTransportExercisesCompleteToolLoop [
 	toolResult := ((secondRequest at: 'messages') last at: 'content') first.
 	self assert: (toolResult at: 'tool_use_id') equals: 'tu_loop'.
 	self assert: (toolResult at: 'content') equals: 'RESULT: 7'
+]
+
+{ #category : 'tests' }
+AgentGatewayTest >> testFinalPermittedToolRoundGetsToolsDisabledFinishingResponse [
+	| transport result finalPayload toolResult |
+	transport := AgentGatewayFakeTransport responses: {
+		{ 'content' -> {
+			{ 'type' -> 'tool_use'.
+				'id' -> 'tu_boundary'.
+				'name' -> 'evaluate_smalltalk'.
+				'input' -> ({ 'code' -> '6 * 7' } asDictionary) } asDictionary
+			} } asDictionary.
+		{ 'content' -> {
+			{ 'type' -> 'text'. 'text' -> 'calculated forty-two at the boundary' } asDictionary
+			} } asDictionary }.
+	gateway
+		transport: transport;
+		apiKey: 'test-key';
+		maxRounds: 1.
+	result := gateway run: 'calculate six times seven'.
+	self assert: result equals: 'calculated forty-two at the boundary'.
+	self assert: transport payloads size equals: 2.
+	finalPayload := transport payloads second.
+	self deny: (finalPayload includesKey: 'tools').
+	toolResult := ((finalPayload at: 'messages') last at: 'content') first.
+	self assert: (toolResult at: 'tool_use_id') equals: 'tu_boundary'.
+	self assert: ((toolResult at: 'content') includesSubstring: 'RESULT: 42').
+	self assert: ((toolResult at: 'content') includesSubstring: 'No more tools are available')
+]
+
+{ #category : 'tests' }
+AgentGatewayTest >> testFinalToolResultIsReportedWhenFinishingResponseFails [
+	| transport result |
+	transport := AgentGatewayFakeTransport responses: {
+		{ 'content' -> {
+			{ 'type' -> 'tool_use'.
+				'id' -> 'tu_report'.
+				'name' -> 'evaluate_smalltalk'.
+				'input' -> ({ 'code' -> '40 + 2' } asDictionary) } asDictionary
+			} } asDictionary }.
+	gateway
+		transport: transport;
+		apiKey: 'test-key';
+		maxRounds: 1.
+	result := gateway run: 'calculate forty plus two'.
+	self assert: (result includesSubstring: 'final model response was unavailable').
+	self assert: (result includesSubstring: 'RESULT: 42')
 ]

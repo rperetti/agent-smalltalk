@@ -2,7 +2,8 @@
 I am the bridge between the live image and the Anthropic Messages API.
 I run the agentic tool-use loop: the model calls the evaluate_smalltalk tool,
 I evaluate the code via AgentSandbox and feed the result (or error report) back,
-and the model iterates until it succeeds or the round cap is reached.
+and the model iterates until it succeeds or the tool-round cap is reached. At
+the cap, one tools-disabled response consumes and reports the final tool result.
 "
 Class {
 	#name : 'AgentGateway',
@@ -156,7 +157,7 @@ AgentGateway >> run: userText [
 
 { #category : 'running' }
 AgentGateway >> runUnlocked: userText [
-	| messages widgetsBefore |
+	| messages widgetsBefore finalToolResults |
 	self class noteLast: self.
 	self logAdd: '===== USER REQUEST: ' , userText.
 	self status: 'thinking...'.
@@ -164,6 +165,7 @@ AgentGateway >> runUnlocked: userText [
 	messages := OrderedCollection with:
 		{ 'role' -> 'user'. 'content' -> userText } asDictionary.
 	widgetsBefore := self canvasWidgetsSnapshot.
+	finalToolResults := #().
 	1 to: maxRounds do: [ :round |
 		| response content toolUses |
 		response := self post: messages.
@@ -177,12 +179,57 @@ AgentGateway >> runUnlocked: userText [
 		self status: (round = 1
 			ifTrue: [ 'evaluating...' ]
 			ifFalse: [ 'working (round ' , round printString , ' of ' , maxRounds printString , ')...' ]).
+		finalToolResults := toolUses collect: [ :tu | self runTool: tu ].
 		messages add: { 'role' -> 'user'.
 			'content' -> (self
-				appendBudgetNoteTo: (toolUses collect: [ :tu | self runTool: tu ]) asArray
+				appendBudgetNoteTo: finalToolResults asArray
 				afterRound: round) } asDictionary ].
-	self error: 'Gave up after ' , maxRounds printString
-		, ' tool rounds. Inspect the gateway log for the attempts.'
+	^ self
+		finishAfterRoundCapWith: messages
+		for: userText
+		since: widgetsBefore
+		lastToolResults: finalToolResults
+]
+
+{ #category : 'running' }
+AgentGateway >> finishAfterRoundCapWith: messages for: userText since: widgetsBefore lastToolResults: toolResults [
+	"The tool budget and the inference budget are deliberately separate. Once
+	the final permitted mutation has run, give the model one tools-disabled
+	response in which to consume its result and report the outcome."
+	| response content answer |
+	self status: 'finishing...'.
+	[ response := self post: messages includeTools: false ]
+		on: Error
+		do: [ :error |
+			^ self
+				noteIfPureAnswer: (self finalRoundFallbackFor: toolResults
+					because: error messageText)
+				for: userText
+				since: widgetsBefore ].
+	content := response at: 'content' ifAbsent: [ #() ].
+	messages add: { 'role' -> 'assistant'. 'content' -> content } asDictionary.
+	answer := self finalTextFrom: content.
+	answer trimBoth isEmpty ifTrue: [
+		^ self
+			noteIfPureAnswer: (self finalRoundFallbackFor: toolResults
+				because: 'the finishing response contained no text')
+			for: userText
+			since: widgetsBefore ].
+	^ self noteIfPureAnswer: answer for: userText since: widgetsBefore
+]
+
+{ #category : 'running' }
+AgentGateway >> finalRoundFallbackFor: toolResults because: reason [
+	"Never hide the outcome of a tool call that already ran just because the
+	tools-disabled finishing inference failed or returned malformed content."
+	^ String streamContents: [ :stream |
+		stream
+			<< 'The tool-round budget was exhausted after the final tool execution. ';
+			<< 'A final model response was unavailable because ';
+			<< reason;
+			<< '. The final tool result(s) were:'.
+		toolResults do: [ :result |
+			stream cr; << (result at: 'content' ifAbsent: [ '<missing result>' ]) ] ]
 ]
 
 { #category : 'running' }
@@ -248,13 +295,18 @@ AgentGateway >> pendingAsyncFailures [
 
 { #category : 'running' }
 AgentGateway >> post: messages [
+	^ self post: messages includeTools: true
+]
+
+{ #category : 'running' }
+AgentGateway >> post: messages includeTools: includeTools [
 	| payload response |
 	payload := {
 		'model' -> model.
 		'max_tokens' -> 8192.
 		'system' -> self systemPrompt.
-		'tools' -> self toolDefinitions.
 		'messages' -> messages asArray } asDictionary.
+	includeTools ifTrue: [ payload at: 'tools' put: self toolDefinitions ].
 	self logAdd: 'HTTP REQUEST: ' , (STONJSON toString: payload).
 	[ response := transport postPayload: payload apiKey: self apiKey ]
 		on: Error
@@ -300,6 +352,12 @@ AgentGateway >> appendBudgetNoteTo: toolResults afterRound: round [
 	instead of polishing. Appended to the last tool result's content."
 	| remaining last |
 	remaining := maxRounds - round.
+	remaining = 0 ifTrue: [
+		last := toolResults last.
+		last at: 'content' put: ((last at: 'content') , String cr
+			, '[system: the tool-round budget is exhausted. No more tools are available. '
+			, 'Give a final response now and report the tool result accurately.]').
+		^ toolResults ].
 	(remaining between: 1 and: 3) ifFalse: [ ^ toolResults ].
 	last := toolResults last.
 	last at: 'content' put: ((last at: 'content') , String cr
