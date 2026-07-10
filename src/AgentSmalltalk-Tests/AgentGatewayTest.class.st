@@ -89,6 +89,72 @@ AgentGatewayTest >> testRunToolFeedsErrorBack [
 ]
 
 { #category : 'tests' }
+AgentGatewayTest >> testRunToolRejectsInventedFactValueDuringWidgetRequest [
+	| fact toolUse result |
+	[
+		AgentCanvas reset.
+		fact := AgentFact key: #city body: 'Lisbon'.
+		toolUse := {
+			'id' -> 'tu_fact_reject'.
+			'input' -> ({ 'code' -> 'AgentFact key: #city body: ''Porto''' } asDictionary) }
+			asDictionary.
+		result := gateway
+			runTool: toolUse
+			forUserRequest: 'Create a City Watch card that displays my saved city.'.
+		self assert: ((result at: 'content') beginsWith: 'ERROR: fact write rejected').
+		self assert: fact body equals: 'Lisbon' ]
+		ensure: [ AgentCanvas reset ]
+]
+
+{ #category : 'tests' }
+AgentGatewayTest >> testGatewayRunPreservesFactDuringCityWatchRequest [
+	| fact transport result secondRequest toolResult |
+	[
+		AgentCanvas reset.
+		fact := AgentFact key: #city body: 'Lisbon'.
+		transport := AgentGatewayFakeTransport responses: {
+			{ 'content' -> {
+				{ 'type' -> 'tool_use'.
+					'id' -> 'tu_city_watch'.
+					'name' -> 'evaluate_smalltalk'.
+					'input' -> ({ 'code' -> 'AgentFact key: #city body: ''Porto''' } asDictionary) }
+					asDictionary
+				} } asDictionary.
+			{ 'content' -> {
+				{ 'type' -> 'text'. 'text' -> 'I left your saved city unchanged.' } asDictionary
+				} } asDictionary }.
+		gateway
+			transport: transport;
+			apiKey: 'test-key';
+			maxRounds: 2.
+		result := gateway run: 'Create a City Watch card that displays my saved city.'.
+		self assert: result equals: 'I left your saved city unchanged.'.
+		self assert: fact body equals: 'Lisbon'.
+		secondRequest := transport payloads second.
+		toolResult := ((secondRequest at: 'messages') last at: 'content') first.
+		self assert: ((toolResult at: 'content') beginsWith: 'ERROR: fact write rejected') ]
+		ensure: [ AgentCanvas reset ]
+]
+
+{ #category : 'tests' }
+AgentGatewayTest >> testRunToolAllowsFactValueExplicitlySuppliedByUser [
+	| fact toolUse result |
+	[
+		AgentCanvas reset.
+		fact := AgentFact key: #city body: 'Lisbon'.
+		toolUse := {
+			'id' -> 'tu_fact_allow'.
+			'input' -> ({ 'code' -> 'AgentFact key: #city body: ''Porto''' } asDictionary) }
+			asDictionary.
+		result := gateway
+			runTool: toolUse
+			forUserRequest: 'I moved to Porto. Remember that my city is Porto.'.
+		self assert: ((result at: 'content') beginsWith: 'RESULT:').
+		self assert: fact body equals: 'Porto' ]
+		ensure: [ AgentCanvas reset ]
+]
+
+{ #category : 'tests' }
 AgentGatewayTest >> testLogLinesArePersistedToFile [
 	| marker |
 	marker := 'test-marker-' , DateAndTime now asUnixTime printString.

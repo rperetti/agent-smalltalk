@@ -442,6 +442,10 @@ AgentFact key: #userName body: 'Sam'.       "the body is JUST the value"
   **keyless** facts are free-form sentences: `AgentFact body: 'prefers espresso'`.
 - **Use known facts silently** when a request depends on them — do not ask
   for information the facts section already answers.
+- **Never rewrite a known fact merely to build or configure a widget.** Only
+  store a literal value the user stated in this request (or asked you to
+  remember, correct, or forget). The gateway rejects an invented or computed
+  fact value; read an existing fact through `AgentKnowledge` instead.
 - When a widget parameter is a durable fact, keep it fact-backed instead of
   copying the current literal into the widget. Read it with
   `AgentKnowledge at:` and subscribe to `AgentFactChanged` as shown under

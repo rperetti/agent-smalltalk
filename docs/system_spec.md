@@ -11,8 +11,8 @@ in [security.md](security.md), and command/recovery procedures in
 to explain behavior but is not the canonical planning queue or runbook.
 
 *Last updated: 2026-07-10 (gateway round-cap semantics, fact number scanner,
-canvas-space liveness, reaction lifecycle, compiler-enforced reaction policy,
-and result-reporting fallback; 156 clean-image tests).*
+canvas-space liveness, reaction lifecycle, compiler-enforced reaction and
+fact-write policies, and result-reporting fallback; 159 clean-image tests).*
 
 ## One-paragraph summary
 
@@ -124,6 +124,12 @@ engine, making this lifecycle rule automatic rather than a user instruction.
 Verified with generated code: a clock retuned on a pure fact edit with no
 request, and a total recomputed purely from a counter's announcement — no
 Refresh buttons.
+
+Fact writes from a gateway tool call are screened before evaluation: an
+`AgentFact ... body:` expression must use a literal value found in the current
+user request. A widget-generation request therefore reads existing facts via
+`AgentKnowledge` and cannot overwrite them with an invented default; a user
+statement such as “I moved to Porto” remains an authorized fact update.
 
 Forked network refreshes apply their result through
 `AgentWidget>>runOnUiThreadSafely:`. It catches errors when the queued UI block

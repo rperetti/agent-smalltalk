@@ -179,7 +179,8 @@ AgentGateway >> runUnlocked: userText [
 		self status: (round = 1
 			ifTrue: [ 'evaluating...' ]
 			ifFalse: [ 'working (round ' , round printString , ' of ' , maxRounds printString , ')...' ]).
-		finalToolResults := toolUses collect: [ :tu | self runTool: tu ].
+		finalToolResults := toolUses collect: [ :tu |
+			self runTool: tu forUserRequest: userText ].
 		messages add: { 'role' -> 'user'.
 			'content' -> (self
 				appendBudgetNoteTo: finalToolResults asArray
@@ -234,15 +235,23 @@ AgentGateway >> finalRoundFallbackFor: toolResults because: reason [
 
 { #category : 'running' }
 AgentGateway >> runTool: aToolUse [
+	^ self runTool: aToolUse forUserRequest: nil
+]
+
+{ #category : 'running' }
+AgentGateway >> runTool: aToolUse forUserRequest: userText [
 	| name input result |
 	name := aToolUse at: 'name' ifAbsent: [ 'evaluate_smalltalk' ].
 	input := aToolUse at: 'input' ifAbsent: [ Dictionary new ].
 	name = 'evaluate_smalltalk'
 		ifTrue: [
-			| code |
+			| code factError |
 			code := input at: 'code' ifAbsent: [ '' ].
 			self logAdd: '>>> ' , code.
-			result := sandbox evaluate: code ]
+			factError := self factMutationErrorIn: code forUserRequest: userText.
+			result := factError
+				ifNil: [ sandbox evaluate: code ]
+				ifNotNil: [ factError ] ]
 		ifFalse: [
 			name = 'search_image'
 				ifTrue: [
@@ -254,6 +263,50 @@ AgentGateway >> runTool: aToolUse [
 	^ { 'type' -> 'tool_result'.
 		'tool_use_id' -> (aToolUse at: 'id').
 		'content' -> result } asDictionary
+]
+
+{ #category : 'fact authorization' }
+AgentGateway >> factMutationErrorIn: code forUserRequest: userText [
+	"Fact writes made by model tool calls require a literal value that appeared
+	in this request. This stops a widget-building request from replacing a
+	known fact with a model-invented default, while preserving implicit capture
+	of facts the user actually stated. Direct/operator evaluation passes nil and
+	is deliberately outside this gateway-specific authority boundary."
+	| values |
+	userText ifNil: [ ^ nil ].
+	values := self factMutationValuesIn: code.
+	values ifNil: [
+		^ 'ERROR: fact write rejected: use a literal value explicitly supplied by the user, or do not write a fact. Read existing facts through AgentKnowledge while building a widget.' ].
+	values do: [ :value |
+		((userText asLowercase includesSubstring: value asLowercase)
+			and: [ value isEmpty not ]) ifFalse: [
+			^ 'ERROR: fact write rejected: ''' , value
+				, ''' was not supplied in this request. Read the known fact through AgentKnowledge; do not replace it while building a widget.' ] ].
+	^ nil
+]
+
+{ #category : 'fact authorization' }
+AgentGateway >> factMutationValuesIn: code [
+	"Answer literal values passed to AgentFact ... body:. Nil means the source
+	attempts a non-literal/dynamic fact write, which the gateway must reject
+	because it cannot prove user authority before evaluating the source."
+	| values start nextFact bodyStart quoteStart quoteEnd |
+	values := OrderedCollection new.
+	start := code findString: 'AgentFact' startingAt: 1.
+	[ start > 0 ] whileTrue: [
+		nextFact := code findString: 'AgentFact' startingAt: start + 9.
+		bodyStart := code findString: 'body:' startingAt: start + 9.
+		(bodyStart = 0 or: [ nextFact > 0 and: [ nextFact < bodyStart ] ])
+			ifTrue: [ start := nextFact ]
+			ifFalse: [
+				quoteStart := code findString: '''' startingAt: bodyStart + 5.
+				(quoteStart = 0 or: [ nextFact > 0 and: [ nextFact < quoteStart ] ])
+					ifTrue: [ ^ nil ].
+				quoteEnd := code findString: '''' startingAt: quoteStart + 1.
+				quoteEnd = 0 ifTrue: [ ^ nil ].
+				values add: (code copyFrom: quoteStart + 1 to: quoteEnd - 1).
+				start := code findString: 'AgentFact' startingAt: quoteEnd + 1 ] ].
+	^ values
 ]
 
 { #category : 'running' }
