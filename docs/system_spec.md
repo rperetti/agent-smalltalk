@@ -4,8 +4,9 @@ What the living agentic environment does **today**. The long-term vision lives
 in [vision.md](vision.md). This document is kept in sync with the
 code; when behavior changes, change this file in the same commit.
 
-*Last updated: 2026-07-09 (visible scheduled automations with deterministic
-execution, lifecycle-safe deletion/undo, and 138 clean-image tests).*
+*Last updated: 2026-07-09 (Agent Canvas redesign — white cards with colored
+category-chip headers across every card type — plus base-prompt guidance for
+good-looking generated widgets; 142 clean-image tests).*
 
 ## One-paragraph summary
 
@@ -147,9 +148,14 @@ Singleton owning the Bloc space (`AgentCanvas open`, 1280×840, `ToBeeTheme`).
 
 The contract every generated widget subclasses:
 
-- A white rounded 240×160 card, vertical linear layout, 12px padding,
-  draggable (`BlPullHandler`), right-click opens a code browser on the
-  generated class ("knowledge = code", made visible).
+- A white rounded 240×160 card with a soft drop shadow and a hairline border,
+  vertical linear layout, 12px padding, draggable (`BlPullHandler`), right-click
+  opens a code browser on the generated class ("knowledge = code", made
+  visible). Categorised cards (fact/note/system/service/scheduled) add an
+  edge-to-edge coloured **chip header** (icon + uppercase category + delete x)
+  over a white body; plain generated widgets keep the same shell without a chip.
+  The shared chrome lives on `AgentWidget` (`applyCardChrome`,
+  `chipHeaderElement`, `chipDeleteButton`, colour hooks) and `AgentSticky`.
 - `describe` — one-line self-description including current state; this is how
   the model recognizes existing widgets in later requests.
 - Class side: `summonAt: aPoint` (create + place + register) and
@@ -163,10 +169,10 @@ The contract every generated widget subclasses:
   included), drag-event based, zoom-aware, clamped to 120×80 minimum.
 - **Click-to-front**: pressing anywhere on a widget raises it (monotonic
   elevation counter on the canvas), so overlapping cards behave like paper.
-- **Delete**: a floating x (top-right, ignoreByLayout so it never disturbs the
-  widget's layout) removes any widget; stickies suppress it (they carry an x
-  in their header). Delete/Backspace on the canvas removes the current lasso
-  selection. Both are undoable (Cmd/Ctrl+Z).
+- **Delete**: categorised cards carry the delete x in their chip header; plain
+  widgets get a floating x (top-right, ignoreByLayout so it never disturbs the
+  layout). Delete/Backspace on the canvas removes the current lasso selection.
+  Both are undoable (Cmd/Ctrl+Z).
 - **Deletion undo**: `removeFromParent` on a canvas widget records it on the
   canvas undo stack (capped at 50, survives image save/reopen); Cmd/Ctrl+Z
   restores the most recent deletion. Unrestorable entries (instances of
@@ -195,9 +201,10 @@ name-sorted; no separate registry can drift from the live classes. Only
 selectors defined on each tool's class side are exposed, keeping inherited
 framework and private instance methods out of context.
 
-`AgentToolCard` (UI) is the visible face — a sage card auto-summoned into the
-**bottom-right toolbox corner** (completing the geography: facts ↖, notes ↗,
-system ↙, tools ↘), showing name + purpose, right-click opening the *tool's*
+`AgentToolCard` (UI) is the visible face — a white card with a green **SERVICE**
+chip, auto-summoned into the **bottom-right toolbox corner** (completing the
+geography: facts ↖, notes ↗, system ↙, tools ↘), showing name + purpose,
+right-click opening the *tool's*
 source to read/tweak. Purpose text wraps and the card grows vertically to fit;
 its label follows horizontal resizing rather than staying at a fixed width.
 Cards are meta and stay out of the widget context. There is at most one card
@@ -295,11 +302,13 @@ all scheduler/run processes before the live graph is serialized.
 
 ### AgentAutomationCard (UI) — the routines shelf
 
-Each registered automation has one muted-purple card in the bottom-center
-**routines shelf**, completing the canvas geography without conflating tools
-(capabilities) with automations (ongoing commitments). It shows purpose,
-schedule, status, next run, latest history, and dependencies, plus **Run now**
-and **Pause/Resume** controls; right-click browses the generated routine class.
+Each registered automation has one card with a purple **SCHEDULED** chip
+(carrying a last-run status badge) in the bottom-center **routines shelf**,
+completing the canvas geography without conflating tools (capabilities) with
+automations (ongoing commitments). Its body is the routine name, purpose, and a
+Schedule / Next run / Last run / Uses key-value table, plus a filled **Run now**
+and an outline **Pause/Resume** button; right-click browses the generated
+routine class.
 
 Deleting the card immediately unregisters and disables the routine. Normal
 canvas undo restores the exact same card, routine, schedule, and history and
@@ -310,16 +319,21 @@ registry listing.
 
 ### The sticky family (UI): AgentSticky → AgentFact / AgentNote / AgentSystemMessage
 
-`AgentSticky` (abstract) provides the card: header row (label + `x`-to-delete),
-editable `ToAlbum` body, keyed pile placement. The corners of the canvas
-carry meaning: **facts pile top-left, notes top-right, system messages
-bottom-left, tool cards bottom-right** (spotlight appears top-center).
+`AgentSticky` (abstract) provides the card: an edge-to-edge coloured chip header
+(icon + category + `x`-to-delete) over a white, editable `ToAlbum` body, with an
+optional muted meta line (the fact key, the note's question) above the value,
+and keyed pile placement. Existing stickies rebuild into the new chrome on
+`migrateAfterUpdate` (`repairChrome`, guarded — a failure posts a system message
+instead of vanishing). The corners of the canvas carry meaning: **facts pile
+top-left, notes top-right, system messages bottom-left, tool cards bottom-right**
+(spotlight appears top-center).
 
 #### AgentSystemMessage
 
-The system's own voice — gray stickies announcing things the user did NOT
-initiate. `AgentSystemMessage post: '...' key: #someKey`; same-key messages
-**coalesce** (header becomes `system x3 14:32`) instead of stacking.
+The system's own voice — a white card with a gray **SYSTEM** chip, announcing
+things the user did NOT initiate. `AgentSystemMessage post: '...' key: #someKey`;
+same-key messages **coalesce** (a footer shows the time and `x3`) instead of
+stacking.
 Deleting is acknowledging. Out of LLM context unless lassoed. Producers
 today: `AgentUpdater` (every update announces itself — including headless
 updates, whose message waits in the image for the next open), swallowed
@@ -328,9 +342,10 @@ changes. This is the seed of a future actionable inbox.
 
 ### AgentFact (UI)
 
-Sticky-note memory: a small pale-yellow
-widget holding one durable fact. The body is editable in place (`ToAlbum` —
-editing the text IS editing the memory); the `x` button deletes (forgetting
+Sticky-note memory: a white card with an amber **FACT** chip holding one durable
+fact — the key shows as a muted meta label over the value in bold. The body is
+editable in place (`ToAlbum` — editing the text IS editing the memory); the `x`
+button deletes (forgetting
 is a physical act). An optional key gives identity: `AgentFact key: #city
 body: '...'` creates **or updates** — one sticky per key, ever. New stickies
 pile near the top-left. Facts are instances of this hand-written class,
@@ -340,9 +355,10 @@ visibly appearing on the canvas is the announcement.
 
 ### AgentNote (UI)
 
-Answers as paper: a pale-blue sticky holding informational output — the
-question in the header (provenance), the answer as an editable body,
-`x`-to-delete. Created two ways: the **gateway heuristic** (a run that
+Answers as paper: a white card with a blue **NOTE** chip holding informational
+output — the question as a muted meta line (provenance), the answer as an
+editable body, `x`-to-delete. Created two ways: the **gateway heuristic** (a run
+that
 produced no widget puts its final answer on a note automatically — the text
 was the deliverable) or **model-authored** via `AgentNote question:answer:`
 (the base prompt steers summaries and lookups here, never into facts). Placement:
@@ -374,7 +390,10 @@ protocol and workflow (define class → compile methods → test headless →
 `summonAt:`), the AgentWidget contract, the blessed Toplo vocabulary
 (`ToLabel`, `ToButton clickAction:`, `ToTextField`, `ToAlbum`, `ToCheckbox
 checkAction:`, `ToProgressBar valueInPercentage:`), raw-Bloc recipes for
-custom visuals, live-modification guidance (recompile methods, instances
+custom visuals, a *Making widgets look good* design guide (leave the styled
+card shell alone and design the interior — type hierarchy, opacity-muted
+secondary text, spacing, one accent colour, soft rounded panels — with effort
+scaled to the request), live-modification guidance (recompile methods, instances
 update instantly), the fact-capture policy (implicit, keyed, update-don't-
 duplicate, use silently, never secrets), the network policy (full network
 access via `ZnClient` + `STONJSON`; fetch real data when asked, never
@@ -442,7 +461,7 @@ has been verified against the loaded packages.
 |---|---|
 | `./build.sh` | FRESH verified image from `src/` (`core` arg skips UI). Builds into a temp image under an isolated `HOME`, runs SUnit by default, then backs up/replaces `pharo/Agent.image` only after success. Supports `--output`, `--no-verify`, `--no-backup`, `PHARO_VM`, and `PHARO_PRISTINE` |
 | `./update.sh` | reload tooling from `src/`; widgets/facts survive. Live session → updates in place via `AgentRemote` (localhost:8807 `/update`); else patches the file headless. **Guarded**: both paths require an `UPDATE_OK` token (load raised nothing AND sentinel selectors resolve) or fail loudly leaving the image unchanged — a silent stale-code load once cost a multi-session debugging detour. Diffs via TonelReader + `MCPackageLoader`. Backs up first (keeps 5). Not for Bloc/Toplo — use `build.sh` |
-| `./test.sh` | builds a disposable pristine image, loads pinned dependencies, and runs 138 tests; never opens the living image |
+| `./test.sh` | builds a disposable pristine image, loads pinned dependencies, and runs 142 tests; never opens the living image |
 | `./run.sh` | open the canvas UI |
 
 Headless acceptance scripts (`pharo ... st scripts/<name>.st`):
