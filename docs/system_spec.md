@@ -11,7 +11,8 @@ in [security.md](security.md), and command/recovery procedures in
 to explain behavior but is not the canonical planning queue or runbook.
 
 *Last updated: 2026-07-10 (gateway round-cap semantics, fact number scanner,
-canvas-space liveness, and result-reporting fallback; 151 clean-image tests).*
+canvas-space liveness, reaction lifecycle, compiler-enforced reaction policy,
+and result-reporting fallback; 156 clean-image tests).*
 
 ## One-paragraph summary
 
@@ -112,10 +113,17 @@ before their first `AgentFactChanged` announcement, so subscribers can resolve
 a same-request fact through `AgentKnowledge` during that event; existing fact
 edits continue to announce after their updated body is rendered.
 `AgentWidgetChanged` fires via the widget convention `self announceChanged`
-in state mutators. Widgets subscribe `when:do:for: self` (the base-prompt pattern);
-deletion auto-unsubscribes. Verified with generated code: a clock retuned on
-a pure fact edit with no request, and a total recomputed purely from a
-counter's announcement — no Refresh buttons.
+in state mutators. Reactive widgets put `when:do:for: self` subscriptions in
+`installReactions`, never `initialize`. The canvas calls `reconnectReactions`
+after attachment and undo; it first removes old subscriptions, so repeated
+delete/undo cycles deliver exactly once. Existing generated widgets can migrate
+by compiling that hook and sending `reconnectReactions` to their live instances.
+The generated-widget compiler rejects a canvas-announcer subscription in
+`initialize` and returns the corrective `installReactions` guidance to the code
+engine, making this lifecycle rule automatic rather than a user instruction.
+Verified with generated code: a clock retuned on a pure fact edit with no
+request, and a total recomputed purely from a counter's announcement — no
+Refresh buttons.
 
 Forked network refreshes apply their result through
 `AgentWidget>>runOnUiThreadSafely:`. It catches errors when the queued UI block
@@ -194,14 +202,18 @@ The contract every generated widget subclasses:
   layout). Delete/Backspace on the canvas removes the current lasso selection —
   but not while a text editor (the spotlight, a sticky body) has focus: a
   keystroke originating inside an editor edits its text instead of deleting
-  widgets. Both are undoable (Cmd/Ctrl+Z).
+  widgets. Clicking empty canvas deliberately exits text editing; canvas
+  shortcuts, including Cmd/Ctrl+Z, then address the canvas. While editing,
+  native text undo never also restores a deleted card. Both are undoable
+  (Cmd/Ctrl+Z).
 - **Deletion undo**: `removeFromParent` on a canvas widget records it on the
   canvas undo stack (capped at 50, survives image save/reopen); Cmd/Ctrl+Z
   restores the most recent deletion. Unrestorable entries (instances of
   since-removed broken classes) are discarded silently. Widget-internal
   state and moves are not undoable; code changes are Epicea's job.
   `removedFromCanvas` / `restoredToCanvas` lifecycle hooks let behavior-owning
-  cards keep durable registration in lockstep with deletion undo.
+  cards keep durable registration in lockstep with deletion undo; the base
+  reaction lifecycle restores canvas-announcer subscriptions independently.
 
 ### AgentTool + AgentToolCard — the agent's own capabilities
 

@@ -485,14 +485,19 @@ Unknowns print safely: `(AgentKnowledge at: #city) asString` ->
 `'unknown (city)'`. If a needed fact is unknown, build the widget showing
 its unknown state and ask for the fact in your final answer.
 
-**React to fact changes** — subscribe once in `initialize`, always
-`for: self` (deleted widgets are unsubscribed automatically):
+**React to fact changes** — put subscriptions in `installReactions`, never
+in `initialize`, and always use `for: self`. This is framework-enforced:
+compiling a canvas-announcer subscription in `initialize` returns an error that
+tells you to move it to `installReactions`. The canvas invokes this hook after
+the first attachment and after deletion undo, first removing old subscriptions
+so delivery never duplicates:
 
 ```
-AgentCanvas current announcer
-	when: AgentFactChanged
-	do: [ :evt | evt key = #city ifTrue: [ self refresh ] ]
-	for: self
+installReactions
+	AgentCanvas current announcer
+		when: AgentFactChanged
+		do: [ :evt | evt key = #city ifTrue: [ self refresh ] ]
+		for: self
 ```
 
 **Make reactions visible**: when your widget updates itself in response to
@@ -515,14 +520,15 @@ do: [ :evt | evt key = #city ifTrue: [
 
 **Make your own widgets reactive**: end every state-mutating method with
 `self announceChanged`. Derived widgets (totals, charts) subscribe to their
-sources instead of offering Refresh buttons:
+sources in `installReactions` instead of offering Refresh buttons:
 
 ```
-AgentCanvas current announcer
-	when: AgentWidgetChanged
-	do: [ :evt | (sources notNil and: [ sources includes: evt widget ])
-		ifTrue: [ self recompute ] ]
-	for: self
+installReactions
+	AgentCanvas current announcer
+		when: AgentWidgetChanged
+		do: [ :evt | (sources notNil and: [ sources includes: evt widget ])
+			ifTrue: [ self recompute ] ]
+		for: self
 ```
 
 **Guard reaction blocks against uninitialized state.** A reaction may fire in
@@ -563,16 +569,13 @@ too. Verify by checking the underlying data actually changed, not just the
 displayed text. Remember that recompiling `initialize` does NOT re-run it on
 live instances — update their state explicitly or re-derive it. Example: to make an existing counter count by 10, recompile `increment`.
 
-**Adding reactivity (a new subscription) to an existing widget is the trap.**
-Subscriptions are set up in `initialize`, and recompiling `initialize` does
-NOT re-subscribe live instances — and adding a slot via `defineNamed:slots:`
-migrates existing instances with that slot **nil** (a `nil and: [...]` in a
-reaction block then errors). So do NOT retrofit reactivity by redefining the
-class in place. Instead: **replace the live instances.** Recompile the class,
-then for each existing instance on the canvas — `SomeWidget allInstances` — 
-`removeFromParent` it and `summonAt:` a fresh one (which runs the new
-`initialize` and subscribes correctly). Confirm the fact change actually
-propagates before finishing.
+**Adding reactivity to an existing widget is still a migration.** Compile an
+`installReactions` method, then reconnect each live canvas instance after
+guarding any newly added slots: `SomeWidget allInstances do: [ :each |
+each reconnectReactions ]`. `reconnectReactions` first removes the old canvas
+subscriptions, so it is safe to repeat. Legacy widgets that keep subscriptions
+only in `initialize` cannot recover them after delete/undo; migrate them to
+this hook before promising reactive undo behavior.
 
 You can read any existing source first:
 

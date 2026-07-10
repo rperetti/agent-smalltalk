@@ -22,11 +22,12 @@ the `Now` decisions clarify the architecture.
 
 | rank | ID | title | categories | priority | effort |
 |---:|---|---|---|---|---|
-| 5 | [AS-09](#as-09--restore-reactivity-when-deletion-is-undone) | Restore reactivity when deletion is undone | bug, architecture | P1 | M |
-| 6 | [AS-13](#as-13--turn-smoke-scripts-into-real-verification-gates) | Turn smoke scripts into real verification gates | testing, reliability | P1 | M |
-| 7 | [AS-05](#as-05--coordinate-all-world-mutations) | Coordinate all world mutations | architecture, reliability | P1 | L |
-| 8 | [AS-06](#as-06--decide-whether-automation-restrictions-are-policy-or-enforcement) | Decide whether automation restrictions are policy or enforcement | security, product, architecture | P1 | L |
-| 9 | [AS-19](#as-19--make-the-base-prompt-a-tested-consistent-contract) | Make the base prompt a tested, consistent contract | testing, architecture, maintenance | P1 | M |
+| 5 | [AS-22](#as-22--prevent-unsolicited-fact-mutations-during-generation) | Prevent unsolicited fact mutations during generation | bug, security, product | P1 | M |
+| 6 | [AS-23](#as-23--emit-fact-changes-only-after-an-edit-is-committed) | Emit fact changes only after an edit is committed | bug, ux, reliability | P1 | M |
+| 7 | [AS-13](#as-13--turn-smoke-scripts-into-real-verification-gates) | Turn smoke scripts into real verification gates | testing, reliability | P1 | M |
+| 8 | [AS-05](#as-05--coordinate-all-world-mutations) | Coordinate all world mutations | architecture, reliability | P1 | L |
+| 9 | [AS-06](#as-06--decide-whether-automation-restrictions-are-policy-or-enforcement) | Decide whether automation restrictions are policy or enforcement | security, product, architecture | P1 | L |
+| 10 | [AS-19](#as-19--make-the-base-prompt-a-tested-consistent-contract) | Make the base prompt a tested, consistent contract | testing, architecture, maintenance | P1 | M |
 
 ## Later
 
@@ -34,13 +35,14 @@ Real work, but not proposed as part of the next foundation milestone.
 
 | rank | ID | title | categories | priority | effort |
 |---:|---|---|---|---|---|
-| 10 | [AS-12](#as-12--specify-whether-run-now-shifts-the-schedule) | Specify whether Run now shifts the schedule | product, bug | P2 | S |
-| 11 | [AS-14](#as-14--introduce-a-provider-neutral-inference-boundary) | Introduce a provider-neutral inference boundary | architecture, reliability | P2 | L |
-| 12 | [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts) | Add provenance, health, and rollback for generated artifacts | architecture, feature, reliability | P1 | L |
-| 13 | [AS-16](#as-16--make-tool-card-removal-match-its-visible-meaning) | Make tool-card removal match its visible meaning | ux, product, reliability | P2 | M |
-| 14 | [AS-17](#as-17--preserve-history-when-system-messages-coalesce) | Preserve history when system messages coalesce | reliability, ux | P2 | S |
-| 15 | [AS-18](#as-18--reduce-the-dependency-load-surface) | Reduce the dependency load surface | performance, maintenance, operations | P2 | M |
-| 16 | [AS-20](#as-20--complete-the-open-source-readiness-pass) | Complete the open-source readiness pass | documentation, operations, product | P2 | M |
+| 11 | [AS-21](#as-21--auto-resize-the-spotlight-for-long-prompts) | Auto-resize the spotlight for long prompts | bug, ux | P2 | S |
+| 12 | [AS-12](#as-12--specify-whether-run-now-shifts-the-schedule) | Specify whether Run now shifts the schedule | product, bug | P2 | S |
+| 13 | [AS-14](#as-14--introduce-a-provider-neutral-inference-boundary) | Introduce a provider-neutral inference boundary | architecture, reliability | P2 | L |
+| 14 | [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts) | Add provenance, health, and rollback for generated artifacts | architecture, feature, reliability | P1 | L |
+| 15 | [AS-16](#as-16--make-tool-card-removal-match-its-visible-meaning) | Make tool-card removal match its visible meaning | ux, product, reliability | P2 | M |
+| 16 | [AS-17](#as-17--preserve-history-when-system-messages-coalesce) | Preserve history when system messages coalesce | reliability, ux | P2 | S |
+| 17 | [AS-18](#as-18--reduce-the-dependency-load-surface) | Reduce the dependency load surface | performance, maintenance, operations | P2 | M |
+| 18 | [AS-20](#as-20--complete-the-open-source-readiness-pass) | Complete the open-source readiness pass | documentation, operations, product | P2 | M |
 
 ## Category views
 
@@ -50,17 +52,125 @@ cross-category priority order above.
 
 | lens | items |
 |---|---|
-| Bugs and behavioral correctness | [AS-09](#as-09--restore-reactivity-when-deletion-is-undone), [AS-12](#as-12--specify-whether-run-now-shifts-the-schedule) |
-| Security and authority | [AS-01](#as-01--authenticate-or-remove-the-local-evaluator), [AS-04](#as-04--treat-model-context-as-untrusted-bounded-data), [AS-06](#as-06--decide-whether-automation-restrictions-are-policy-or-enforcement), [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts) |
-| Reliability and persistence | [AS-02](#as-02--make-live-updates-verifiable-and-atomic), [AS-03](#as-03--define-persistence-and-recovery-semantics), [AS-05](#as-05--coordinate-all-world-mutations), [AS-09](#as-09--restore-reactivity-when-deletion-is-undone), [AS-13](#as-13--turn-smoke-scripts-into-real-verification-gates), [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts), [AS-17](#as-17--preserve-history-when-system-messages-coalesce) |
+| Bugs and behavioral correctness | [AS-22](#as-22--prevent-unsolicited-fact-mutations-during-generation), [AS-23](#as-23--emit-fact-changes-only-after-an-edit-is-committed), [AS-21](#as-21--auto-resize-the-spotlight-for-long-prompts), [AS-12](#as-12--specify-whether-run-now-shifts-the-schedule) |
+| Security and authority | [AS-01](#as-01--authenticate-or-remove-the-local-evaluator), [AS-04](#as-04--treat-model-context-as-untrusted-bounded-data), [AS-06](#as-06--decide-whether-automation-restrictions-are-policy-or-enforcement), [AS-22](#as-22--prevent-unsolicited-fact-mutations-during-generation), [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts) |
+| Reliability and persistence | [AS-02](#as-02--make-live-updates-verifiable-and-atomic), [AS-03](#as-03--define-persistence-and-recovery-semantics), [AS-05](#as-05--coordinate-all-world-mutations), [AS-13](#as-13--turn-smoke-scripts-into-real-verification-gates), [AS-23](#as-23--emit-fact-changes-only-after-an-edit-is-committed), [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts), [AS-17](#as-17--preserve-history-when-system-messages-coalesce) |
 | Operations and testing | [AS-01](#as-01--authenticate-or-remove-the-local-evaluator), [AS-02](#as-02--make-live-updates-verifiable-and-atomic), [AS-03](#as-03--define-persistence-and-recovery-semantics), [AS-13](#as-13--turn-smoke-scripts-into-real-verification-gates), [AS-18](#as-18--reduce-the-dependency-load-surface), [AS-19](#as-19--make-the-base-prompt-a-tested-consistent-contract), [AS-20](#as-20--complete-the-open-source-readiness-pass) |
-| Architecture and evolution | [AS-03](#as-03--define-persistence-and-recovery-semantics), [AS-04](#as-04--treat-model-context-as-untrusted-bounded-data), [AS-05](#as-05--coordinate-all-world-mutations), [AS-06](#as-06--decide-whether-automation-restrictions-are-policy-or-enforcement), [AS-09](#as-09--restore-reactivity-when-deletion-is-undone), [AS-14](#as-14--introduce-a-provider-neutral-inference-boundary), [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts), [AS-19](#as-19--make-the-base-prompt-a-tested-consistent-contract) |
-| Product, feature, and UX | [AS-06](#as-06--decide-whether-automation-restrictions-are-policy-or-enforcement), [AS-12](#as-12--specify-whether-run-now-shifts-the-schedule), [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts), [AS-16](#as-16--make-tool-card-removal-match-its-visible-meaning), [AS-17](#as-17--preserve-history-when-system-messages-coalesce), [AS-20](#as-20--complete-the-open-source-readiness-pass) |
+| Architecture and evolution | [AS-03](#as-03--define-persistence-and-recovery-semantics), [AS-04](#as-04--treat-model-context-as-untrusted-bounded-data), [AS-05](#as-05--coordinate-all-world-mutations), [AS-06](#as-06--decide-whether-automation-restrictions-are-policy-or-enforcement), [AS-14](#as-14--introduce-a-provider-neutral-inference-boundary), [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts), [AS-19](#as-19--make-the-base-prompt-a-tested-consistent-contract) |
+| Product, feature, and UX | [AS-22](#as-22--prevent-unsolicited-fact-mutations-during-generation), [AS-23](#as-23--emit-fact-changes-only-after-an-edit-is-committed), [AS-06](#as-06--decide-whether-automation-restrictions-are-policy-or-enforcement), [AS-21](#as-21--auto-resize-the-spotlight-for-long-prompts), [AS-12](#as-12--specify-whether-run-now-shifts-the-schedule), [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts), [AS-16](#as-16--make-tool-card-removal-match-its-visible-meaning), [AS-17](#as-17--preserve-history-when-system-messages-coalesce), [AS-20](#as-20--complete-the-open-source-readiness-pass) |
 | Performance and maintenance | [AS-04](#as-04--treat-model-context-as-untrusted-bounded-data), [AS-18](#as-18--reduce-the-dependency-load-surface), [AS-19](#as-19--make-the-base-prompt-a-tested-consistent-contract) |
 
 ---
 
 ## Detailed entries
+
+## AS-23 — Emit fact changes only after an edit is committed
+
+**Status:** candidate<br>
+**Categories:** bug, ux, reliability<br>
+**Priority:** P1<br>
+**Effort:** M<br>
+**Dependencies:** none<br>
+**Source:** user report, 2026-07-10
+
+### Problem and argument
+
+While the user types a new city into a fact, dependent widgets receive partial
+values and react repeatedly: City Watch visibly changes before the city name is
+complete and increments its counter for intermediate keystrokes. A fact-change
+event currently means both “the editor text drifted” and “a durable value was
+committed,” making reactive behavior noisy and semantically wrong.
+
+### Proposed outcome
+
+Manual fact editing has a clear commit boundary. Dependents observe at most one
+`AgentFactChanged` event for a completed edit, carrying the complete committed
+body; an in-progress focused editor is never published by a background sweep.
+
+### Acceptance criteria
+
+- Typing or pasting `Lisbon` into a focused fact produces no dependent update
+  for `L`, `Li`, or other intermediate text.
+- Moving focus away (or the explicitly chosen commit action) publishes the
+  completed body once; a City Watch-style counter increases exactly once.
+- A background drift/safety sweep does not publish any fact whose body editor
+  is actively focused, even if the user pauses while typing.
+- Agent-driven `AgentFact key:body:` updates remain immediate, rendered before
+  notification, and emit exactly once.
+- Repeating a commit with an unchanged body emits no event.
+- Headless and UI tests cover typing, paste, focus loss, a long typing pause,
+  unchanged commit, and a direct agent update.
+
+## AS-22 — Prevent unsolicited fact mutations during generation
+
+**Status:** candidate<br>
+**Categories:** bug, security, product<br>
+**Priority:** P1<br>
+**Effort:** M<br>
+**Dependencies:** AS-04<br>
+**Source:** user report, 2026-07-10
+
+### Problem and argument
+
+After the user explicitly saved `#city` as `Lisbon`, an otherwise read-only
+request to create a City Watch card changed it to `Porto`. A fact is durable
+user-world state: silently replacing it with a model-selected value violates
+the request's authority boundary and makes the product untrustworthy.
+
+### Proposed outcome
+
+Fact writes occur only when the user explicitly supplies a new fact value or
+asks to remember, correct, or forget one. Widget generation may read a known
+fact, but it preserves that fact unchanged unless a separately authorized
+mutation is present.
+
+### Acceptance criteria
+
+- Given `#city = 'Lisbon'`, a request to create a widget that displays the
+  saved city leaves the fact exactly `Lisbon`.
+- A request that does not state a new fact value cannot compile/evaluate an
+  `AgentFact key:body:` update for an existing key without an explicit,
+  reviewable authorization path.
+- Intent recognition distinguishes reading a known fact from remembering,
+  correcting, or forgetting it; only the latter operations write facts.
+- Any authorized fact mutation is visible in the agent result and records the
+  user text that supplied the new value.
+- Scripted gateway tests cover the City Watch regression, explicit correction,
+  implicit capture of a newly stated fact, and an unknown-fact request.
+
+## AS-21 — Auto-resize the spotlight for long prompts
+
+**Status:** candidate<br>
+**Categories:** bug, ux<br>
+**Priority:** P2<br>
+**Effort:** S<br>
+**Dependencies:** none<br>
+**Source:** user report, 2026-07-10
+
+### Problem and argument
+
+The spotlight keeps a fixed height while its editable prompt grows beyond one
+line. Long requests are therefore clipped or require awkward internal scrolling,
+making the user lose context while composing the most important input to the
+system.
+
+### Proposed outcome
+
+The spotlight grows with wrapped prompt content up to a deliberate viewport-safe
+maximum, then scrolls its editor while keeping the submit controls and status
+visible.
+
+### Acceptance criteria
+
+- A single-line prompt retains the compact default height.
+- Typing or pasting multi-line/wrapped text increases the spotlight height as
+  needed, without losing focus or moving the text caret unexpectedly.
+- Growth is bounded so the spotlight remains usable on a small canvas; beyond
+  the bound, the editor scrolls rather than clipping text or controls.
+- Clearing text shrinks the spotlight back toward its default height.
+- Enter, Esc, submission status, errors, and Cmd/Ctrl+Enter continue to behave
+  correctly at both compact and expanded heights.
+- Headless/UI tests cover short, long, cleared, and submitted prompt states.
 
 ## AS-01 — Authenticate or remove the local evaluator
 
@@ -270,36 +380,6 @@ Choose and consistently communicate one model:
   covered by tests.
 - Any externally visible or irreversible capability has an explicit approval
   model.
-
-## AS-09 — Restore reactivity when deletion is undone
-
-**Status:** candidate<br>
-**Categories:** bug, architecture<br>
-**Priority:** P1<br>
-**Effort:** M<br>
-**Dependencies:** none<br>
-**Source:** reactive-widget delete/undo failure, 2026-07-06
-
-### Problem and argument
-
-Deletion unsubscribes a widget from the canvas announcer. Undo re-adds the same
-instance but does not recreate subscriptions established inside generated
-`initialize`, so the restored card is visible but inert. This violates the
-combined behavior promised by first-class reactions and first-class undo.
-
-### Proposed outcome
-
-Reaction setup and teardown are explicit widget lifecycle operations. Undoing a
-deletion restores behavior without duplicate subscriptions.
-
-### Acceptance criteria
-
-- Generated reactive widgets use a documented subscription lifecycle hook or
-  a declarative canvas-mediated mechanism.
-- Delete/undo restores fact and widget reactions.
-- Repeated delete/undo cycles do not duplicate delivery.
-- Old generated widgets have a migration or a clearly documented limitation.
-- A regression test covers a reactive total or fact-backed widget.
 
 ## AS-12 — Specify whether Run now shifts the schedule
 

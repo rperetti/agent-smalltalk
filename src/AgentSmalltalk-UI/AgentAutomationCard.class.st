@@ -306,6 +306,7 @@ AgentAutomationCard >> removedFromCanvas [
 
 { #category : 'deleting' }
 AgentAutomationCard >> restoredToCanvas [
+	super restoredToCanvas.
 	automation ifNotNil: [ automation restoreRegistration ]
 ]
 

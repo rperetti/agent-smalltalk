@@ -75,6 +75,42 @@ AgentSandboxTest >> testCompiledSourceContainsNoLinefeeds [
 ]
 
 { #category : 'tests' }
+AgentSandboxTest >> testWidgetCanvasReactionInInitializeIsRejected [
+	"The lifecycle rule is enforced by AgentWidget's compiler policy, so the
+	model receives a repairable error without the user having to request the
+	correct hook explicitly."
+	| cls source report |
+	cls := AgentWidget defineNamed: #AgentSandboxReactionPolicyProbe slots: #().
+	[
+		source := String streamContents: [ :stream |
+			stream
+				<< 'initialize'; cr;
+				tab; << 'super initialize.'; cr;
+				tab; << 'AgentCanvas current announcer'; cr;
+				tab; << '    when: AgentFactChanged'; cr;
+				tab; << '    do: [ :evt | self yourself ]'; cr;
+				tab; << '    for: self' ].
+		report := sandbox evaluate:
+			'AgentSandboxReactionPolicyProbe compile: ' , source printString.
+		self assert: (report beginsWith: 'ERROR:').
+		self assert: (report includesSubstring: '#installReactions') ]
+		ensure: [ cls removeFromSystem ]
+]
+
+{ #category : 'tests' }
+AgentSandboxTest >> testWidgetInitializeWithoutCanvasReactionStillCompiles [
+	| cls report |
+	cls := AgentWidget defineNamed: #AgentSandboxInitializeProbe slots: #().
+	[
+		report := sandbox evaluate:
+			'AgentSandboxInitializeProbe compile: ''initialize
+				super initialize.
+				self extent: 160 @ 100'''.
+		self assert: (report beginsWith: 'RESULT:') ]
+		ensure: [ cls removeFromSystem ]
+]
+
+{ #category : 'tests' }
 AgentSandboxTest >> testTimeoutIsReported [
 	| report |
 	sandbox timeoutSeconds: 1.

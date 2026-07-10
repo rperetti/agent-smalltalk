@@ -44,6 +44,35 @@ AgentUndoResizeTest >> testFactDeletionIsUndoable [
 ]
 
 { #category : 'tests' }
+AgentUndoResizeTest >> testReactiveWidgetRestoresFactAndWidgetReactionsWithoutDuplicates [
+	| reactive source |
+	reactive := AgentReactiveLifecycleTestWidget new.
+	source := AgentWidget new.
+	AgentCanvas current addWidget: reactive.
+	AgentCanvas current addWidget: source.
+	AgentFact key: #city body: 'Tokyo'.
+	source announceChanged.
+	self assert: reactive factReactionCount equals: 1.
+	self assert: reactive widgetReactionCount equals: 1.
+	reactive removeFromParent.
+	AgentFact key: #city body: 'Lisbon'.
+	source announceChanged.
+	self assert: reactive factReactionCount equals: 1.
+	self assert: reactive widgetReactionCount equals: 1.
+	AgentCanvas current undoDeletion.
+	AgentFact key: #city body: 'Paris'.
+	source announceChanged.
+	self assert: reactive factReactionCount equals: 2.
+	self assert: reactive widgetReactionCount equals: 2.
+	reactive removeFromParent.
+	AgentCanvas current undoDeletion.
+	AgentFact key: #city body: 'Rome'.
+	source announceChanged.
+	self assert: reactive factReactionCount equals: 3.
+	self assert: reactive widgetReactionCount equals: 3
+]
+
+{ #category : 'tests' }
 AgentUndoResizeTest >> testUndoOnEmptyStackIsSafe [
 	self assert: AgentCanvas current undoDeletion isNil
 ]
@@ -172,6 +201,57 @@ AgentUndoResizeTest >> testDeleteKeyIgnoredWhileEditingText [
 	self assert: (AgentCanvas current widgets includes: widget).
 	self assert: (AgentCanvas current selectedWidgets includes: widget).
 	self deny: evt isConsumed
+]
+
+{ #category : 'tests' }
+AgentUndoResizeTest >> testUndoKeyIgnoredWhileEditingFactText [
+	"The fact editor leaves Cmd+Z unconsumed for native text undo. The canvas
+	must not also restore its most recently deleted card when the event reaches
+	the root handler."
+	| deleted fact editor innerTarget evt |
+	deleted := AgentWidget new.
+	AgentCanvas current addWidget: deleted.
+	deleted removeFromParent.
+	fact := AgentFact key: #undoEditorProbe body: 'draft'.
+	editor := fact instVarNamed: #bodyEditor.
+	innerTarget := BlElement new.
+	editor addChild: innerTarget.
+	evt := BlKeyDownEvent new key: KeyboardKey Z.
+	evt modifiers: (BlKeyModifiers shift: false ctrl: false alt: false cmd: true).
+	evt target: innerTarget.
+	AgentCanvas current handleKeyDown: evt.
+	self deny: (AgentCanvas current widgets includes: deleted).
+	self assert: AgentCanvas current undoStack size equals: 1.
+	self deny: evt isConsumed
+]
+
+{ #category : 'tests' }
+AgentUndoResizeTest >> testCanvasClickReleasesFactEditorForDeletionUndo [
+	"Bloc keeps a text editor focused when the pointer clicks outside it. The
+	canvas must deliberately blur that editor so Cmd+Z restores a deleted card
+	instead of repeatedly undoing the fact's text."
+	| canvas space fact editor deleted clickEvt undoEvt |
+	canvas := AgentCanvas current.
+	space := BlSpace new.
+	canvas instVarNamed: #space put: space.
+	space root addChild: canvas ensureContent.
+	fact := AgentFact key: #undoFocusProbe body: 'Lisbon'.
+	deleted := AgentWidget new.
+	canvas addWidget: deleted.
+	deleted removeFromParent.
+	editor := fact instVarNamed: #bodyEditor.
+	editor requestFocus.
+	self assert: space focusOwner notNil.
+	clickEvt := BlMouseDownEvent new.
+	clickEvt target: fact parent.
+	canvas handleMouseDown: clickEvt.
+	self assert: space focusOwner isNil.
+	undoEvt := BlKeyDownEvent new key: KeyboardKey Z.
+	undoEvt modifiers: (BlKeyModifiers shift: false ctrl: false alt: false cmd: true).
+	undoEvt target: space root.
+	canvas handleKeyDown: undoEvt.
+	self assert: (canvas widgets includes: deleted).
+	self assert: undoEvt isConsumed
 ]
 
 { #category : 'tests' }

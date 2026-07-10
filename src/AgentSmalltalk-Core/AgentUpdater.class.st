@@ -44,7 +44,7 @@ AgentUpdater class >> sentinels [
 		(Smalltalk globals at: #AgentKnowledge) class -> #numberAt:.
 		(Smalltalk globals at: #AgentCanvas) -> #announcer.
 		(Smalltalk globals at: #AgentCanvas) -> #widgetAddVersion.
-		(Smalltalk globals at: #AgentWidget) -> #flashUpdated.
+		(Smalltalk globals at: #AgentWidget) -> #reconnectReactions.
 		(Smalltalk globals at: #AgentAutomationCard) -> #restoredToCanvas.
 		(Smalltalk globals at: #AgentSpotlight) -> #cancel }
 ]

@@ -295,6 +295,10 @@ AgentCanvas >> handleKeyDown: evt [
 	the modifier gate below."
 	self handleDeleteKey: evt.
 	evt isConsumed ifTrue: [ ^ self ].
+	"Text-editor key events bubble to the canvas unconsumed. Keep canvas
+	shortcuts out of that stream so Cmd/Ctrl+Z remains the editor's native undo
+	(and Cmd/Ctrl+Enter cannot open the spotlight while typing)."
+	(self isTextEditingTarget: evt) ifTrue: [ ^ self ].
 	primary := evt modifiers isCmd or: [ evt modifiers isCtrl ].
 	primary ifFalse: [ ^ self ].
 	evt key = KeyboardKey enter ifTrue: [
@@ -325,9 +329,10 @@ AgentCanvas >> handleDeleteKey: evt [
 { #category : 'navigation' }
 AgentCanvas >> isTextEditingTarget: evt [
 	"True when a key event originates inside a text editor (ToAlbum) or the
-	spotlight -- Backspace/Delete there edit text and must not trigger the
-	canvas delete-selection shortcut. Walks up from the event target (the
-	focused element), since the event bubbles to the root handler unconsumed."
+	spotlight. Their native text commands (including Backspace/Delete and
+	Cmd/Ctrl+Z) must not trigger canvas shortcuts. Walks up from the event
+	target (the focused element), since the event bubbles to the root handler
+	unconsumed."
 	| node |
 	node := evt target.
 	[ node notNil ] whileTrue: [
@@ -426,12 +431,26 @@ AgentCanvas >> undoDeletion [
 AgentCanvas >> handleMouseDown: evt [
 	"Record press context only. NOT consumed: Bloc must still synthesize
 	the click and drag gestures from this press. Shift is captured here
-	because drag events may not carry key modifiers."
+	because drag events may not carry key modifiers. Bloc deliberately retains
+	text-editor focus on an outside click; canvas gestures must explicitly release
+	it so the next Cmd/Ctrl+Z addresses deletion undo rather than text undo."
 	(evt target == content or: [ space notNil and: [ evt target == space root ] ])
 		ifFalse: [ pressShift := nil. ^ self ].
+	self releaseFocusForCanvasClick.
 	self removeLasso.
 	pressShift := evt modifiers isShift.
 	dragMoved := false
+]
+
+{ #category : 'navigation' }
+AgentCanvas >> releaseFocusForCanvasClick [
+	"An empty-canvas click is an intentional exit from text editing. Bloc's
+	default focus processor does not blur an editor merely because the pointer
+	moved outside it, which leaves native Cmd/Ctrl+Z active indefinitely."
+	| focusOwner |
+	space ifNil: [ ^ self ].
+	focusOwner := space focusOwner.
+	focusOwner ifNotNil: [ focusOwner loseFocus ]
 ]
 
 { #category : 'navigation' }
@@ -626,8 +645,12 @@ AgentCanvas >> addWidget: aWidget [
 	already raised by click-to-front -- creations always land visible."
 	(aWidget isKindOf: AgentWidget) ifTrue: [ aWidget raise ].
 	self isInteractive
-		ifTrue: [ space enqueueTask: (BlTaskAction new action: [ content addChild: aWidget ]) ]
-		ifFalse: [ content addChild: aWidget ]
+		ifTrue: [ space enqueueTask: (BlTaskAction new action: [
+			content addChild: aWidget.
+			(aWidget respondsTo: #addedToCanvas) ifTrue: [ aWidget addedToCanvas ] ]) ]
+		ifFalse: [
+			content addChild: aWidget.
+			(aWidget respondsTo: #addedToCanvas) ifTrue: [ aWidget addedToCanvas ] ]
 ]
 
 { #category : 'widgets' }

@@ -29,6 +29,28 @@ AgentWidget class >> defineNamed: aSymbol slots: slotSymbols [
 		install
 ]
 
+{ #category : 'class creation' }
+AgentWidget class >> compile: source [
+	"Framework policy, not a user-facing convention: a canvas-announcer
+	subscription in #initialize cannot survive deletion undo. Reject it before
+	it enters the image so the code engine receives a precise repair instruction."
+	self assertReactionLifecycleFor: source.
+	^ super compile: source
+]
+
+{ #category : 'class creation' }
+AgentWidget class >> assertReactionLifecycleFor: source [
+	"Catch the concrete anti-pattern without constraining ordinary widget setup
+	or subscriptions to unrelated models. Generated code compiles methods one at
+	a time, so this error is returned to the model before it creates an instance."
+	| trimmed |
+	trimmed := source trimBoth.
+	((trimmed beginsWith: 'initialize')
+		and: [ (trimmed includesSubstring: 'AgentCanvas')
+			and: [ trimmed includesSubstring: 'when:' ] ]) ifTrue: [
+		self error: 'Canvas-announcer subscriptions belong in #installReactions, not #initialize. Compile that hook instead; the canvas reconnects it after undo.' ]
+]
+
 { #category : 'instance creation' }
 AgentWidget class >> summonAt: aPoint [
 	| widget |
@@ -159,7 +181,7 @@ AgentWidget >> removeFromParent [
 		ifTrue: [
 			AgentCanvas current recordDeletion: self.
 			self removedFromCanvas ].
-	AgentCanvas current announcer unsubscribe: self.
+	self uninstallReactions.
 	super removeFromParent
 ]
 
@@ -172,6 +194,37 @@ AgentWidget >> removedFromCanvas [
 AgentWidget >> restoredToCanvas [
 	"Lifecycle hook paired with #removedFromCanvas. AgentCanvas invokes it
 	after deletion undo restores the same live widget."
+	self reconnectReactions
+]
+
+{ #category : 'reactions' }
+AgentWidget >> addedToCanvas [
+	"Called after the canvas attaches a new widget. Subscription setup belongs
+	here rather than in #initialize, so the same hook also works after undo."
+	self reconnectReactions
+]
+
+{ #category : 'reactions' }
+AgentWidget >> installReactions [
+	"Override in reactive widgets. Put every canvas-announcer subscription here,
+	using #when:do:for: self; never subscribe directly from #initialize."
+]
+
+{ #category : 'reactions' }
+AgentWidget >> uninstallReactions [
+	"Override only to release other reaction resources; send super so the
+	canvas announcer no longer retains this removed widget."
+	AgentCanvas current announcer unsubscribe: self
+]
+
+{ #category : 'reactions' }
+AgentWidget >> reconnectReactions [
+	"Idempotently install exactly the current widget's reactions. The canvas
+	invokes this after initial attachment and undo; generated-code migrations
+	may send it to existing live instances after compiling #installReactions."
+	(AgentCanvas current containsWidget: self) ifFalse: [ ^ self ].
+	self uninstallReactions.
+	self installReactions
 ]
 
 { #category : 'reactions' }
