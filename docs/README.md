@@ -80,7 +80,9 @@ The initial category vocabulary is deliberately small:
 
 An item can have multiple categories. Category answers "what kind of work is
 this?" Priority answers "how urgent is it?" Rank answers "what is our current
-agreed order?" These are intentionally separate.
+agreed order?" These are intentionally separate, except that the `bug` category
+has precedence in rank: every item categorized as a bug ranks ahead of every
+non-bug, regardless of priority.
 
 ## Collaborating on ordering
 
@@ -90,15 +92,19 @@ entries do not need to move or be rewritten.
 
 When ordering work, use these default decision drivers:
 
-1. Prevent unauthorized execution or loss of the living world.
-2. Make existing promises reliable before widening them.
-3. Improve observability and verification.
-4. Strengthen the system's ability to evolve without accumulating invisible
+1. Put all bugs before all non-bugs, independently of priority.
+2. Prevent unauthorized execution or loss of the living world.
+3. Make existing promises reliable before widening them.
+4. Improve observability and verification.
+5. Strengthen the system's ability to evolve without accumulating invisible
    damage.
-5. Add new product surface when it tests an important product hypothesis.
+6. Add new product surface when it tests an important product hypothesis.
 
-These are defaults, not a permanent scoring formula. New evidence can justify a
-different order.
+Bug-first ordering is invariant. The remaining drivers are defaults, not a
+permanent scoring formula; new evidence can justify a different order within
+the bug and non-bug groups. `scripts/check-backlog-order.sh`, included in the
+deterministic verification path, checks this invariant along with contiguous
+ranks and agreement between planning rows and detailed entries.
 
 ## Avoiding duplicated truth
 
