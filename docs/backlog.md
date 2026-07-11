@@ -39,6 +39,7 @@ Real work, but not proposed as part of the next foundation milestone.
 | 12 | [AS-17](#as-17--preserve-history-when-system-messages-coalesce) | Preserve history when system messages coalesce | reliability, ux | P2 | S |
 | 13 | [AS-18](#as-18--reduce-the-dependency-load-surface) | Reduce the dependency load surface | performance, maintenance, operations | P2 | M |
 | 14 | [AS-20](#as-20--complete-the-open-source-readiness-pass) | Complete the open-source readiness pass | documentation, operations, product | P2 | M |
+| 15 | [AS-22](#as-22--make-failed-spotlight-runs-inspectable-on-the-canvas) | Make failed Spotlight runs inspectable on the canvas | feature, ux, reliability | P1 | L |
 
 ## Category views
 
@@ -50,10 +51,10 @@ cross-category priority order above.
 |---|---|
 | Bugs and behavioral correctness | [AS-12](#as-12--specify-whether-run-now-shifts-the-schedule) |
 | Security and authority | [AS-01](#as-01--authenticate-or-remove-the-local-evaluator), [AS-04](#as-04--treat-model-context-as-untrusted-bounded-data), [AS-06](#as-06--decide-whether-automation-restrictions-are-policy-or-enforcement), [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts) |
-| Reliability and persistence | [AS-02](#as-02--make-live-updates-verifiable-and-atomic), [AS-03](#as-03--define-persistence-and-recovery-semantics), [AS-05](#as-05--coordinate-all-world-mutations), [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts), [AS-17](#as-17--preserve-history-when-system-messages-coalesce) |
+| Reliability and persistence | [AS-02](#as-02--make-live-updates-verifiable-and-atomic), [AS-03](#as-03--define-persistence-and-recovery-semantics), [AS-05](#as-05--coordinate-all-world-mutations), [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts), [AS-17](#as-17--preserve-history-when-system-messages-coalesce), [AS-22](#as-22--make-failed-spotlight-runs-inspectable-on-the-canvas) |
 | Operations and testing | [AS-01](#as-01--authenticate-or-remove-the-local-evaluator), [AS-02](#as-02--make-live-updates-verifiable-and-atomic), [AS-03](#as-03--define-persistence-and-recovery-semantics), [AS-18](#as-18--reduce-the-dependency-load-surface), [AS-19](#as-19--make-the-base-prompt-a-tested-consistent-contract), [AS-20](#as-20--complete-the-open-source-readiness-pass) |
 | Architecture and evolution | [AS-03](#as-03--define-persistence-and-recovery-semantics), [AS-04](#as-04--treat-model-context-as-untrusted-bounded-data), [AS-05](#as-05--coordinate-all-world-mutations), [AS-06](#as-06--decide-whether-automation-restrictions-are-policy-or-enforcement), [AS-14](#as-14--introduce-a-provider-neutral-inference-boundary), [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts), [AS-19](#as-19--make-the-base-prompt-a-tested-consistent-contract) |
-| Product, feature, and UX | [AS-06](#as-06--decide-whether-automation-restrictions-are-policy-or-enforcement), [AS-12](#as-12--specify-whether-run-now-shifts-the-schedule), [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts), [AS-16](#as-16--make-tool-card-removal-match-its-visible-meaning), [AS-17](#as-17--preserve-history-when-system-messages-coalesce), [AS-20](#as-20--complete-the-open-source-readiness-pass) |
+| Product, feature, and UX | [AS-06](#as-06--decide-whether-automation-restrictions-are-policy-or-enforcement), [AS-12](#as-12--specify-whether-run-now-shifts-the-schedule), [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts), [AS-16](#as-16--make-tool-card-removal-match-its-visible-meaning), [AS-17](#as-17--preserve-history-when-system-messages-coalesce), [AS-20](#as-20--complete-the-open-source-readiness-pass), [AS-22](#as-22--make-failed-spotlight-runs-inspectable-on-the-canvas) |
 | Performance and maintenance | [AS-04](#as-04--treat-model-context-as-untrusted-bounded-data), [AS-18](#as-18--reduce-the-dependency-load-surface), [AS-19](#as-19--make-the-base-prompt-a-tested-consistent-contract) |
 
 ---
@@ -512,3 +513,77 @@ context or accidental loss of a living image.
   update/build habits, and documentation responsibilities.
 - `operations.md` explains `heal-in-image.st`, logs, backups, and recovery.
 - Naming and internal phase jargon receive a newcomer-focused pass.
+
+## AS-22 — Make failed Spotlight runs inspectable on the canvas
+
+**Status:** ready<br>
+**Categories:** feature, ux, reliability<br>
+**Priority:** P1<br>
+**Effort:** L<br>
+**Dependencies:** AS-04; coordinate stable run identity and provenance with AS-15<br>
+**Source:** shared human/agent debugging brainstorm, 2026-07-11
+
+### Problem and argument
+
+When a Spotlight request fails, the evidence needed to understand it lives
+primarily in external gateway logs and request/response payloads. The user sees
+a generic failure while the agent cannot inspect the failed loop unless the
+user manually retrieves and supplies diagnostics. Projecting every successful
+run, performance statistic, or log event onto the canvas would instead create
+noise and mix failure diagnosis with a separate observability/optimization
+problem.
+
+### Proposed outcome
+
+Every definite Spotlight/gateway failure creates one bounded, redacted,
+inspectable canvas card near the failed interaction. The card lets a human
+inspect the trace without invoking the agent and explicitly invite the agent to
+debug the same visible evidence. Successful runs remain silent. This canvas
+projection complements rather than replaces independent external logs, traces,
+metrics, and debuggers.
+
+### Acceptance criteria
+
+- Each Spotlight submission keeps a bounded diagnostic buffer while it runs;
+  a successful terminal outcome creates no diagnostic canvas object.
+- An unresolved exception, gateway/model/tool error, invalid response,
+  rejected application, timeout, exhausted model loop, or explicit
+  unable-to-complete outcome creates exactly one failure card. An intermediate
+  error repaired before a successful terminal outcome does not.
+- The final run outcome determines failure even if text or a widget was created
+  before a later failure. A valid but disappointing or misunderstood result is
+  outside this first slice and creates no automatic card.
+- The card is an ordinary, persistent canvas object placed in the current
+  viewport near the failed interaction. It opens to a concise summary without
+  becoming modal, taking keyboard focus, or blocking continued canvas work.
+- A bounded, scrollable detail view orders the submitted prompt and effective
+  context, model responses, tool calls/results, repair attempts, terminal
+  failure, and objects created or modified before failure.
+- Credentials, API keys, authorization headers, cookies, and recognized
+  secrets are excluded before diagnostics are persisted, rendered, or sent.
+  Large request, response, and tool-result bodies are truncated with visible
+  markers and deterministic limits.
+- **Inspect trace** reveals the stored evidence without invoking the model.
+  **Debug this run** opens Spotlight and explicitly includes only the same
+  visible, redacted, bounded capsule. Selecting or ignoring the card never
+  silently adds it to an unrelated prompt.
+- Failure cards survive image saves and reopening like normal canvas objects
+  and remain until the user deletes them; there is no pinned/unpinned state or
+  automatic cleanup in this slice.
+- External diagnostics remain independently available if the image, UI, or
+  canvas projection fails. Shared collection code must not make the canvas a
+  required logging sink or materially alter run timing and failure behavior.
+- Automated tests cover successful, repaired, partial-change, malformed,
+  timeout, and unable-to-complete runs; redaction and size limits; card
+  placement/focus; persistence; and both inspection actions.
+
+### Explicitly deferred
+
+- Token cost, performance analysis, latency dashboards, and general successful
+  run inspection, except timing directly required to explain a failure.
+- User-reported semantic failures where the run completed validly but did not
+  satisfy the user's intent.
+- Post-creation widget/runtime failures from reactions, scheduled automations,
+  background refreshes, and widget interactions. A later slice can reuse the
+  diagnostic event model with widget/trigger attribution and repeated-failure
+  coalescing.
