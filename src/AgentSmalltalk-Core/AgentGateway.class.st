@@ -16,7 +16,11 @@ Class {
 		'log',
 		'statusBlock',
 		'transport',
-		'reportedAsyncFailureCounts'
+		'reportedAsyncFailureCounts',
+		'requestCount',
+		'usageTotals',
+		'previousToolFailed',
+		'repairAttempts'
 	],
 	#classInstVars : [
 		'last',
@@ -93,7 +97,20 @@ AgentGateway >> initialize [
 	log := OrderedCollection new.
 	statusBlock := [ :msg |  ].
 	transport := AgentAnthropicTransport new.
-	reportedAsyncFailureCounts := Dictionary new
+	reportedAsyncFailureCounts := Dictionary new.
+	self resetEvaluationMetrics
+]
+
+{ #category : 'evaluation metrics' }
+AgentGateway >> resetEvaluationMetrics [
+	"A gateway can be reused programmatically. Metrics describe its current run,
+	not stale failures or token usage from an earlier request."
+	requestCount := 0.
+	usageTotals := Dictionary new.
+	#(input_tokens output_tokens cache_creation_input_tokens cache_read_input_tokens)
+		do: [ :key | usageTotals at: key put: 0 ].
+	previousToolFailed := false.
+	repairAttempts := 0
 ]
 
 { #category : 'accessing' }
@@ -150,6 +167,21 @@ AgentGateway >> transport: aTransport [
 	transport := aTransport
 ]
 
+{ #category : 'evaluation metrics' }
+AgentGateway >> requestCount [
+	^ requestCount ifNil: [ 0 ]
+]
+
+{ #category : 'evaluation metrics' }
+AgentGateway >> repairAttempts [
+	^ repairAttempts ifNil: [ 0 ]
+]
+
+{ #category : 'evaluation metrics' }
+AgentGateway >> usageTotals [
+	^ (usageTotals ifNil: [ Dictionary new ]) copy
+]
+
 { #category : 'running' }
 AgentGateway >> run: userText [
 	^ self class runMutex critical: [ self runUnlocked: userText ]
@@ -158,6 +190,7 @@ AgentGateway >> run: userText [
 { #category : 'running' }
 AgentGateway >> runUnlocked: userText [
 	| messages widgetsBefore finalToolResults |
+	self resetEvaluationMetrics.
 	self class noteLast: self.
 	self logAdd: '===== USER REQUEST: ' , userText.
 	self status: 'thinking...'.
@@ -241,6 +274,7 @@ AgentGateway >> runTool: aToolUse [
 { #category : 'running' }
 AgentGateway >> runTool: aToolUse forUserRequest: userText [
 	| name input result |
+	previousToolFailed == true ifTrue: [ repairAttempts := self repairAttempts + 1 ].
 	name := aToolUse at: 'name' ifAbsent: [ 'evaluate_smalltalk' ].
 	input := aToolUse at: 'input' ifAbsent: [ Dictionary new ].
 	name = 'evaluate_smalltalk'
@@ -257,8 +291,9 @@ AgentGateway >> runTool: aToolUse forUserRequest: userText [
 				ifTrue: [
 					self logAdd: '??? ' , (STONJSON toString: input).
 					result := AgentImageSearch handle: input ]
-				ifFalse: [ result := 'ERROR: unknown tool ' , name ] ].
+					ifFalse: [ result := 'ERROR: unknown tool ' , name ] ].
 	self logAdd: result.
+	previousToolFailed := result beginsWith: 'ERROR:'.
 	result := self appendPendingAsyncFailuresTo: result.
 	^ { 'type' -> 'tool_result'.
 		'tool_use_id' -> (aToolUse at: 'id').
@@ -363,11 +398,30 @@ AgentGateway >> post: messages includeTools: includeTools [
 	self logAdd: 'HTTP REQUEST: ' , (STONJSON toString: payload).
 	[ response := transport postPayload: payload apiKey: self apiKey ]
 		on: Error
-		do: [ :error |
-			self logAdd: 'HTTP ERROR: ' , error messageText.
-			error pass ].
+			do: [ :error |
+				self logAdd: 'HTTP ERROR: ' , error messageText.
+				error pass ].
+	requestCount := self requestCount + 1.
+	self recordUsageFrom: response.
 	self logAdd: 'HTTP RESPONSE: ' , (STONJSON toString: response).
 	^ response
+]
+
+{ #category : 'evaluation metrics' }
+AgentGateway >> recordUsageFrom: response [
+	"Messages API responses report token usage but not the billed dollar amount.
+	Keep exact usage totals so provider evaluations can record evidence without
+	pretending to know a price that was not returned by the API."
+	| usage |
+	usage := response at: 'usage' ifAbsent: [ ^ self ].
+	usageTotals ifNil: [ usageTotals := Dictionary new ].
+	#(input_tokens output_tokens cache_creation_input_tokens cache_read_input_tokens)
+		do: [ :key |
+			| value |
+			value := usage at: key ifAbsent: [ 0 ].
+			usageTotals
+				at: key
+				put: (usageTotals at: key ifAbsent: [ 0 ]) + value ]
 ]
 
 { #category : 'running' }

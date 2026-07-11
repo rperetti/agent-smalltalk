@@ -12,8 +12,8 @@ to explain behavior but is not the canonical planning queue or runbook.
 
 *Last updated: 2026-07-10 (gateway round-cap semantics, fact number scanner,
 canvas-space liveness, focus-gated manual fact reactions, compiler-enforced
-reaction and fact-write policies, and result-reporting fallback; 161
-clean-image tests).*
+reaction and fact-write policies, verification/evaluation gates, and
+result-reporting fallback; 162 clean-image tests).*
 
 ## One-paragraph summary
 
@@ -64,6 +64,10 @@ The bridge to the Anthropic Messages API and the owner of the agentic loop.
 - Transcript: every event and the **full HTTP request/response JSON** are
   appended to `logs/gateway.log`; `AgentGateway last log` gives in-image
   access to the most recent run.
+- Provider-evaluation metrics: each gateway tracks request rounds, repair
+  attempts, and exact API token usage. Explicit paid smoke runs write JSON
+  evidence (model, prompt revision, latency, usage, transparent billed-cost
+  availability, outcome, and checks) to `logs/provider-evaluations.jsonl`.
 - Asynchronous widget failures are posted as keyed system messages and each
   new occurrence is injected into the next tool result. The model therefore
   sees failures that happen after an earlier evaluation returned and must
@@ -504,10 +508,10 @@ reference is [operations.md](operations.md). In short: `build.sh` creates a
 fresh world, `update.sh` reloads platform source into the living world,
 `test.sh` verifies a disposable pristine image, and `run.sh` opens the canvas.
 
-The operations guide also distinguishes diagnostic smoke scripts from scripts
-whose exit status currently represents a real acceptance result. Making every
-smoke script a trustworthy gate is tracked as
-[AS-13](backlog.md#as-13--turn-smoke-scripts-into-real-verification-gates).
+`./verify-all.sh` is the deterministic local release signal: it runs SUnit,
+the automation smoke, and parses paid evaluations without invoking a provider.
+`./evaluate.sh` explicitly runs paid model evaluations in fresh images and
+records structured evidence; it is never part of the deterministic gate.
 
 ## Known limitations / accepted risks
 

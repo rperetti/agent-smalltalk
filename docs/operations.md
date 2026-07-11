@@ -90,7 +90,7 @@ Until AS-02 is resolved:
 
 `./test.sh` creates a disposable image, loads the pinned default dependency
 graph and all project packages, then runs the suite enumerated in
-`scripts/run-tests.st`. As of 2026-07-09, the clean suite contains 144 tests.
+`scripts/run-tests.st`. As of 2026-07-10, the clean suite contains 162 tests.
 
 The suite is strongest for deterministic object behavior: gateway tool
 plumbing with a fake transport, sandbox results and timeouts, fact/note/context
@@ -102,23 +102,37 @@ The current pinned UI load emits many upstream undeclared-reference warnings
 while still passing. Dependency-surface reduction is tracked by
 [AS-18](backlog.md#as-18--reduce-the-dependency-load-surface).
 
-## Smoke and acceptance scripts
+## Verification and evaluation gates
 
-| script | model/API call | current role |
+`./verify-all.sh` is the local release signal. It runs SUnit, the deterministic
+automation vertical smoke, and parses every paid smoke script without sending a
+provider request. It never opens or mutates `Agent.image`.
+
+`./evaluate.sh` is intentionally separate. It requires `ANTHROPIC_API_KEY`,
+runs each named provider evaluation in a fresh disposable image, and fails on
+the first semantic failure. To run one evaluation rather than the full suite:
+
+```bash
+./evaluate.sh fact-widget
+```
+
+Each paid run appends a JSON line to `logs/provider-evaluations.jsonl` with
+model, prompt revision, request rounds, latency, repair attempts, exact token
+usage, an explicit cost-unavailable marker (the provider response does not
+return billed USD), outcome, and check-specific details.
+
+| script | model/API call | role |
 |---|---:|---|
-| `smoke-automations.st` | no | Deterministic automation vertical slice with real pass/fail exit. |
-| `smoke-fact-widget.st` | yes | Same-request fact-backed weather widget with real pass/fail exit. |
-| `smoke-widget.st` | yes | Diagnostic cold generation transcript; currently always exits success. |
-| `smoke-modify.st` | yes | Live modification demonstration; some failures exit, final outcome does not gate exit. |
-| `smoke-textfield.st` | yes | Diagnostic generation/round transcript; currently always exits success. |
-| `smoke-facts.st` | yes | Multi-request fact demonstration; currently always exits success. |
-| `smoke-tools.st` | yes | Tool creation/reuse demonstration; currently always exits success. |
-| `smoke-selection.st` | yes | Selection/live-reference demonstration; currently always exits success. |
-| `smoke-reactive.st` | yes | Fact/widget reaction demonstration; currently always exits success. |
-
-Do not treat a zero exit status from the diagnostic scripts as proof of their
-printed semantic outcome. Converting every smoke into a trustworthy gate is
-[AS-13](backlog.md#as-13--turn-smoke-scripts-into-real-verification-gates).
+| `smoke-automations.st` | no | Deterministic automation vertical slice with a real pass/fail exit. |
+| `verify-provider-smoke-syntax.st` | no | Parses every paid script as part of `verify-all`. |
+| `smoke-fact-widget.st` | yes | Same-request fact-backed weather widget gate. |
+| `smoke-widget.st` | yes | Counter creation and real instance increment gate. |
+| `smoke-modify.st` | yes | Live modification/state-preservation gate. |
+| `smoke-textfield.st` | yes | Text-control and reverse-logic generation gate. |
+| `smoke-facts.st` | yes | Fact capture/replacement and fact-widget gate. |
+| `smoke-tools.st` | yes | Reusable-tool creation/context/reuse gate. |
+| `smoke-selection.st` | yes | Selection-scoped live-reference gate. |
+| `smoke-reactive.st` | yes | Fact and widget reaction gate. |
 
 ## Running and asking headlessly
 
@@ -144,6 +158,9 @@ Files under `logs/` are gitignored:
 
 - `gateway.log` — append-only user requests, status events, generated code,
   tool results/errors, and complete HTTP request/response JSON;
+- `provider-evaluations.jsonl` — structured evidence from explicit paid
+  evaluations; provider token usage is exact, while billed USD is marked
+  unavailable because the API response does not return it;
 - `remote.log` — failures while starting or reviving the local listener;
 - `session.status` — listener heartbeat written roughly every 30 seconds while
   the interactive watchdog is active.

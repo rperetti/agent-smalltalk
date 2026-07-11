@@ -66,6 +66,8 @@ model](docs/security.md).
 | `./build.sh` | build a FRESH verified `pharo/Agent.image` from `src/`; backs up/replaces any existing world only after the new image loads and tests pass |
 | `./update.sh` | reload tooling from `src/` into the LIVING image — world preserved; use this one |
 | `./test.sh` | build a disposable clean image and run SUnit; never opens `Agent.image` |
+| `./verify-all.sh` | run every deterministic release gate: SUnit, automation smoke, and paid-smoke syntax checks |
+| `./evaluate.sh` | explicitly run paid model evaluations in fresh images; requires `ANTHROPIC_API_KEY` and writes JSON evidence |
 | `./run.sh` | open the Agent canvas (Cmd/Ctrl+Enter summons the spotlight bar) |
 
 `build.sh` accepts `core`/`all`, `--output PATH`, `--no-verify`,

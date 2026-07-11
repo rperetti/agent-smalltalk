@@ -22,10 +22,9 @@ the `Now` decisions clarify the architecture.
 
 | rank | ID | title | categories | priority | effort |
 |---:|---|---|---|---|---|
-| 5 | [AS-13](#as-13--turn-smoke-scripts-into-real-verification-gates) | Turn smoke scripts into real verification gates | testing, reliability | P1 | M |
-| 6 | [AS-05](#as-05--coordinate-all-world-mutations) | Coordinate all world mutations | architecture, reliability | P1 | L |
-| 7 | [AS-06](#as-06--decide-whether-automation-restrictions-are-policy-or-enforcement) | Decide whether automation restrictions are policy or enforcement | security, product, architecture | P1 | L |
-| 8 | [AS-19](#as-19--make-the-base-prompt-a-tested-consistent-contract) | Make the base prompt a tested, consistent contract | testing, architecture, maintenance | P1 | M |
+| 5 | [AS-05](#as-05--coordinate-all-world-mutations) | Coordinate all world mutations | architecture, reliability | P1 | L |
+| 6 | [AS-06](#as-06--decide-whether-automation-restrictions-are-policy-or-enforcement) | Decide whether automation restrictions are policy or enforcement | security, product, architecture | P1 | L |
+| 7 | [AS-19](#as-19--make-the-base-prompt-a-tested-consistent-contract) | Make the base prompt a tested, consistent contract | testing, architecture, maintenance | P1 | M |
 
 ## Later
 
@@ -33,14 +32,14 @@ Real work, but not proposed as part of the next foundation milestone.
 
 | rank | ID | title | categories | priority | effort |
 |---:|---|---|---|---|---|
-| 9 | [AS-21](#as-21--auto-resize-the-spotlight-for-long-prompts) | Auto-resize the spotlight for long prompts | bug, ux | P2 | S |
-| 10 | [AS-12](#as-12--specify-whether-run-now-shifts-the-schedule) | Specify whether Run now shifts the schedule | product, bug | P2 | S |
-| 11 | [AS-14](#as-14--introduce-a-provider-neutral-inference-boundary) | Introduce a provider-neutral inference boundary | architecture, reliability | P2 | L |
-| 12 | [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts) | Add provenance, health, and rollback for generated artifacts | architecture, feature, reliability | P1 | L |
-| 13 | [AS-16](#as-16--make-tool-card-removal-match-its-visible-meaning) | Make tool-card removal match its visible meaning | ux, product, reliability | P2 | M |
-| 14 | [AS-17](#as-17--preserve-history-when-system-messages-coalesce) | Preserve history when system messages coalesce | reliability, ux | P2 | S |
-| 15 | [AS-18](#as-18--reduce-the-dependency-load-surface) | Reduce the dependency load surface | performance, maintenance, operations | P2 | M |
-| 16 | [AS-20](#as-20--complete-the-open-source-readiness-pass) | Complete the open-source readiness pass | documentation, operations, product | P2 | M |
+| 8 | [AS-21](#as-21--auto-resize-the-spotlight-for-long-prompts) | Auto-resize the spotlight for long prompts | bug, ux | P2 | S |
+| 9 | [AS-12](#as-12--specify-whether-run-now-shifts-the-schedule) | Specify whether Run now shifts the schedule | product, bug | P2 | S |
+| 10 | [AS-14](#as-14--introduce-a-provider-neutral-inference-boundary) | Introduce a provider-neutral inference boundary | architecture, reliability | P2 | L |
+| 11 | [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts) | Add provenance, health, and rollback for generated artifacts | architecture, feature, reliability | P1 | L |
+| 12 | [AS-16](#as-16--make-tool-card-removal-match-its-visible-meaning) | Make tool-card removal match its visible meaning | ux, product, reliability | P2 | M |
+| 13 | [AS-17](#as-17--preserve-history-when-system-messages-coalesce) | Preserve history when system messages coalesce | reliability, ux | P2 | S |
+| 14 | [AS-18](#as-18--reduce-the-dependency-load-surface) | Reduce the dependency load surface | performance, maintenance, operations | P2 | M |
+| 15 | [AS-20](#as-20--complete-the-open-source-readiness-pass) | Complete the open-source readiness pass | documentation, operations, product | P2 | M |
 
 ## Category views
 
@@ -52,8 +51,8 @@ cross-category priority order above.
 |---|---|
 | Bugs and behavioral correctness | [AS-21](#as-21--auto-resize-the-spotlight-for-long-prompts), [AS-12](#as-12--specify-whether-run-now-shifts-the-schedule) |
 | Security and authority | [AS-01](#as-01--authenticate-or-remove-the-local-evaluator), [AS-04](#as-04--treat-model-context-as-untrusted-bounded-data), [AS-06](#as-06--decide-whether-automation-restrictions-are-policy-or-enforcement), [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts) |
-| Reliability and persistence | [AS-02](#as-02--make-live-updates-verifiable-and-atomic), [AS-03](#as-03--define-persistence-and-recovery-semantics), [AS-05](#as-05--coordinate-all-world-mutations), [AS-13](#as-13--turn-smoke-scripts-into-real-verification-gates), [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts), [AS-17](#as-17--preserve-history-when-system-messages-coalesce) |
-| Operations and testing | [AS-01](#as-01--authenticate-or-remove-the-local-evaluator), [AS-02](#as-02--make-live-updates-verifiable-and-atomic), [AS-03](#as-03--define-persistence-and-recovery-semantics), [AS-13](#as-13--turn-smoke-scripts-into-real-verification-gates), [AS-18](#as-18--reduce-the-dependency-load-surface), [AS-19](#as-19--make-the-base-prompt-a-tested-consistent-contract), [AS-20](#as-20--complete-the-open-source-readiness-pass) |
+| Reliability and persistence | [AS-02](#as-02--make-live-updates-verifiable-and-atomic), [AS-03](#as-03--define-persistence-and-recovery-semantics), [AS-05](#as-05--coordinate-all-world-mutations), [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts), [AS-17](#as-17--preserve-history-when-system-messages-coalesce) |
+| Operations and testing | [AS-01](#as-01--authenticate-or-remove-the-local-evaluator), [AS-02](#as-02--make-live-updates-verifiable-and-atomic), [AS-03](#as-03--define-persistence-and-recovery-semantics), [AS-18](#as-18--reduce-the-dependency-load-surface), [AS-19](#as-19--make-the-base-prompt-a-tested-consistent-contract), [AS-20](#as-20--complete-the-open-source-readiness-pass) |
 | Architecture and evolution | [AS-03](#as-03--define-persistence-and-recovery-semantics), [AS-04](#as-04--treat-model-context-as-untrusted-bounded-data), [AS-05](#as-05--coordinate-all-world-mutations), [AS-06](#as-06--decide-whether-automation-restrictions-are-policy-or-enforcement), [AS-14](#as-14--introduce-a-provider-neutral-inference-boundary), [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts), [AS-19](#as-19--make-the-base-prompt-a-tested-consistent-contract) |
 | Product, feature, and UX | [AS-06](#as-06--decide-whether-automation-restrictions-are-policy-or-enforcement), [AS-21](#as-21--auto-resize-the-spotlight-for-long-prompts), [AS-12](#as-12--specify-whether-run-now-shifts-the-schedule), [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts), [AS-16](#as-16--make-tool-card-removal-match-its-visible-meaning), [AS-17](#as-17--preserve-history-when-system-messages-coalesce), [AS-20](#as-20--complete-the-open-source-readiness-pass) |
 | Performance and maintenance | [AS-04](#as-04--treat-model-context-as-untrusted-bounded-data), [AS-18](#as-18--reduce-the-dependency-load-surface), [AS-19](#as-19--make-the-base-prompt-a-tested-consistent-contract) |
@@ -331,41 +330,6 @@ or explicitly reset it from the manual run.
 - Interval and daily schedules have deterministic tests for manual runs.
 - The next-run label updates consistently with the chosen behavior.
 
-## AS-13 — Turn smoke scripts into real verification gates
-
-**Status:** candidate<br>
-**Categories:** testing, reliability, operations<br>
-**Priority:** P1<br>
-**Effort:** M<br>
-**Dependencies:** none<br>
-**Source:** repository review and first hosted-CI experiment
-
-### Problem and argument
-
-Several `scripts/smoke-*.st` files print failure outcomes but still call
-`Smalltalk exitSuccess`, so they are demonstrations rather than acceptance
-gates. Some unit tests also prove helper behavior rather than the product
-behavior they name. Hosted CI is deferred after a Linux `libgit2` crash, but a
-trustworthy local verification command is still valuable.
-
-### Proposed outcome
-
-Deterministic checks fail reliably, paid/model-dependent evaluations report
-structured evidence, and one local command provides an honest release signal.
-
-### Acceptance criteria
-
-- Every smoke script computes an explicit pass/fail outcome and exits
-  accordingly.
-- Deterministic tests and paid provider evaluations are separate suites.
-- Provider evaluations record model, prompt revision, rounds, latency, cost,
-  repairs, and outcome.
-- Vacuous tests are replaced with assertions against actual widget state or
-  behavior.
-- A local `verify-all` workflow runs all non-paid gates.
-- Hosted CI is revisited using a prebuilt dependency image or an upstream
-  Pharo/Linux fix when collaboration makes it worthwhile.
-
 ## AS-14 — Introduce a provider-neutral inference boundary
 
 **Status:** candidate<br>
@@ -402,7 +366,7 @@ translate that protocol to Anthropic, OpenAI, or another service.
 **Categories:** architecture, feature, reliability<br>
 **Priority:** P1<br>
 **Effort:** L<br>
-**Dependencies:** AS-03, AS-05, AS-13<br>
+**Dependencies:** AS-03, AS-05<br>
 **Source:** repository review, 2026-07-09
 
 ### Problem and argument
@@ -492,7 +456,7 @@ history required to understand repeated failures.
 **Categories:** performance, maintenance, operations<br>
 **Priority:** P2<br>
 **Effort:** M<br>
-**Dependencies:** AS-13<br>
+**Dependencies:** none<br>
 **Source:** clean-image verification output, 2026-07-09
 
 ### Problem and argument
@@ -557,7 +521,7 @@ and behavioral evaluations for common workflows and failure cases.
 **Categories:** documentation, operations, product<br>
 **Priority:** P2<br>
 **Effort:** M<br>
-**Dependencies:** AS-02, AS-03, AS-13<br>
+**Dependencies:** AS-02, AS-03<br>
 **Source:** open-source-readiness discussion, 2026-07-06
 
 ### Problem and argument

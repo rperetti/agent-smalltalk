@@ -1,6 +1,7 @@
 "
-Offline tests for the gateway: payload shapes and tool plumbing.
-No network calls — the live loop is exercised by scripts/smoke-gateway.sh.
+Offline tests for the gateway: payload shapes, tool plumbing, and evaluation
+metrics. No network calls — live behavior is exercised explicitly by
+./evaluate.sh.
 "
 Class {
 	#name : 'AgentGatewayTest',
@@ -262,6 +263,52 @@ AgentGatewayTest >> testScriptedTransportExercisesCompleteToolLoop [
 	toolResult := ((secondRequest at: 'messages') last at: 'content') first.
 	self assert: (toolResult at: 'tool_use_id') equals: 'tu_loop'.
 	self assert: (toolResult at: 'content') equals: 'RESULT: 7'
+]
+
+{ #category : 'tests' }
+AgentGatewayTest >> testProviderEvaluationMetricsRecordUsageAndRepairAttempts [
+	| transport report usage |
+	transport := AgentGatewayFakeTransport responses: {
+		{ 'content' -> {
+			{ 'type' -> 'tool_use'.
+				'id' -> 'tu_bad'.
+				'name' -> 'evaluate_smalltalk'.
+				'input' -> ({ 'code' -> '1 zork' } asDictionary) } asDictionary
+			}. 'usage' -> ({ 'input_tokens' -> 10. 'output_tokens' -> 2 } asDictionary) }
+			asDictionary.
+		{ 'content' -> {
+			{ 'type' -> 'tool_use'.
+				'id' -> 'tu_repair'.
+				'name' -> 'evaluate_smalltalk'.
+				'input' -> ({ 'code' -> '3 + 4' } asDictionary) } asDictionary
+			}. 'usage' -> ({ 'input_tokens' -> 12. 'output_tokens' -> 3 } asDictionary) }
+			asDictionary.
+		{ 'content' -> {
+			{ 'type' -> 'text'. 'text' -> 'seven' } asDictionary
+			}. 'usage' -> ({ 'input_tokens' -> 8. 'output_tokens' -> 4 } asDictionary) }
+			asDictionary }.
+	gateway
+		transport: transport;
+		apiKey: 'test-key';
+		maxRounds: 4.
+	gateway run: 'calculate three plus four'.
+	usage := gateway usageTotals.
+	self assert: gateway requestCount equals: 3.
+	self assert: gateway repairAttempts equals: 1.
+	self assert: (usage at: 'input_tokens') equals: 30.
+	self assert: (usage at: 'output_tokens') equals: 9.
+	report := AgentEvaluation
+		reportNamed: 'metrics-test'
+		gateways: { gateway }
+		startedAt: 100
+		endedAt: 145
+		passed: true
+		details: ({ 'check' -> true } asDictionary).
+	self assert: (report at: 'outcome') equals: 'passed'.
+	self assert: (report at: 'rounds') equals: 3.
+	self assert: (report at: 'repairs') equals: 1.
+	self assert: ((report at: 'usage') at: 'input_tokens') equals: 30.
+	self assert: (report at: 'latency_ms') equals: 45
 ]
 
 { #category : 'tests' }
