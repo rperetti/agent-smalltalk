@@ -37,9 +37,8 @@ Real work, but not proposed as part of the next foundation milestone.
 | 10 | [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts) | Add provenance, health, and rollback for generated artifacts | architecture, feature, reliability | P1 | L |
 | 11 | [AS-16](#as-16--make-tool-card-removal-match-its-visible-meaning) | Make tool-card removal match its visible meaning | ux, product, reliability | P2 | M |
 | 12 | [AS-17](#as-17--preserve-history-when-system-messages-coalesce) | Preserve history when system messages coalesce | reliability, ux | P2 | S |
-| 13 | [AS-18](#as-18--reduce-the-dependency-load-surface) | Reduce the dependency load surface | performance, maintenance, operations | P2 | M |
-| 14 | [AS-20](#as-20--complete-the-open-source-readiness-pass) | Complete the open-source readiness pass | documentation, operations, product | P2 | M |
-| 15 | [AS-22](#as-22--make-failed-spotlight-runs-inspectable-on-the-canvas) | Make failed Spotlight runs inspectable on the canvas | feature, ux, reliability | P1 | L |
+| 13 | [AS-20](#as-20--complete-the-open-source-readiness-pass) | Complete the open-source readiness pass | documentation, operations, product | P2 | M |
+| 14 | [AS-22](#as-22--make-failed-spotlight-runs-inspectable-on-the-canvas) | Make failed Spotlight runs inspectable on the canvas | feature, ux, reliability | P1 | L |
 
 ## Category views
 
@@ -52,10 +51,10 @@ cross-category priority order above.
 | Bugs and behavioral correctness | [AS-12](#as-12--specify-whether-run-now-shifts-the-schedule) |
 | Security and authority | [AS-01](#as-01--authenticate-or-remove-the-local-evaluator), [AS-04](#as-04--treat-model-context-as-untrusted-bounded-data), [AS-06](#as-06--decide-whether-automation-restrictions-are-policy-or-enforcement), [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts) |
 | Reliability and persistence | [AS-02](#as-02--make-live-updates-verifiable-and-atomic), [AS-03](#as-03--define-persistence-and-recovery-semantics), [AS-05](#as-05--coordinate-all-world-mutations), [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts), [AS-17](#as-17--preserve-history-when-system-messages-coalesce), [AS-22](#as-22--make-failed-spotlight-runs-inspectable-on-the-canvas) |
-| Operations and testing | [AS-01](#as-01--authenticate-or-remove-the-local-evaluator), [AS-02](#as-02--make-live-updates-verifiable-and-atomic), [AS-03](#as-03--define-persistence-and-recovery-semantics), [AS-18](#as-18--reduce-the-dependency-load-surface), [AS-19](#as-19--make-the-base-prompt-a-tested-consistent-contract), [AS-20](#as-20--complete-the-open-source-readiness-pass) |
+| Operations and testing | [AS-01](#as-01--authenticate-or-remove-the-local-evaluator), [AS-02](#as-02--make-live-updates-verifiable-and-atomic), [AS-03](#as-03--define-persistence-and-recovery-semantics), [AS-19](#as-19--make-the-base-prompt-a-tested-consistent-contract), [AS-20](#as-20--complete-the-open-source-readiness-pass) |
 | Architecture and evolution | [AS-03](#as-03--define-persistence-and-recovery-semantics), [AS-04](#as-04--treat-model-context-as-untrusted-bounded-data), [AS-05](#as-05--coordinate-all-world-mutations), [AS-06](#as-06--decide-whether-automation-restrictions-are-policy-or-enforcement), [AS-14](#as-14--introduce-a-provider-neutral-inference-boundary), [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts), [AS-19](#as-19--make-the-base-prompt-a-tested-consistent-contract) |
 | Product, feature, and UX | [AS-06](#as-06--decide-whether-automation-restrictions-are-policy-or-enforcement), [AS-12](#as-12--specify-whether-run-now-shifts-the-schedule), [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts), [AS-16](#as-16--make-tool-card-removal-match-its-visible-meaning), [AS-17](#as-17--preserve-history-when-system-messages-coalesce), [AS-20](#as-20--complete-the-open-source-readiness-pass), [AS-22](#as-22--make-failed-spotlight-runs-inspectable-on-the-canvas) |
-| Performance and maintenance | [AS-04](#as-04--treat-model-context-as-untrusted-bounded-data), [AS-18](#as-18--reduce-the-dependency-load-surface), [AS-19](#as-19--make-the-base-prompt-a-tested-consistent-contract) |
+| Performance and maintenance | [AS-04](#as-04--treat-model-context-as-untrusted-bounded-data), [AS-19](#as-19--make-the-base-prompt-a-tested-consistent-contract) |
 
 ---
 
@@ -415,36 +414,6 @@ history required to understand repeated failures.
 - The card summarizes repetitions and offers a way to inspect details.
 - Gateway async-failure reporting does not miss a newly recreated occurrence.
 - Tests cover identical and differing repeated messages.
-
-## AS-18 — Reduce the dependency load surface
-
-**Status:** candidate<br>
-**Categories:** performance, maintenance, operations<br>
-**Priority:** P2<br>
-**Effort:** M<br>
-**Dependencies:** none<br>
-**Source:** clean-image verification output, 2026-07-09
-
-### Problem and argument
-
-The current default baselines load extensive Bloc/Toplo examples and tests and
-emit a large volume of upstream undeclared-reference warnings. The suite still
-passes, but build time, image/cache size, warning noise, and compatibility
-surface are larger than the product requires.
-
-### Proposed outcome
-
-Fresh images load the smallest pinned runtime graph that supports the product,
-while dependency tests/examples remain available only when deliberately
-requested.
-
-### Acceptance criteria
-
-- Required upstream runtime packages/groups are identified explicitly.
-- Default build and test paths avoid unused examples and upstream test suites.
-- AgentSmalltalk's clean-image suite still passes after the reduction.
-- Build duration, resulting image size, cache size, and warning count are
-  measured before and after.
 
 ## AS-19 — Make the base prompt a tested, consistent contract
 

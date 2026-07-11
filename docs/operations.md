@@ -88,9 +88,9 @@ Until AS-02 is resolved:
 
 ## Testing
 
-`./test.sh` creates a disposable image, loads the pinned default dependency
+`./test.sh` creates a disposable image, loads the pinned production dependency
 graph and all project packages, then runs the suite enumerated in
-`scripts/run-tests.st`. As of 2026-07-10, the clean suite contains 167 tests.
+`scripts/run-tests.st`.
 
 The suite is strongest for deterministic object behavior: gateway tool
 plumbing with a fake transport, sandbox results and timeouts, fact/note/context
@@ -98,9 +98,43 @@ behavior, selection math, scheduler timing, histories, widget lifecycle, and
 tool cards. It does not make paid provider calls or prove the living image's
 full snapshot/recovery path.
 
-The current pinned UI load emits many upstream undeclared-reference warnings
-while still passing. Dependency-surface reduction is tracked by
-[AS-18](backlog.md#as-18--reduce-the-dependency-load-surface).
+The full build's production UI closure is explicit in
+`BaselineOfAgentSmalltalk` and `scripts/load-all.st`. It includes the canvas
+renderer, Bee theme, and the Toplo Album, Label, Button, TextField, Checkbox,
+and ProgressBar vocabulary promised to generated widgets. Upstream tests,
+examples, demos, and developer tools are excluded and are guarded by
+`AgentDependencyLoadTest`.
+
+### Upstream UI development
+
+When investigating or upgrading Bloc/Toplo itself, start with a disposable
+image, never the living `pharo/Agent.image`, then deliberately load the full
+upstream graph:
+
+```bash
+./build.sh --output /tmp/Agent-upstream-dev.image --no-verify --no-backup
+pharo/vm/Pharo.app/Contents/MacOS/Pharo --headless /tmp/Agent-upstream-dev.image \
+  st scripts/load-upstream-development.st
+```
+
+`scripts/load-upstream-development.st` adds the upstream test/example/tool
+surface at the same pinned revisions. It is intentionally outside all normal
+build, test, and verification paths.
+
+### Dependency-load measurement
+
+On 2026-07-11, clean `build.sh --no-verify` runs from otherwise identical
+temporary workspaces and empty dependency caches produced:
+
+| metric | broad upstream defaults | production closure |
+|---|---:|---:|
+| build duration | 100.15 s | 93.28 s |
+| visual-stack packages in image | 146 | 71 |
+| upstream test/example/demo/dev packages | 48 | 0 |
+| upstream undeclared-reference warnings | 365 | 82 |
+| image size | 109 MiB | 95 MiB |
+| matching `.changes` size | 17 MiB | 13 MiB |
+| dependency cache (`iceberg` + `package-cache`) | 100.8 MiB | 91.0 MiB |
 
 ## Verification and evaluation gates
 

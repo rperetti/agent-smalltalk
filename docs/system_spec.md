@@ -28,10 +28,12 @@ calls.
 
 ## Components
 
-All code is in `src/` as Tonel packages, loaded by `BaselineOfAgentSmalltalk`
-(groups: `Core` without UI/Bloc; `default` with everything). Dependencies:
-Bloc (graphics scene graph) and Toplo (widget set on Bloc), both from
-pharo-graphics on GitHub.
+All code is in `src/` as Tonel packages. `BaselineOfAgentSmalltalk` defines
+`Core` (without UI/Bloc) and the full package set. `scripts/load-all.st` first
+loads the baseline's exact production Bloc/Toplo closure, then loads those
+Tonel packages directly so upstream broad defaults cannot add tests, examples,
+or developer tools. Dependencies are Bloc (graphics scene graph) and Toplo
+(widget set on Bloc), both pinned from pharo-graphics on GitHub.
 
 ### AgentGateway (Core)
 

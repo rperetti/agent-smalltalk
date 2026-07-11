@@ -99,10 +99,12 @@ Headless one-shot ask:
   request/response JSON. In-image: `AgentGateway last log` for the most
   recent run. The API key is never logged.
 
-Bloc, Toplo, and their transitive dependencies are pinned to exact revisions
-in the baseline, so fresh builds and local test runs use the same graphics
-stack. Testing currently runs on the user's machine via `./test.sh`; hosted
-GitHub CI is deferred.
+Bloc, Toplo, and their transitive dependencies are pinned to exact revisions.
+The normal full build loads only AgentSmalltalk's declared production UI
+closure; upstream tests, examples, demos, and developer tools are excluded.
+They remain available through the explicit disposable-image path documented in
+`docs/operations.md`. Testing currently runs on the user's machine via
+`./test.sh`; hosted GitHub CI is deferred.
 
 ## Acknowledgments
 
