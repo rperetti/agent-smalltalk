@@ -7,3 +7,4 @@ pharo-local/
 backups/
 PharoDebug.log
 logs/
+crash.dmp

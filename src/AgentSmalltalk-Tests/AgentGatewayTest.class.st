@@ -202,6 +202,17 @@ AgentGatewayTest >> testSystemPromptIncludesBasePrompt [
 ]
 
 { #category : 'tests' }
+AgentGatewayTest >> testSystemPromptForbidsEmojiAndPictographs [
+	| prompt |
+	prompt := gateway systemPrompt.
+	self assert: (prompt includesSubstring: 'Do not put emoji or Unicode pictographs in text strings').
+	self assert: (prompt includesSubstring: 'abort the canvas render').
+	self deny: (prompt includesSubstring: '''☀ '' , city').
+	self deny: (prompt includesSubstring: 'AgentIcon').
+	self deny: (prompt includesSubstring: 'ToMaterialDesignIconProvider')
+]
+
+{ #category : 'tests' }
 AgentGatewayTest >> testSystemPromptRequiresFactFirstReferenceResolution [
 	| prompt |
 	prompt := gateway systemPrompt.

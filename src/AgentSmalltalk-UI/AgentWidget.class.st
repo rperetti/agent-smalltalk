@@ -35,7 +35,30 @@ AgentWidget class >> compile: source [
 	subscription in #initialize cannot survive deletion undo. Reject it before
 	it enters the image so the code engine receives a precise repair instruction."
 	self assertReactionLifecycleFor: source.
+	self assertPortableTextLiteralsFor: source.
 	^ super compile: source
+]
+
+{ #category : 'class creation' }
+AgentWidget class >> assertPortableTextLiteralsFor: source [
+	"Generated text must render in the default font on every supported host.
+	Ordinary non-ASCII language text remains valid; reject only code points in
+	the emoji, dingbat and pictograph ranges."
+	(source anySatisfy: [ :character |
+		self isPictographicCodePoint: character asInteger ]) ifTrue: [
+		self error: 'Generated widget text must not contain emoji or Unicode pictographs; their glyphs are not portable across UI hosts and abort the canvas render. Use a plain-text label.' ]
+]
+
+{ #category : 'class creation' }
+AgentWidget class >> isPictographicCodePoint: codePoint [
+	"Portable generated labels may still contain ordinary Unicode text,
+	including accents, currency and the degree sign. These ranges cover emoji,
+	dingbats and their presentation/keycap modifiers rather than all non-ASCII."
+	(codePoint between: 16r1F000 and: 16r1FAFF) ifTrue: [ ^ true ].
+	(codePoint between: 16r2600 and: 16r27BF) ifTrue: [ ^ true ].
+	(codePoint between: 16r2300 and: 16r23FF) ifTrue: [ ^ true ].
+	(codePoint between: 16r2B00 and: 16r2BFF) ifTrue: [ ^ true ].
+	^ codePoint = 16r20E3 or: [ codePoint = 16rFE0F ]
 ]
 
 { #category : 'class creation' }
@@ -138,6 +161,28 @@ AgentWidget >> repairElevation [
 	"Migration: heal widgets poisoned by the raw-integer raise bug."
 	self elevation isNumber ifTrue: [
 		self elevation: (BlRelativeElevation elevation: self elevation) ]
+]
+
+{ #category : 'migration' }
+AgentWidget >> removeUnrenderableIconElements [
+	"Migration: the reverted portable-icon experiment left some widgets holding a
+	Toplo Material ToImage whose glyph is a BlSvgPath. BlSvgPath has no Alexandrie
+	draw method (subclassResponsibility), so painting such a widget aborts the
+	whole canvas render. Strip the icon element -- the widget keeps its text and
+	renders again. Matched by geometry class name so it needs neither class loaded."
+	| doomed |
+	doomed := OrderedCollection new.
+	self allChildrenBreadthFirstDo: [ :each |
+		each geometry class name = #BlSvgPath ifTrue: [
+			"Climb to the owning ToImage (the svg sits a couple of wrappers deep)
+			and drop the whole icon, not just the path element."
+			| top |
+			top := each.
+			[ top parent notNil and: [ top parent ~~ self
+				and: [ top class name ~= #ToImage ] ] ]
+				whileTrue: [ top := top parent ].
+			doomed add: top ] ].
+	doomed do: [ :each | each parent ifNotNil: [ each removeFromParent ] ]
 ]
 
 { #category : 'resizing' }

@@ -203,8 +203,12 @@ panel constraintsDo: [ :c | c horizontal matchParent. c vertical fitContent ].
   then the value — the same spacer trick as the horizontal-row example above.
   Keep rows consistent.
 - **Inner corners small and consistent** (6-8, lighter than the card's 12).
-- At most ONE emoji, in the title, and only when it suits the content
-  (`'☀ ' , city`). Never decorate for its own sake.
+- **Do not put emoji or Unicode pictographs in text strings.** Their glyphs are
+  not portable across the supported UI hosts and abort the canvas render. Keep
+  labels plain text; when a visual marker genuinely helps, draw a small coloured
+  `BlElement` shape (a geometry, e.g. a rounded square or circle) beside the
+  label rather than a glyph. Ordinary language text, accents and measurement
+  symbols such as `°` stay valid (`'São Paulo 18°C'`).
 
 Restyle the root ONLY for a deliberate full-bleed visual (e.g. a gradient hero —
 `search_image` for the gradient paint class) — and then own the whole card edge

@@ -244,6 +244,8 @@ AgentCanvas >> migrateAfterUpdate [
 	repair persistent widgets even when the image is closed, then perform
 	session setup that only makes sense for an already-open space."
 	self widgets do: [ :w |
+		[ w removeUnrenderableIconElements ]
+			on: Error do: [ :e |  ].
 		w ensureResizeGrip.
 		w ensureRaisesOnClick.
 		w refreshDeleteButton.

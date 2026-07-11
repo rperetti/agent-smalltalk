@@ -202,6 +202,10 @@ The contract every generated widget subclasses:
 - `runOnUiThreadSafely:` applies forked results on the live UI thread and
   converts errors into visible system messages; `setText:on:fontSize:` is the
   blessed styled-Bloc-text path, avoiding generated keyword-precedence bugs.
+- Generated labels remain plain text: `AgentWidget class>>compile:` rejects
+  emoji and Unicode pictographs in generated source (their glyphs are not
+  portable across UI hosts and abort the canvas render) while preserving
+  ordinary Unicode language text and measurement symbols such as `°`.
 - **Resize grip**: bottom-right corner of every widget (facts and notes
   included), drag-event based, zoom-aware, clamped to 120×80 minimum. It is
   raised above the zero-padding chip-card body so the full-bleed body never
