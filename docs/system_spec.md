@@ -13,7 +13,7 @@ to explain behavior but is not the canonical planning queue or runbook.
 *Last updated: 2026-07-10 (gateway round-cap semantics, fact number scanner,
 canvas-space liveness, focus-gated manual fact reactions, compiler-enforced
 reaction and fact-write policies, verification/evaluation gates, and
-result-reporting fallback; 162 clean-image tests).*
+result-reporting fallback; 167 clean-image tests).*
 
 ## One-paragraph summary
 
@@ -419,9 +419,11 @@ beside it — conversation threads grow *spatially*, not as a chat log.
 ### AgentSpotlight (UI)
 
 The floating prompt bar: a wrapping multi-line `ToAlbum` editor (cursor,
-selection, clipboard; grows vertically with content) plus a `ToLabel` status
-line showing loop progress. Enter submits and Esc closes via capture-phase
-event filters (they win over the editor). The gateway runs in a forked
+selection, clipboard; grows from 34px to a 210px maximum as text wraps) plus a
+`ToLabel` status line showing loop progress. Once at the cap, the editor
+scrolls; clearing the text returns to the compact height without changing focus
+or the caret. Enter submits and Esc closes via capture-phase event filters
+(they win over the editor). The gateway runs in a forked
 process; UI updates are enqueued onto the space pulse. On success the bar
 closes itself — answers live on the canvas (widget or note), never in the
 bar; on failure it stays open showing the error. While a run is active,

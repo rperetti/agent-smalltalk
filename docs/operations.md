@@ -90,7 +90,7 @@ Until AS-02 is resolved:
 
 `./test.sh` creates a disposable image, loads the pinned default dependency
 graph and all project packages, then runs the suite enumerated in
-`scripts/run-tests.st`. As of 2026-07-10, the clean suite contains 162 tests.
+`scripts/run-tests.st`. As of 2026-07-10, the clean suite contains 167 tests.
 
 The suite is strongest for deterministic object behavior: gateway tool
 plumbing with a fake transport, sandbox results and timeouts, fact/note/context

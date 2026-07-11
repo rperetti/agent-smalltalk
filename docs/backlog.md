@@ -32,14 +32,13 @@ Real work, but not proposed as part of the next foundation milestone.
 
 | rank | ID | title | categories | priority | effort |
 |---:|---|---|---|---|---|
-| 8 | [AS-21](#as-21--auto-resize-the-spotlight-for-long-prompts) | Auto-resize the spotlight for long prompts | bug, ux | P2 | S |
-| 9 | [AS-12](#as-12--specify-whether-run-now-shifts-the-schedule) | Specify whether Run now shifts the schedule | product, bug | P2 | S |
-| 10 | [AS-14](#as-14--introduce-a-provider-neutral-inference-boundary) | Introduce a provider-neutral inference boundary | architecture, reliability | P2 | L |
-| 11 | [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts) | Add provenance, health, and rollback for generated artifacts | architecture, feature, reliability | P1 | L |
-| 12 | [AS-16](#as-16--make-tool-card-removal-match-its-visible-meaning) | Make tool-card removal match its visible meaning | ux, product, reliability | P2 | M |
-| 13 | [AS-17](#as-17--preserve-history-when-system-messages-coalesce) | Preserve history when system messages coalesce | reliability, ux | P2 | S |
-| 14 | [AS-18](#as-18--reduce-the-dependency-load-surface) | Reduce the dependency load surface | performance, maintenance, operations | P2 | M |
-| 15 | [AS-20](#as-20--complete-the-open-source-readiness-pass) | Complete the open-source readiness pass | documentation, operations, product | P2 | M |
+| 8 | [AS-12](#as-12--specify-whether-run-now-shifts-the-schedule) | Specify whether Run now shifts the schedule | product, bug | P2 | S |
+| 9 | [AS-14](#as-14--introduce-a-provider-neutral-inference-boundary) | Introduce a provider-neutral inference boundary | architecture, reliability | P2 | L |
+| 10 | [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts) | Add provenance, health, and rollback for generated artifacts | architecture, feature, reliability | P1 | L |
+| 11 | [AS-16](#as-16--make-tool-card-removal-match-its-visible-meaning) | Make tool-card removal match its visible meaning | ux, product, reliability | P2 | M |
+| 12 | [AS-17](#as-17--preserve-history-when-system-messages-coalesce) | Preserve history when system messages coalesce | reliability, ux | P2 | S |
+| 13 | [AS-18](#as-18--reduce-the-dependency-load-surface) | Reduce the dependency load surface | performance, maintenance, operations | P2 | M |
+| 14 | [AS-20](#as-20--complete-the-open-source-readiness-pass) | Complete the open-source readiness pass | documentation, operations, product | P2 | M |
 
 ## Category views
 
@@ -49,51 +48,17 @@ cross-category priority order above.
 
 | lens | items |
 |---|---|
-| Bugs and behavioral correctness | [AS-21](#as-21--auto-resize-the-spotlight-for-long-prompts), [AS-12](#as-12--specify-whether-run-now-shifts-the-schedule) |
+| Bugs and behavioral correctness | [AS-12](#as-12--specify-whether-run-now-shifts-the-schedule) |
 | Security and authority | [AS-01](#as-01--authenticate-or-remove-the-local-evaluator), [AS-04](#as-04--treat-model-context-as-untrusted-bounded-data), [AS-06](#as-06--decide-whether-automation-restrictions-are-policy-or-enforcement), [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts) |
 | Reliability and persistence | [AS-02](#as-02--make-live-updates-verifiable-and-atomic), [AS-03](#as-03--define-persistence-and-recovery-semantics), [AS-05](#as-05--coordinate-all-world-mutations), [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts), [AS-17](#as-17--preserve-history-when-system-messages-coalesce) |
 | Operations and testing | [AS-01](#as-01--authenticate-or-remove-the-local-evaluator), [AS-02](#as-02--make-live-updates-verifiable-and-atomic), [AS-03](#as-03--define-persistence-and-recovery-semantics), [AS-18](#as-18--reduce-the-dependency-load-surface), [AS-19](#as-19--make-the-base-prompt-a-tested-consistent-contract), [AS-20](#as-20--complete-the-open-source-readiness-pass) |
 | Architecture and evolution | [AS-03](#as-03--define-persistence-and-recovery-semantics), [AS-04](#as-04--treat-model-context-as-untrusted-bounded-data), [AS-05](#as-05--coordinate-all-world-mutations), [AS-06](#as-06--decide-whether-automation-restrictions-are-policy-or-enforcement), [AS-14](#as-14--introduce-a-provider-neutral-inference-boundary), [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts), [AS-19](#as-19--make-the-base-prompt-a-tested-consistent-contract) |
-| Product, feature, and UX | [AS-06](#as-06--decide-whether-automation-restrictions-are-policy-or-enforcement), [AS-21](#as-21--auto-resize-the-spotlight-for-long-prompts), [AS-12](#as-12--specify-whether-run-now-shifts-the-schedule), [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts), [AS-16](#as-16--make-tool-card-removal-match-its-visible-meaning), [AS-17](#as-17--preserve-history-when-system-messages-coalesce), [AS-20](#as-20--complete-the-open-source-readiness-pass) |
+| Product, feature, and UX | [AS-06](#as-06--decide-whether-automation-restrictions-are-policy-or-enforcement), [AS-12](#as-12--specify-whether-run-now-shifts-the-schedule), [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts), [AS-16](#as-16--make-tool-card-removal-match-its-visible-meaning), [AS-17](#as-17--preserve-history-when-system-messages-coalesce), [AS-20](#as-20--complete-the-open-source-readiness-pass) |
 | Performance and maintenance | [AS-04](#as-04--treat-model-context-as-untrusted-bounded-data), [AS-18](#as-18--reduce-the-dependency-load-surface), [AS-19](#as-19--make-the-base-prompt-a-tested-consistent-contract) |
 
 ---
 
 ## Detailed entries
-
-## AS-21 — Auto-resize the spotlight for long prompts
-
-**Status:** candidate<br>
-**Categories:** bug, ux<br>
-**Priority:** P2<br>
-**Effort:** S<br>
-**Dependencies:** none<br>
-**Source:** user report, 2026-07-10
-
-### Problem and argument
-
-The spotlight keeps a fixed height while its editable prompt grows beyond one
-line. Long requests are therefore clipped or require awkward internal scrolling,
-making the user lose context while composing the most important input to the
-system.
-
-### Proposed outcome
-
-The spotlight grows with wrapped prompt content up to a deliberate viewport-safe
-maximum, then scrolls its editor while keeping the submit controls and status
-visible.
-
-### Acceptance criteria
-
-- A single-line prompt retains the compact default height.
-- Typing or pasting multi-line/wrapped text increases the spotlight height as
-  needed, without losing focus or moving the text caret unexpectedly.
-- Growth is bounded so the spotlight remains usable on a small canvas; beyond
-  the bound, the editor scrolls rather than clipping text or controls.
-- Clearing text shrinks the spotlight back toward its default height.
-- Enter, Esc, submission status, errors, and Cmd/Ctrl+Enter continue to behave
-  correctly at both compact and expanded heights.
-- Headless/UI tests cover short, long, cleared, and submitted prompt states.
 
 ## AS-01 — Authenticate or remove the local evaluator
 

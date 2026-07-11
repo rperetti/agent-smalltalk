@@ -14,7 +14,9 @@ Class {
 		'inputField',
 		'statusLabel',
 		'running',
-		'runProcess'
+		'runProcess',
+		'inputHeight',
+		'inputResizeWired'
 	],
 	#category : 'AgentSmalltalk-UI',
 	#package : 'AgentSmalltalk-UI'
@@ -25,7 +27,11 @@ AgentSpotlight class >> openOn: aCanvas [
 	| bar existing |
 	existing := aCanvas space root children asArray
 		detect: [ :c | c isKindOf: self ] ifNone: [ nil ].
-	existing ifNotNil: [ existing focusInput. ^ existing ].
+	existing ifNotNil: [
+		existing ensureInputResizeHandling.
+		existing resizeInputToText.
+		existing focusInput.
+		^ existing ].
 	bar := self new.
 	bar canvas: aCanvas.
 	aCanvas space root addChild: bar.
@@ -45,12 +51,13 @@ AgentSpotlight >> initialize [
 	self constraintsDo: [ :c |
 		c horizontal exact: 620.
 		c vertical fitContent ].
+	inputHeight := self defaultInputHeight.
 	inputField := ToAlbum new.
 	inputField placeholderText: 'ask the agent...'.
+	inputField useScrollbar: true.
 	inputField constraintsDo: [ :c |
 		c horizontal exact: 590.
-		c vertical fitContent.
-		c minHeight: 34 ].
+		c vertical exact: inputHeight ].
 	statusLabel := ToLabel new text: 'Return to run, Esc to close'.
 	running := false.
 	statusLabel beMultiLine.
@@ -58,6 +65,7 @@ AgentSpotlight >> initialize [
 	statusLabel constraintsDo: [ :c | c horizontal exact: 590 ].
 	self addChild: inputField.
 	self addChild: statusLabel.
+	self ensureInputResizeHandling.
 	inputField addEventFilterOn: BlKeyDownEvent do: [ :evt |
 		evt key = KeyboardKey enter ifTrue: [ evt consume. self submit ].
 		evt key = KeyboardKey escape ifTrue: [
@@ -70,6 +78,84 @@ AgentSpotlight >> initialize [
 { #category : 'accessing' }
 AgentSpotlight >> canvas: aCanvas [
 	canvas := aCanvas
+]
+
+{ #category : 'sizing' }
+AgentSpotlight >> defaultInputHeight [
+	^ 34
+]
+
+{ #category : 'sizing' }
+AgentSpotlight >> maximumInputHeight [
+	"Leaves the surrounding status and controls visible on compact canvases.
+	The ToAlbum scrolls once this bound is reached."
+	^ 210
+]
+
+{ #category : 'sizing' }
+AgentSpotlight >> promptWrapColumns [
+	"A conservative text-width estimate for the 590px Album. Album's measured
+	height does not grow under a fit-content constraint, so this estimate gives
+	the parent an explicit height after every edit."
+	^ 72
+]
+
+{ #category : 'sizing' }
+AgentSpotlight >> promptLineHeight [
+	^ 22
+]
+
+{ #category : 'accessing' }
+AgentSpotlight >> inputHeight [
+	^ inputHeight ifNil: [ self defaultInputHeight ]
+]
+
+{ #category : 'testing' }
+AgentSpotlight >> isInputAtMaximumHeight [
+	^ self inputHeight = self maximumInputHeight
+]
+
+{ #category : 'accessing' }
+AgentSpotlight >> promptText: aString [
+	"A small public seam for tests and callers that prefill the spotlight.
+	Typing reaches #resizeInputToText through ToAlbum's edit event."
+	inputField text: aString asRopedText.
+	self resizeInputToText
+]
+
+{ #category : 'sizing' }
+AgentSpotlight >> desiredInputHeightFor: aString [
+	| lineLengths lines |
+	lineLengths := OrderedCollection with: 0.
+	aString do: [ :character |
+		(character = Character cr or: [ character = Character lf ])
+			ifTrue: [ lineLengths add: 0 ]
+			ifFalse: [
+				lineLengths
+					at: lineLengths size
+					put: lineLengths last + 1 ] ].
+	lines := lineLengths inject: 0 into: [ :count :length |
+		count + (((length max: 1) + self promptWrapColumns - 1)
+			// self promptWrapColumns) ].
+	^ (self defaultInputHeight max: lines * self promptLineHeight)
+		min: self maximumInputHeight
+]
+
+{ #category : 'sizing' }
+AgentSpotlight >> resizeInputToText [
+	| newHeight |
+	newHeight := self desiredInputHeightFor: inputField text asString.
+	newHeight = self inputHeight ifTrue: [ ^ self ].
+	inputHeight := newHeight.
+	inputField constraintsDo: [ :c | c vertical exact: inputHeight ].
+	self requestLayout
+]
+
+{ #category : 'initialization' }
+AgentSpotlight >> ensureInputResizeHandling [
+	inputResizeWired == true ifTrue: [ ^ self ].
+	inputField whenTextEditedDo: [ :event | self resizeInputToText ].
+	inputResizeWired := true
 ]
 
 { #category : 'actions' }
