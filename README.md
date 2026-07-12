@@ -53,8 +53,8 @@ chatbot into a shared, editable workspace.
 * **An evolving environment** *(working today).* The agent starts generic and
   specializes as it works — writing reusable tools instead of re-deriving them,
   and attaching visible, pausable schedules that run saved Smalltalk without
-  another model call. You shape it by talking to it, correcting it, and sharing
-  your digital life with it.
+  another model call. You shape it by asking in plain language, correcting it,
+  and sharing your digital life with it.
 
 * **The spatial canvas** *(partly built; mostly direction).* The canvas is a
   shared space where you and the agent both place and move objects, and you can
