@@ -18,8 +18,8 @@ requests, and ideas — and get triaged into the file-based backlog. See
      canvas to show. Suggested path: docs/assets/canvas.png -->
 
 _A canvas screenshot is coming._ Until then, the quickest demonstration is a
-headless one-shot that has the agent write and place a widget (needs
-`ANTHROPIC_API_KEY`):
+headless one-shot that has the agent write and place a widget (after
+[Setup](#setup), with `ANTHROPIC_API_KEY` exported):
 
 ```bash
 ./pharo/vm/Pharo.app/Contents/MacOS/Pharo --headless pharo/Agent.image \
