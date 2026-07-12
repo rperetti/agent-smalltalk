@@ -1,117 +1,104 @@
-# Vision: Living Agentic Environment (Smalltalk-Inspired OS)
+# Vision
 
-This document is the project's aspirational north star, not a statement that
-every capability below exists today. See the [system specification](system_spec.md)
+This document is the project's aspirational north star, not a claim that every
+capability below exists today. See the [system specification](system_spec.md)
 for current behavior, the [backlog](backlog.md) for actionable work, and the
 [ideas incubator](ideas.md) for possibilities that are not yet ready to order.
 
-## Product Vision & Core Philosophy 
-
-The goal is to build a symbiotic operating system and living agentic environment where code and knowledge are mixed together. Moving away from a static "chatbot" paradigm, the user and AI collaborate within a persistent, continuously evolving workspace.
-
-Core Tenets 
-
-* **The Persistent "Image"**: The system never forgets context. Code, memory, user preferences, and tasks are saved in a unified, continuously evolving graph (the Smalltalk "image").
-
-
-* **Object Uniformity (Knowledge = Code)**: There is no fundamental difference between passive data and active capabilities. A piece of knowledge (a note) and a tool (an executable script) are both addressable objects.
-
-
-* **Live Coding & Debugging**: The system modifies itself while running. The agent can inspect, change, and compile code mid-execution without restarting.
-
-
-
-## System Architecture 
-
-The prototype relies on a hybrid architecture, combining the object-oriented purity of Smalltalk with the reasoning power of modern cloud-based frontier models.
-
-* **The Environment (Native OS)**: A native Smalltalk image built on Pharo. Everything in the environment is a live object.
-
-
-* **The Brain (AI Engine)**: A cloud-based frontier Large Language Model (e.g., Anthropic Claude or OpenAI).
-
-
-* **The Bridge (HTTP Gateway)**: A dedicated Smalltalk class that manages the network bridge, handles API keys, formats JSON payloads, and manages network latency.
-
-
-* **The Code Extractor**: A Smalltalk method that parses the LLM's HTTP response, strips away conversational text or Markdown, and isolates raw, compilable Smalltalk code.
-
-
-
-## The Execution Loop 
-
-The AI does not live locally, so the execution loop must elegantly translate live memory into a text context window and turn text responses back into live objects.
-
-1. **The Prompt**: The user interacts with the system to request a tool or action.
-
-
-2. **Context Mapping (Serialization)**: The environment packages the user's request alongside a lightweight, text-based map of the current available classes and objects.
-
-
-3. **Inference**: The gateway sends the payload to the external LLM via HTTP REST API.
-
-
-4. **Live Compilation**: The Smalltalk image receives raw Smalltalk code and evaluates it in real-time without restarting. If building a tool, it instantiates the new class immediately.
-
-
-
-## User Interface: The Infinite Spatial Canvas 
-
-The environment discards the traditional chat window and file folder structures in favor of an infinite, multiplayer spatial canvas.
-
-* **UI Framework**: Built using Bloc, Pharo’s modern, low-level UI infrastructure. Bloc treats UI elements (BlElement) as nodes in an optimized scene graph, supporting vector graphics, smooth animations, and zooming.
-
-
-* **Spotlight Summoning**: Instead of a chat sidebar, users hit a global shortcut (e.g., Cmd+Space) to open a floating text bar. Typing a command causes the agent to generate code, and a fully functioning custom widget instantly pops into existence under the cursor.
-
-
-* **Direct Manipulation**: Users can visually drag and resize UI elements. If a user drags a new input box onto an LLM-generated widget, the underlying Smalltalk code automatically rewrites itself to match the visual change.
-
-
-* **Spatial Context (Proximity = Meaning)**: The X/Y coordinates of widgets dictate context. Users can draw a lasso around a specific cluster of widgets; the system then serializes only those highlighted objects to send to the LLM, effectively managing the context window.
-
-
-
-## Autonomous Canvas Management 
-
-The agent acts as an "invisible spatial gardener," managing the digital geography while the user focuses on tasks.
-
-* **Camera Panning & Wormholes**: If the user asks for a distant widget, the agent calculates its coordinates and fluidly pans the camera to center on it. Alternatively, it can "teleport" or temporarily duplicate the widget to the user's current view.
-
-
-* **Semantic Clustering**: In the background, the agent reads the context of scattered nodes and applies physics-based attraction (like a force-directed graph) to naturally group related items.
-
-
-* **Breadcrumb Trails**: When the agent guides the user to a distant cluster, it leaves a visual string (spline) connecting the previous location to the new one to map mental connections.
-
-
-
-## Primary Use Cases & Examples 
-
-* **The Persistent Assistant**: A user tells the agent, "I'm working on the tax report." Three days later, they say, "add this invoice to it." The agent immediately knows what the context is and executes the necessary script to process the invoice.
-
-
-* **Conversational Debugging**: The agent fails to scrape a website because the layout changed. It enters a "debugger" state and shows the code. The user says, "look for the div named sidebar-content," and the agent updates its tool mid-execution and finishes the task.
-
-
-* **PDF to Twitter Script**: A user drops a PDF onto the canvas. The agent extracts concepts as clickable nodes. The user highlights a node and types, "Write a script to track mentions of this concept on Twitter". The agent attaches the running script to the node.
-
-
-* **Data that Works**: The user drops an Excel sheet of expenses onto the canvas and says, "make this data trackable". The agent writes code that binds a dynamic chart directly to the file object, turning it into an application.
-
-
-* **Visual Programming**: The user draws a visual line connecting an "Email Inbox" node to a "To-Do List" widget. The agent writes the Smalltalk script bridging them, automatically popping up "urgent" emails as checkboxes.
-
-
-
-## System Prompt Blueprint 
-
-The system prompt sent in every HTTP payload is the sole mechanism for instructing the frontier model on how to operate the OS. It must enforce the following: 
-
-1. **Acknowledge the Environment**: Explicitly inform the model it is generating code for a live Smalltalk image (Pharo) and that its output will be evaluated immediately.
-
-
-2. **Output Raw Code**: Instruct the model to output only syntactically valid Smalltalk code, avoiding any Markdown formatting, explanations, or conversational filler.
-
-
-3. **Assume Object Uniformity**: Remind the model that everything is an object that sends and receives messages. It must interact with data by calling methods on objects, not by querying external relational databases.
+## Philosophy
+
+The goal is an operating environment where code and knowledge share one space,
+and the user and agent work together in a persistent workspace that keeps
+evolving — not a stateless chat window.
+
+### Core tenets
+
+* **Persistent image.** Context is never lost. Code, memory, preferences, and
+  tasks live in one continuously evolving graph: the Smalltalk image.
+* **Knowledge is code.** Passive data and active capability are the same kind of
+  thing. A note and an executable script are both addressable objects.
+* **Live coding.** The system changes itself while running. The agent inspects,
+  edits, and compiles code mid-execution without a restart.
+
+## Architecture
+
+The prototype pairs a Smalltalk image with a cloud frontier model.
+
+* **Environment.** A native Pharo Smalltalk image. Everything in it is a live
+  object.
+* **Model.** A cloud frontier LLM (e.g. Anthropic Claude or OpenAI).
+* **Gateway.** A Smalltalk class that manages the HTTP bridge: API keys, JSON
+  payloads, and network latency.
+* **Code extractor.** A method that parses the model's response and isolates
+  compilable Smalltalk, dropping prose and Markdown.
+
+## Execution loop
+
+The model runs remotely, so the loop translates live memory into a text context
+and turns text responses back into live objects.
+
+1. **Prompt.** The user requests a tool or action.
+2. **Context mapping.** The environment packages the request with a lightweight
+   text map of the available classes and objects.
+3. **Inference.** The gateway sends the payload to the model over HTTP.
+4. **Live compilation.** The image evaluates the returned Smalltalk immediately,
+   instantiating any new class on the spot.
+
+## The spatial canvas
+
+The environment replaces the chat window and file tree with an infinite,
+multiplayer spatial canvas.
+
+* **UI framework.** Built on Bloc, Pharo's low-level UI layer, which treats
+  elements (`BlElement`) as nodes in a scene graph with vector graphics,
+  animation, and zoom.
+* **Spotlight.** A global shortcut opens a floating text bar. A typed command
+  generates code, and the resulting widget appears under the cursor.
+* **Direct manipulation.** Users drag and resize elements. Dragging a new input
+  onto a generated widget rewrites its Smalltalk to match.
+* **Spatial context.** Widget position carries meaning. A lasso around a cluster
+  serializes only those objects to the model, which is how the context window
+  is managed.
+
+## Autonomous canvas management
+
+The agent tends the canvas layout while the user focuses on the task.
+
+* **Camera and teleport.** Asked for a distant widget, the agent pans the camera
+  to it, or duplicates it into the current view.
+* **Semantic clustering.** In the background, the agent groups related nodes by
+  their context, using force-directed attraction.
+* **Breadcrumb trails.** When it guides the user to a distant cluster, it leaves
+  a connecting spline back to the previous location.
+
+## Use cases
+
+* **Persistent assistant.** A user says, "I'm working on the tax report." Three
+  days later: "add this invoice to it." The agent knows the context and runs the
+  script to process the invoice.
+* **Conversational debugging.** A scraper fails because the page layout changed.
+  The agent shows the code; the user says, "look for the div named
+  sidebar-content"; the agent updates the tool mid-execution and finishes.
+* **PDF to tracker.** A user drops a PDF on the canvas. The agent extracts
+  concepts as clickable nodes. The user highlights one and types, "track
+  mentions of this on Twitter"; the agent attaches the running script to the
+  node.
+* **Data that works.** A user drops an expense spreadsheet on the canvas and
+  says, "make this trackable." The agent binds a dynamic chart to the file
+  object, turning it into an application.
+* **Visual programming.** A user draws a line from an "Email Inbox" node to a
+  "To-Do List" widget. The agent writes the Smalltalk bridging them, popping up
+  urgent emails as checkboxes.
+
+## System prompt requirements
+
+The system prompt in every request is the only mechanism for instructing the
+model on how to operate the environment. It must:
+
+1. **Name the environment.** Tell the model it is generating code for a live
+   Pharo image that evaluates its output immediately.
+2. **Output raw code.** Require syntactically valid Smalltalk only — no Markdown,
+   explanation, or filler.
+3. **Assume object uniformity.** Remind the model that everything is an object
+   addressed by messages, and that it works by calling methods, not by querying
+   a relational database.

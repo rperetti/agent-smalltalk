@@ -15,6 +15,7 @@ Small enough to discuss as the next foundation milestone.
 | 3 | [AS-02](#as-02--make-live-updates-verifiable-and-atomic) | Make live updates verifiable and atomic | reliability, operations | P0 | L |
 | 4 | [AS-03](#as-03--define-persistence-and-recovery-semantics) | Define persistence and recovery semantics | architecture, reliability, operations | P0 | L |
 | 5 | [AS-04](#as-04--treat-model-context-as-untrusted-bounded-data) | Treat model context as untrusted, bounded data | security, architecture, performance | P0 | L |
+| 6 | [AS-23](#as-23--add-the-canvas-screenshot-and-clear-the-final-publication-gate) | Add the canvas screenshot and clear the final publication gate | documentation, product | P0 | S |
 
 ## Next
 
@@ -23,9 +24,9 @@ the `Now` decisions clarify the architecture.
 
 | rank | ID | title | categories | priority | effort |
 |---:|---|---|---|---|---|
-| 6 | [AS-05](#as-05--coordinate-all-world-mutations) | Coordinate all world mutations | architecture, reliability | P1 | L |
-| 7 | [AS-06](#as-06--decide-whether-automation-restrictions-are-policy-or-enforcement) | Decide whether automation restrictions are policy or enforcement | security, product, architecture | P1 | L |
-| 8 | [AS-19](#as-19--make-the-base-prompt-a-tested-consistent-contract) | Make the base prompt a tested, consistent contract | testing, architecture, maintenance | P1 | M |
+| 7 | [AS-05](#as-05--coordinate-all-world-mutations) | Coordinate all world mutations | architecture, reliability | P1 | L |
+| 8 | [AS-06](#as-06--decide-whether-automation-restrictions-are-policy-or-enforcement) | Decide whether automation restrictions are policy or enforcement | security, product, architecture | P1 | L |
+| 9 | [AS-19](#as-19--make-the-base-prompt-a-tested-consistent-contract) | Make the base prompt a tested, consistent contract | testing, architecture, maintenance | P1 | M |
 
 ## Later
 
@@ -33,11 +34,10 @@ Real work, but not proposed as part of the next foundation milestone.
 
 | rank | ID | title | categories | priority | effort |
 |---:|---|---|---|---|---|
-| 9 | [AS-14](#as-14--introduce-a-provider-neutral-inference-boundary) | Introduce a provider-neutral inference boundary | architecture, reliability | P2 | L |
-| 10 | [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts) | Add provenance, health, and rollback for generated artifacts | architecture, feature, reliability | P1 | L |
-| 11 | [AS-16](#as-16--make-tool-card-removal-match-its-visible-meaning) | Make tool-card removal match its visible meaning | ux, product, reliability | P2 | M |
-| 12 | [AS-17](#as-17--preserve-history-when-system-messages-coalesce) | Preserve history when system messages coalesce | reliability, ux | P2 | S |
-| 13 | [AS-20](#as-20--complete-the-open-source-readiness-pass) | Complete the open-source readiness pass | documentation, operations, product | P2 | M |
+| 10 | [AS-14](#as-14--introduce-a-provider-neutral-inference-boundary) | Introduce a provider-neutral inference boundary | architecture, reliability | P2 | L |
+| 11 | [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts) | Add provenance, health, and rollback for generated artifacts | architecture, feature, reliability | P1 | L |
+| 12 | [AS-16](#as-16--make-tool-card-removal-match-its-visible-meaning) | Make tool-card removal match its visible meaning | ux, product, reliability | P2 | M |
+| 13 | [AS-17](#as-17--preserve-history-when-system-messages-coalesce) | Preserve history when system messages coalesce | reliability, ux | P2 | S |
 | 14 | [AS-22](#as-22--make-failed-spotlight-runs-inspectable-on-the-canvas) | Make failed Spotlight runs inspectable on the canvas | feature, ux, reliability | P1 | L |
 
 ## Category views
@@ -51,9 +51,9 @@ cross-category priority order above.
 | Bugs and behavioral correctness | [AS-12](#as-12--specify-whether-run-now-shifts-the-schedule) |
 | Security and authority | [AS-01](#as-01--authenticate-or-remove-the-local-evaluator), [AS-04](#as-04--treat-model-context-as-untrusted-bounded-data), [AS-06](#as-06--decide-whether-automation-restrictions-are-policy-or-enforcement), [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts) |
 | Reliability and persistence | [AS-02](#as-02--make-live-updates-verifiable-and-atomic), [AS-03](#as-03--define-persistence-and-recovery-semantics), [AS-05](#as-05--coordinate-all-world-mutations), [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts), [AS-17](#as-17--preserve-history-when-system-messages-coalesce), [AS-22](#as-22--make-failed-spotlight-runs-inspectable-on-the-canvas) |
-| Operations and testing | [AS-01](#as-01--authenticate-or-remove-the-local-evaluator), [AS-02](#as-02--make-live-updates-verifiable-and-atomic), [AS-03](#as-03--define-persistence-and-recovery-semantics), [AS-19](#as-19--make-the-base-prompt-a-tested-consistent-contract), [AS-20](#as-20--complete-the-open-source-readiness-pass) |
+| Operations and testing | [AS-01](#as-01--authenticate-or-remove-the-local-evaluator), [AS-02](#as-02--make-live-updates-verifiable-and-atomic), [AS-03](#as-03--define-persistence-and-recovery-semantics), [AS-19](#as-19--make-the-base-prompt-a-tested-consistent-contract) |
 | Architecture and evolution | [AS-03](#as-03--define-persistence-and-recovery-semantics), [AS-04](#as-04--treat-model-context-as-untrusted-bounded-data), [AS-05](#as-05--coordinate-all-world-mutations), [AS-06](#as-06--decide-whether-automation-restrictions-are-policy-or-enforcement), [AS-14](#as-14--introduce-a-provider-neutral-inference-boundary), [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts), [AS-19](#as-19--make-the-base-prompt-a-tested-consistent-contract) |
-| Product, feature, and UX | [AS-06](#as-06--decide-whether-automation-restrictions-are-policy-or-enforcement), [AS-12](#as-12--specify-whether-run-now-shifts-the-schedule), [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts), [AS-16](#as-16--make-tool-card-removal-match-its-visible-meaning), [AS-17](#as-17--preserve-history-when-system-messages-coalesce), [AS-20](#as-20--complete-the-open-source-readiness-pass), [AS-22](#as-22--make-failed-spotlight-runs-inspectable-on-the-canvas) |
+| Product, feature, and UX | [AS-06](#as-06--decide-whether-automation-restrictions-are-policy-or-enforcement), [AS-12](#as-12--specify-whether-run-now-shifts-the-schedule), [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts), [AS-16](#as-16--make-tool-card-removal-match-its-visible-meaning), [AS-17](#as-17--preserve-history-when-system-messages-coalesce), [AS-22](#as-22--make-failed-spotlight-runs-inspectable-on-the-canvas), [AS-23](#as-23--add-the-canvas-screenshot-and-clear-the-final-publication-gate) |
 | Performance and maintenance | [AS-04](#as-04--treat-model-context-as-untrusted-bounded-data), [AS-19](#as-19--make-the-base-prompt-a-tested-consistent-contract) |
 
 ---
@@ -450,39 +450,6 @@ and behavioral evaluations for common workflows and failure cases.
 - Reusable, tested tools replace prompt recipes only when evidence shows the
   replacement is more reliable.
 
-## AS-20 — Complete the open-source readiness pass
-
-**Status:** candidate<br>
-**Categories:** documentation, operations, product<br>
-**Priority:** P2<br>
-**Effort:** M<br>
-**Dependencies:** AS-02, AS-03<br>
-**Source:** open-source-readiness discussion, 2026-07-06
-
-### Problem and argument
-
-The repository has a strong experiment narrative but no license, limited
-newcomer guidance, macOS-specific setup assumptions, no contribution guide,
-and several load-bearing operational oddities that are easy to mistake for
-cruft. Publishing before the persistence/update model is clear would invite
-contributors into the most dangerous parts without a shared mental model.
-
-### Proposed outcome
-
-The repository can be used and contributed to by a newcomer without private
-context or accidental loss of a living image.
-
-### Acceptance criteria
-
-- A deliberate license is present.
-- The README includes a screenshot or short demonstration, supported-platform
-  statement, architecture overview, disk/time expectations, and exact quick
-  start.
-- `CONTRIBUTING.md` explains `src/` versus generated image state, testing,
-  update/build habits, and documentation responsibilities.
-- `operations.md` explains `heal-in-image.st`, logs, backups, and recovery.
-- Naming and internal phase jargon receive a newcomer-focused pass.
-
 ## AS-22 — Make failed Spotlight runs inspectable on the canvas
 
 **Status:** ready<br>
@@ -556,3 +523,37 @@ metrics, and debuggers.
   background refreshes, and widget interactions. A later slice can reuse the
   diagnostic event model with widget/trigger attribution and repeated-failure
   coalescing.
+
+## AS-23 — Add the canvas screenshot and clear the final publication gate
+
+**Status:** ready<br>
+**Categories:** documentation, product<br>
+**Priority:** P0<br>
+**Effort:** S<br>
+**Dependencies:** AS-02, AS-03 (do not publish before the persistence/update model is clear)<br>
+**Source:** AS-20 follow-up, 2026-07-11
+
+### Problem and argument
+
+The open-source readiness pass (former AS-20) landed the license, the
+contribution guide, a shared writing-voice guide, the architecture overview, and
+platform/disk-time expectations. Two gaps remain before a first public release:
+the README still promises a canvas screenshot it does not have, and the
+repository has not had a single end-to-end pass to confirm nothing else blocks a
+newcomer with no private context.
+
+### Proposed outcome
+
+The README shows a representative canvas, and a short pre-publication sweep
+confirms the repository is ready to open to newcomers.
+
+### Acceptance criteria
+
+- A representative canvas is agreed, captured, stored under `docs/assets/`, and
+  embedded in the README `Demo` section, replacing the `TODO(AS-23)` placeholder.
+- The screenshot reflects the current UI (post canvas redesign) and shows the
+  core object kinds — a fact, a widget, and a tool card or routine.
+- A final readiness sweep confirms links resolve, commands match the current
+  scripts, the contributor PR flow and issue triage are documented, and no
+  private-context assumptions remain.
+- Publication still respects the AS-02/AS-03 persistence/update gate.

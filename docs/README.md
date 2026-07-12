@@ -1,8 +1,9 @@
 # Project documentation
 
 The files under `docs/` are the project's source of truth for product direction,
-current behavior, operational knowledge, and planned work. The project uses this
-file-based system instead of GitHub Issues.
+current behavior, operational knowledge, and planned work. Planning lives in this
+file-based system rather than in GitHub Issues; inbound issues and discussions
+are triaged into it (see [CONTRIBUTING.md](../CONTRIBUTING.md)).
 
 ## Document map
 
@@ -15,11 +16,15 @@ file-based system instead of GitHub Issues.
 | [postponed.md](postponed.md) | Ideas or designs that were seriously evaluated and consciously deferred, including what would bring them back. |
 | [security.md](security.md) | The current trust model, authority boundaries, non-guarantees, and known security risks. |
 | [operations.md](operations.md) | How to build, update, test, run, diagnose, back up, and recover the living image. |
+| [STYLE.md](STYLE.md) | The writing voice for all prose and documentation, for humans and code agents alike. |
 | [adr/](adr/README.md) | Durable architectural decisions and the reasoning behind them. |
 
 The repository [README](../README.md) remains the newcomer-facing introduction
-and quick start. The base prompt in [`prompts/system.md`](../prompts/system.md)
-is executable product behavior and should be reviewed and tested like code.
+and quick start, and [CONTRIBUTING.md](../CONTRIBUTING.md) covers the
+source-versus-image-state model and the testing, build, and documentation habits
+for changing the project. The base prompt in
+[`prompts/system.md`](../prompts/system.md) is executable product behavior and
+should be reviewed and tested like code.
 
 ## Work-item lifecycle
 
