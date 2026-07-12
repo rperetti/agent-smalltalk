@@ -33,10 +33,10 @@ anything — a fact, a tool, or a widget.
 
 Agents reach today's operating systems through APIs, file formats, and
 screen-scraping — like working in a heavy pair of mittens. Everything is siloed.
-A wave of capable open-source agents now meets that world where it is —
-operating our existing browsers, apps, and tools — like OpenClaw and Nous
-Research's Hermes. This project makes a different bet: build the environment
-around the agent instead of bolting the agent onto the environment.
+Capable open-source agents like OpenClaw now meet that world where it is,
+operating our existing browsers, apps, and tools. This project makes a different
+bet: build the environment around the agent instead of bolting the agent onto
+the environment.
 
 Smalltalk is the model. It isn't just a language; it's a live system you work
 inside, modifying it while it runs. Applying that to an agent turns a stateless
