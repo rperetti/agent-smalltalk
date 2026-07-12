@@ -35,7 +35,9 @@ The prototype pairs a Smalltalk image with a cloud frontier model.
 ## Execution loop
 
 The model runs remotely, so the loop translates live memory into a text context
-and turns text responses back into live objects.
+and turns text responses back into live objects. Running it in-image would be the
+purist ideal; why it runs outside the image instead is recorded in
+[ADR-0001](adr/0001-external-inference-boundary.md).
 
 1. **Prompt.** The user requests a tool or action.
 2. **Context mapping.** The environment packages the request with a lightweight

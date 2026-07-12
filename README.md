@@ -141,7 +141,10 @@ A single request flows through a small number of parts:
 - **Spotlight** — the input bar (summoned with Cmd/Ctrl+Enter) where you type a
   request to the agent.
 - **Gateway** (`AgentGateway`) — sends your request, plus everything currently
-  on the canvas, to the Anthropic API, and runs the model's tool-use loop.
+  on the canvas, to the Anthropic API, and runs the model's tool-use loop. The
+  model runs outside the image by design — the purist ideal would run it in-image,
+  but no capable model does yet; see
+  [ADR-0001](docs/adr/0001-external-inference-boundary.md).
 - **Sandbox** (`AgentSandbox`) — compiles the Smalltalk the model writes and
   executes it *live* in the running image. There is no isolation boundary; this
   is the "no guardrails" part.

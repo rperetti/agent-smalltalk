@@ -60,8 +60,9 @@ What evidence or change would justify reopening the decision?
 
 ## Index
 
-No formal ADRs have been extracted yet. Strong candidates already documented
-elsewhere include:
+- [0001 — Inference runs outside the image, behind the gateway](0001-external-inference-boundary.md)
+
+Strong candidates not yet extracted include:
 
 - image-closed automation semantics: record one miss, never catch up;
 - the interactive listener's explicit enable flag rather than stale GUI-state
