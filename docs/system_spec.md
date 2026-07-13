@@ -127,11 +127,17 @@ Verified with generated code: a clock retuned on a pure fact edit with no
 request, and a total recomputed purely from a counter's announcement — no
 Refresh buttons.
 
-Fact writes from a gateway tool call are screened before evaluation: an
-`AgentFact ... body:` expression must use a literal value found in the current
-user request. A widget-generation request therefore reads existing facts via
-`AgentKnowledge` and cannot overwrite them with an invented default; a user
-statement such as “I moved to Porto” remains an authorized fact update.
+Fact writes from a gateway tool call are screened before evaluation. The
+screen recognizes direct `AgentFact body:` and `AgentFact key:body:` sends and
+requires each body argument to be one bare Smalltalk string literal. The
+literal is decoded before checking that its complete value occurs in the
+current user request; concatenation, parenthesized or computed values, escaped
+quotes that do not decode to an authorized request value, and indirect
+`AgentFact` references are rejected. A widget-generation request therefore
+reads existing facts via `AgentKnowledge` and cannot overwrite them with an
+invented default; a user statement such as “I moved to Porto” remains an
+authorized fact update. Rejected writes are returned as tool errors before any
+source evaluation, so existing facts and the canvas remain unchanged.
 
 Forked network refreshes apply their result through
 `AgentWidget>>runOnUiThreadSafely:`. It catches errors when the queued UI block

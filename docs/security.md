@@ -59,6 +59,9 @@ form a capability sandbox:
 - Automations must first run successfully before they can be enabled through
   the blessed workflow.
 - Scheduled failures are contained, recorded, and posted visibly.
+- Gateway fact-write screening requires each direct model-authored Fact body to
+  be one decoded string literal whose complete value appears in the current
+  user request; rejected writes are not evaluated.
 - The base prompt forbids secrets in facts and discourages irreversible
   unattended behavior.
 

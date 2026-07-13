@@ -12,15 +12,14 @@ Small enough to discuss as the next foundation milestone.
 
 | rank | ID | title | categories | priority | effort |
 |---:|---|---|---|---|---|
-| 1 | [AS-24](#as-24--require-fact-writes-to-use-one-authorized-literal) | Require fact writes to use one authorized literal | bug, reliability | P1 | M |
-| 2 | [AS-25](#as-25--make-new-facts-observable-before-announcement) | Make new facts observable before announcement | bug, reliability | P1 | M |
-| 3 | [AS-26](#as-26--deliver-each-async-failure-occurrence-once) | Deliver each async failure occurrence once | bug, reliability | P2 | M |
-| 4 | [AS-12](#as-12--specify-whether-run-now-shifts-the-schedule) | Specify whether Run now shifts the schedule | product, bug | P2 | S |
-| 5 | [AS-01](#as-01--authenticate-or-remove-the-local-evaluator) | Authenticate or remove the local evaluator | security, operations | P0 | M |
-| 6 | [AS-02](#as-02--make-live-updates-verifiable-and-atomic) | Make live updates verifiable and atomic | reliability, operations | P0 | L |
-| 7 | [AS-03](#as-03--define-persistence-and-recovery-semantics) | Define persistence and recovery semantics | architecture, reliability, operations | P0 | L |
-| 8 | [AS-04](#as-04--treat-model-context-as-untrusted-bounded-data) | Treat model context as untrusted, bounded data | security, architecture, performance | P0 | L |
-| 9 | [AS-23](#as-23--add-the-canvas-screenshot-and-clear-the-final-publication-gate) | Add the canvas screenshot and clear the final publication gate | documentation, product | P0 | S |
+| 1 | [AS-25](#as-25--make-new-facts-observable-before-announcement) | Make new facts observable before announcement | bug, reliability | P1 | M |
+| 2 | [AS-26](#as-26--deliver-each-async-failure-occurrence-once) | Deliver each async failure occurrence once | bug, reliability | P2 | M |
+| 3 | [AS-12](#as-12--specify-whether-run-now-shifts-the-schedule) | Specify whether Run now shifts the schedule | product, bug | P2 | S |
+| 4 | [AS-01](#as-01--authenticate-or-remove-the-local-evaluator) | Authenticate or remove the local evaluator | security, operations | P0 | M |
+| 5 | [AS-02](#as-02--make-live-updates-verifiable-and-atomic) | Make live updates verifiable and atomic | reliability, operations | P0 | L |
+| 6 | [AS-03](#as-03--define-persistence-and-recovery-semantics) | Define persistence and recovery semantics | architecture, reliability, operations | P0 | L |
+| 7 | [AS-04](#as-04--treat-model-context-as-untrusted-bounded-data) | Treat model context as untrusted, bounded data | security, architecture, performance | P0 | L |
+| 8 | [AS-23](#as-23--add-the-canvas-screenshot-and-clear-the-final-publication-gate) | Add the canvas screenshot and clear the final publication gate | documentation, product | P0 | S |
 
 ## Next
 
@@ -29,10 +28,10 @@ the `Now` decisions clarify the architecture.
 
 | rank | ID | title | categories | priority | effort |
 |---:|---|---|---|---|---|
-| 10 | [AS-05](#as-05--coordinate-all-world-mutations) | Coordinate all world mutations | architecture, reliability | P1 | L |
-| 11 | [AS-06](#as-06--decide-whether-automation-restrictions-are-policy-or-enforcement) | Decide whether automation restrictions are policy or enforcement | security, product, architecture | P1 | L |
-| 12 | [AS-19](#as-19--make-the-base-prompt-a-tested-consistent-contract) | Make the base prompt a tested, consistent contract | testing, architecture, maintenance | P1 | M |
-| 13 | [AS-27](#as-27--cache-stable-inference-context-safely) | Cache stable inference context safely | performance, architecture, security, testing | P1 | M |
+| 9 | [AS-05](#as-05--coordinate-all-world-mutations) | Coordinate all world mutations | architecture, reliability | P1 | L |
+| 10 | [AS-06](#as-06--decide-whether-automation-restrictions-are-policy-or-enforcement) | Decide whether automation restrictions are policy or enforcement | security, product, architecture | P1 | L |
+| 11 | [AS-19](#as-19--make-the-base-prompt-a-tested-consistent-contract) | Make the base prompt a tested, consistent contract | testing, architecture, maintenance | P1 | M |
+| 12 | [AS-27](#as-27--cache-stable-inference-context-safely) | Cache stable inference context safely | performance, architecture, security, testing | P1 | M |
 
 ## Later
 
@@ -40,12 +39,12 @@ Real work, but not proposed as part of the next foundation milestone.
 
 | rank | ID | title | categories | priority | effort |
 |---:|---|---|---|---|---|
-| 14 | [AS-14](#as-14--introduce-a-provider-neutral-inference-boundary) | Introduce a provider-neutral inference boundary | architecture, reliability | P2 | L |
-| 15 | [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts) | Add provenance, health, and rollback for generated artifacts | architecture, feature, reliability | P1 | L |
-| 16 | [AS-16](#as-16--make-tool-card-removal-match-its-visible-meaning) | Make tool-card removal match its visible meaning | ux, product, reliability | P2 | M |
-| 17 | [AS-17](#as-17--preserve-history-when-system-messages-coalesce) | Preserve history when system messages coalesce | reliability, ux | P2 | S |
-| 18 | [AS-22](#as-22--make-failed-spotlight-runs-inspectable-on-the-canvas) | Make failed Spotlight runs inspectable on the canvas | feature, ux, reliability | P1 | L |
-| 19 | [AS-28](#as-28--measure-model-roi-with-provider-neutral-paid-evaluations) | Measure model ROI with provider-neutral paid evaluations | testing, performance, operations, security | P2 | L |
+| 13 | [AS-14](#as-14--introduce-a-provider-neutral-inference-boundary) | Introduce a provider-neutral inference boundary | architecture, reliability | P2 | L |
+| 14 | [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts) | Add provenance, health, and rollback for generated artifacts | architecture, feature, reliability | P1 | L |
+| 15 | [AS-16](#as-16--make-tool-card-removal-match-its-visible-meaning) | Make tool-card removal match its visible meaning | ux, product, reliability | P2 | M |
+| 16 | [AS-17](#as-17--preserve-history-when-system-messages-coalesce) | Preserve history when system messages coalesce | reliability, ux | P2 | S |
+| 17 | [AS-22](#as-22--make-failed-spotlight-runs-inspectable-on-the-canvas) | Make failed Spotlight runs inspectable on the canvas | feature, ux, reliability | P1 | L |
+| 18 | [AS-28](#as-28--measure-model-roi-with-provider-neutral-paid-evaluations) | Measure model ROI with provider-neutral paid evaluations | testing, performance, operations, security | P2 | L |
 
 ## Category views
 
@@ -55,9 +54,9 @@ cross-category priority order above.
 
 | lens | items |
 |---|---|
-| Bugs and behavioral correctness | [AS-24](#as-24--require-fact-writes-to-use-one-authorized-literal), [AS-25](#as-25--make-new-facts-observable-before-announcement), [AS-26](#as-26--deliver-each-async-failure-occurrence-once), [AS-12](#as-12--specify-whether-run-now-shifts-the-schedule) |
+| Bugs and behavioral correctness | [AS-25](#as-25--make-new-facts-observable-before-announcement), [AS-26](#as-26--deliver-each-async-failure-occurrence-once), [AS-12](#as-12--specify-whether-run-now-shifts-the-schedule) |
 | Security and authority | [AS-01](#as-01--authenticate-or-remove-the-local-evaluator), [AS-04](#as-04--treat-model-context-as-untrusted-bounded-data), [AS-06](#as-06--decide-whether-automation-restrictions-are-policy-or-enforcement), [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts), [AS-27](#as-27--cache-stable-inference-context-safely), [AS-28](#as-28--measure-model-roi-with-provider-neutral-paid-evaluations) |
-| Reliability and persistence | [AS-24](#as-24--require-fact-writes-to-use-one-authorized-literal), [AS-25](#as-25--make-new-facts-observable-before-announcement), [AS-26](#as-26--deliver-each-async-failure-occurrence-once), [AS-02](#as-02--make-live-updates-verifiable-and-atomic), [AS-03](#as-03--define-persistence-and-recovery-semantics), [AS-05](#as-05--coordinate-all-world-mutations), [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts), [AS-17](#as-17--preserve-history-when-system-messages-coalesce), [AS-22](#as-22--make-failed-spotlight-runs-inspectable-on-the-canvas) |
+| Reliability and persistence | [AS-25](#as-25--make-new-facts-observable-before-announcement), [AS-26](#as-26--deliver-each-async-failure-occurrence-once), [AS-02](#as-02--make-live-updates-verifiable-and-atomic), [AS-03](#as-03--define-persistence-and-recovery-semantics), [AS-05](#as-05--coordinate-all-world-mutations), [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts), [AS-17](#as-17--preserve-history-when-system-messages-coalesce), [AS-22](#as-22--make-failed-spotlight-runs-inspectable-on-the-canvas) |
 | Operations and testing | [AS-01](#as-01--authenticate-or-remove-the-local-evaluator), [AS-02](#as-02--make-live-updates-verifiable-and-atomic), [AS-03](#as-03--define-persistence-and-recovery-semantics), [AS-19](#as-19--make-the-base-prompt-a-tested-consistent-contract), [AS-27](#as-27--cache-stable-inference-context-safely), [AS-28](#as-28--measure-model-roi-with-provider-neutral-paid-evaluations) |
 | Architecture and evolution | [AS-03](#as-03--define-persistence-and-recovery-semantics), [AS-04](#as-04--treat-model-context-as-untrusted-bounded-data), [AS-05](#as-05--coordinate-all-world-mutations), [AS-06](#as-06--decide-whether-automation-restrictions-are-policy-or-enforcement), [AS-14](#as-14--introduce-a-provider-neutral-inference-boundary), [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts), [AS-19](#as-19--make-the-base-prompt-a-tested-consistent-contract), [AS-27](#as-27--cache-stable-inference-context-safely) |
 | Product, feature, and UX | [AS-06](#as-06--decide-whether-automation-restrictions-are-policy-or-enforcement), [AS-12](#as-12--specify-whether-run-now-shifts-the-schedule), [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts), [AS-16](#as-16--make-tool-card-removal-match-its-visible-meaning), [AS-17](#as-17--preserve-history-when-system-messages-coalesce), [AS-22](#as-22--make-failed-spotlight-runs-inspectable-on-the-canvas), [AS-23](#as-23--add-the-canvas-screenshot-and-clear-the-final-publication-gate) |
@@ -564,43 +563,6 @@ confirms the repository is ready to open to newcomers.
   scripts, the contributor PR flow and issue triage are documented, and no
   private-context assumptions remain.
 - Publication still respects the AS-02/AS-03 persistence/update gate.
-
-## AS-24 — Require fact writes to use one authorized literal
-
-**Status:** ready<br>
-**Categories:** bug, reliability<br>
-**Priority:** P1<br>
-**Effort:** M<br>
-**Dependencies:** none<br>
-**Source:** repository code review, 2026-07-13
-
-### Problem and argument
-
-`AgentGateway>>factMutationValuesIn:` scans source text for `AgentFact`,
-`body:`, and the first following quote. It does not prove that the complete
-body argument is one literal. Given a request containing `Porto`, the expression
-`AgentFact key: #city body: 'Porto' , ' Alegre'` passes the check and stores the
-computed value `Porto Alegre`. A guard intended to prevent invented fact values
-can therefore authorize one after matching only its first fragment.
-
-### Proposed outcome
-
-Gateway fact-write screening recognizes the complete Smalltalk expression and
-accepts only a single decoded string literal whose full value occurs in the
-current user request. Computed, concatenated, or otherwise dynamic bodies are
-rejected before evaluation and cannot change an existing fact.
-
-### Acceptance criteria
-
-- Literal keyed and keyless fact writes explicitly supplied in the current
-  request still succeed.
-- Concatenation, dynamic expressions, and parenthesized computations in a fact
-  body are rejected before any part of the tool source executes.
-- Escaped quotes and multiple fact writes are parsed correctly; every write
-  must independently satisfy the rule.
-- Rejected writes leave existing facts and the canvas unchanged.
-- Tests exercise the complete gateway tool path rather than only the source
-  scanner helper.
 
 ## AS-25 — Make new facts observable before announcement
 

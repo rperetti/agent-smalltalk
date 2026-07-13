@@ -322,26 +322,55 @@ AgentGateway >> factMutationErrorIn: code forUserRequest: userText [
 
 { #category : 'fact authorization' }
 AgentGateway >> factMutationValuesIn: code [
-	"Answer literal values passed to AgentFact ... body:. Nil means the source
-	attempts a non-literal/dynamic fact write, which the gateway must reject
-	because it cannot prove user authority before evaluating the source."
-	| values start nextFact bodyStart quoteStart quoteEnd |
-	values := OrderedCollection new.
-	start := code findString: 'AgentFact' startingAt: 1.
-	[ start > 0 ] whileTrue: [
-		nextFact := code findString: 'AgentFact' startingAt: start + 9.
-		bodyStart := code findString: 'body:' startingAt: start + 9.
-		(bodyStart = 0 or: [ nextFact > 0 and: [ nextFact < bodyStart ] ])
-			ifTrue: [ start := nextFact ]
-			ifFalse: [
-				quoteStart := code findString: '''' startingAt: bodyStart + 5.
-				(quoteStart = 0 or: [ nextFact > 0 and: [ nextFact < quoteStart ] ])
-					ifTrue: [ ^ nil ].
-				quoteEnd := code findString: '''' startingAt: quoteStart + 1.
-				quoteEnd = 0 ifTrue: [ ^ nil ].
-				values add: (code copyFrom: quoteStart + 1 to: quoteEnd - 1).
-				start := code findString: 'AgentFact' startingAt: quoteEnd + 1 ] ].
-	^ values
+	"Answer decoded literal values passed to direct AgentFact writes. Nil means
+	the source contains a Fact reference that cannot be proven to be one of the
+	allowed class-side writes, or a body that is not one bare string literal."
+	| tree values factReferences factWrites |
+	[ tree := RBParser parseExpression: code.
+		values := OrderedCollection new.
+		factReferences := tree allChildren select: [ :node |
+			node isVariable and: [ node name = #AgentFact ] ].
+		factWrites := tree allChildren select: [ :node |
+			self isDirectFactMutationNode: node ].
+		"Every AgentFact reference must belong to one direct write. This rejects
+		indirect sends such as AgentFact new body: ... and perform: ... before
+		the sandbox can evaluate them."
+		factReferences size = factWrites size ifFalse: [ ^ nil ].
+		factWrites do: [ :write |
+			| bodyNode literalSource |
+			bodyNode := self factBodyNodeIn: write.
+			(bodyNode isLiteralNode and: [ bodyNode value isKindOf: String ])
+				ifFalse: [ ^ nil ].
+			literalSource := (code
+				copyFrom: bodyNode start
+				to: bodyNode stop) trimBoth.
+			"The AST preserves the source interval. Requiring quote delimiters
+				there rejects even a parenthesized literal, while value answers
+				the fully decoded Smalltalk string for authorization."
+			(literalSource size >= 2 and: [
+				literalSource first = $' and: [ literalSource last = $' ] ])
+				ifFalse: [ ^ nil ].
+			values add: bodyNode value ].
+		^ values ]
+		on: Error
+		do: [ :error | nil ]
+]
+
+{ #category : 'fact authorization' }
+AgentGateway >> isDirectFactMutationNode: aNode [
+	| selector receiver |
+	aNode isMessage ifFalse: [ ^ false ].
+	selector := aNode selector.
+	(selector = #body: or: [ selector = #key:body: ]) ifFalse: [ ^ false ].
+	receiver := aNode receiver.
+	^ receiver isVariable and: [ receiver name = #AgentFact ]
+]
+
+{ #category : 'fact authorization' }
+AgentGateway >> factBodyNodeIn: aFactWrite [
+	^ aFactWrite selector = #body:
+		ifTrue: [ aFactWrite arguments first ]
+		ifFalse: [ aFactWrite arguments second ]
 ]
 
 { #category : 'running' }

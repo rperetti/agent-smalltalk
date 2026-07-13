@@ -156,6 +156,120 @@ AgentGatewayTest >> testRunToolAllowsFactValueExplicitlySuppliedByUser [
 ]
 
 { #category : 'tests' }
+AgentGatewayTest >> testRunToolAllowsKeylessFactValueExplicitlySuppliedByUser [
+	| toolUse result |
+	[
+		AgentCanvas reset.
+		toolUse := {
+			'id' -> 'tu_keyless_fact_allow'.
+			'input' -> ({ 'code' -> 'AgentFact body: ''I prefer espresso''' } asDictionary) }
+			asDictionary.
+		result := gateway
+			runTool: toolUse
+			forUserRequest: 'Remember that I prefer espresso.'.
+		self assert: ((result at: 'content') beginsWith: 'RESULT:').
+		self assert: AgentCanvas current facts size equals: 1.
+		self assert: AgentCanvas current facts first body equals: 'I prefer espresso' ]
+		ensure: [ AgentCanvas reset ]
+]
+
+{ #category : 'tests' }
+AgentGatewayTest >> testRunToolRejectsConcatenatedFactValueBeforeEvaluation [
+	| fact toolUse result |
+	[
+		AgentCanvas reset.
+		fact := AgentFact key: #city body: 'Lisbon'.
+		toolUse := {
+			'id' -> 'tu_fact_concat_reject'.
+			'input' -> ({ 'code' -> 'AgentFact key: #city body: ''Porto'' , '' Alegre''' } asDictionary) }
+			asDictionary.
+		result := gateway
+			runTool: toolUse
+			forUserRequest: 'Use Porto when configuring the widget.'.
+		self assert: ((result at: 'content') beginsWith: 'ERROR: fact write rejected').
+		self assert: fact body equals: 'Lisbon'.
+		self assert: AgentCanvas current facts size equals: 1 ]
+		ensure: [ AgentCanvas reset ]
+]
+
+{ #category : 'tests' }
+AgentGatewayTest >> testRunToolRejectsDynamicFactValueBeforeEvaluation [
+	| fact toolUse result |
+	[
+		AgentCanvas reset.
+		fact := AgentFact key: #city body: 'Lisbon'.
+		toolUse := {
+			'id' -> 'tu_fact_dynamic_reject'.
+			'input' -> ({ 'code' -> 'AgentFact key: #city body: (AgentKnowledge at: #city)' } asDictionary) }
+			asDictionary.
+		result := gateway
+			runTool: toolUse
+			forUserRequest: 'Build a widget for my saved city.'.
+		self assert: ((result at: 'content') beginsWith: 'ERROR: fact write rejected').
+		self assert: fact body equals: 'Lisbon'.
+		self assert: AgentCanvas current facts size equals: 1 ]
+		ensure: [ AgentCanvas reset ]
+]
+
+{ #category : 'tests' }
+AgentGatewayTest >> testRunToolRejectsParenthesizedFactLiteralBeforeEvaluation [
+	| fact toolUse result |
+	[
+		AgentCanvas reset.
+		fact := AgentFact key: #city body: 'Lisbon'.
+		toolUse := {
+			'id' -> 'tu_fact_parenthesized_reject'.
+			'input' -> ({ 'code' -> 'AgentFact key: #city body: (''Porto'')' } asDictionary) }
+			asDictionary.
+		result := gateway
+			runTool: toolUse
+			forUserRequest: 'Use Porto when configuring the widget.'.
+		self assert: ((result at: 'content') beginsWith: 'ERROR: fact write rejected').
+		self assert: fact body equals: 'Lisbon'.
+		self assert: AgentCanvas current facts size equals: 1 ]
+		ensure: [ AgentCanvas reset ]
+]
+
+{ #category : 'tests' }
+AgentGatewayTest >> testRunToolParsesEscapedAndMultipleFactLiteralsIndependently [
+	| toolUse result facts |
+	[
+		AgentCanvas reset.
+		toolUse := {
+			'id' -> 'tu_fact_multiple_allow'.
+			'input' -> ({ 'code' -> 'AgentFact key: #nickname body: ''O''''Brien''. AgentFact body: ''I prefer tea''' } asDictionary) }
+			asDictionary.
+		result := gateway
+			runTool: toolUse
+			forUserRequest: 'Remember that my nickname is O''Brien and I prefer tea.'.
+		self assert: ((result at: 'content') beginsWith: 'RESULT:').
+		facts := AgentCanvas current facts.
+		self assert: (AgentCanvas current factWithKey: #nickname) body equals: 'O''Brien'.
+		self assert: facts size equals: 2 ]
+		ensure: [ AgentCanvas reset ]
+]
+
+{ #category : 'tests' }
+AgentGatewayTest >> testRunToolRejectsEveryFactWriteWhenOneLiteralIsUnauthorized [
+	| existing toolUse result |
+	[
+		AgentCanvas reset.
+		existing := AgentFact key: #city body: 'Lisbon'.
+		toolUse := {
+			'id' -> 'tu_fact_multiple_reject'.
+			'input' -> ({ 'code' -> 'AgentFact key: #city body: ''Porto''. AgentFact key: #timezone body: ''UTC''' } asDictionary) }
+			asDictionary.
+		result := gateway
+			runTool: toolUse
+			forUserRequest: 'I moved to Porto. Update my city.'.
+		self assert: ((result at: 'content') beginsWith: 'ERROR: fact write rejected').
+		self assert: existing body equals: 'Lisbon'.
+		self assert: (AgentCanvas current factWithKey: #timezone) isNil.
+		self assert: AgentCanvas current facts size equals: 1 ]
+		ensure: [ AgentCanvas reset ]
+]
+
+{ #category : 'tests' }
 AgentGatewayTest >> testLogLinesArePersistedToFile [
 	| marker |
 	marker := 'test-marker-' , DateAndTime now asUnixTime printString.
