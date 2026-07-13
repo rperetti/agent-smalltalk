@@ -1,8 +1,10 @@
 # Backlog
 
 The single ordered register of actionable work for Agent Smalltalk. The order
-below is an initial proposal, not a frozen roadmap. See [README.md](README.md)
-for field definitions, categories, and the work-item lifecycle.
+below is an initial proposal, not a frozen roadmap. The field schema, category
+vocabulary, and ordering rules are defined in the [Conventions](#conventions)
+section at the end of this file; see [README.md](README.md) for the
+work-item lifecycle and how the backlog relates to the other documents.
 
 ## Now
 
@@ -557,3 +559,65 @@ confirms the repository is ready to open to newcomers.
   scripts, the contributor PR flow and issue triage are documented, and no
   private-context assumptions remain.
 - Publication still respects the AS-02/AS-03 persistence/update gate.
+
+---
+
+## Conventions
+
+### Fields
+
+Each actionable item has a stable `AS-NN` identifier and records:
+
+- **status** — `candidate`, `ready`, `in-progress`, `blocked`, `done`,
+  `postponed`, or `superseded`;
+- **categories** — what kind of work it is;
+- **priority** — urgency/impact independent of its current rank;
+- **effort** — a rough `S`, `M`, or `L` comparison, not an estimate;
+- **dependencies** — work that should land first;
+- **problem and argument** — why the item exists;
+- **proposed outcome** — the intended result without over-prescribing the
+  implementation;
+- **acceptance criteria** — observable evidence that the work is complete.
+
+The initial category vocabulary is deliberately small:
+
+- `bug`
+- `security`
+- `reliability`
+- `operations`
+- `architecture`
+- `product`
+- `feature`
+- `ux`
+- `testing`
+- `documentation`
+- `performance`
+- `maintenance`
+
+An item can have multiple categories. Category answers "what kind of work is
+this?" Priority answers "how urgent is it?" Rank answers "what is our current
+agreed order?" These are intentionally separate, except that the `bug` category
+has precedence in rank: every item categorized as a bug ranks ahead of every
+non-bug, regardless of priority.
+
+### Ordering
+
+The `Now`, `Next`, and `Later` tables at the top of this file are the planning
+surface. Reordering those rows should be a small, explicit change; detailed
+entries do not need to move or be rewritten.
+
+When ordering work, use these default decision drivers:
+
+1. Put all bugs before all non-bugs, independently of priority.
+2. Prevent unauthorized execution or loss of the living world.
+3. Make existing promises reliable before widening them.
+4. Improve observability and verification.
+5. Strengthen the system's ability to evolve without accumulating invisible
+   damage.
+6. Add new product surface when it tests an important product hypothesis.
+
+Bug-first ordering is invariant. The remaining drivers are defaults, not a
+permanent scoring formula; new evidence can justify a different order within
+the bug and non-bug groups. `scripts/check-backlog-order.sh`, included in the
+deterministic verification path, checks this invariant along with contiguous
+ranks and agreement between planning rows and detailed entries.
