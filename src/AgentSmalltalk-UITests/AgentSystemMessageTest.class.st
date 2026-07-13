@@ -81,16 +81,13 @@ AgentSystemMessageTest >> testSafeUiUpdateTurnsErrorIntoSystemMessage [
 ]
 
 { #category : 'tests' }
-AgentSystemMessageTest >> testGatewaySurfacesAsyncFailureOncePerOccurrence [
+AgentSystemMessageTest >> testGatewaySurfacesAsyncFailureOnceWithinOneGateway [
 	| gateway toolUse firstResult secondResult |
 	gateway := AgentGateway new.
 	AgentSystemMessage
 		post: 'Widget update failed in ProbeWidget: broken label'
 		key: #'widgetUpdateFailure-ProbeWidget'.
-	toolUse := {
-		'id' -> 'async-probe'.
-		'name' -> 'evaluate_smalltalk'.
-		'input' -> ({ 'code' -> '3 + 4' } asDictionary) } asDictionary.
+	toolUse := self asyncFailureToolUse.
 	firstResult := gateway runTool: toolUse.
 	secondResult := gateway runTool: toolUse.
 	self assert: ((firstResult at: 'content')
@@ -99,6 +96,90 @@ AgentSystemMessageTest >> testGatewaySurfacesAsyncFailureOncePerOccurrence [
 		includesSubstring: 'broken label').
 	self deny: ((secondResult at: 'content')
 		includesSubstring: 'asynchronous widget update failure')
+]
+
+{ #category : 'tests' }
+AgentSystemMessageTest >> testGatewayDeliversAsyncFailureAcrossGatewayInstancesOnce [
+	| firstGateway secondGateway firstResult secondResult |
+	firstGateway := AgentGateway new.
+	secondGateway := AgentGateway new.
+	AgentSystemMessage
+		post: 'Widget update failed in ProbeWidget: broken label'
+		key: #'widgetUpdateFailure-ProbeWidget'.
+	firstResult := firstGateway runTool: self asyncFailureToolUse.
+	secondResult := secondGateway runTool: self asyncFailureToolUse.
+	self assert: ((firstResult at: 'content')
+		includesSubstring: 'broken label').
+	self deny: ((secondResult at: 'content')
+		includesSubstring: 'asynchronous widget update failure')
+]
+
+{ #category : 'tests' }
+AgentSystemMessageTest >> testAsyncFailureAfterPreviousToolResultArrivesOnNextRequestOnce [
+	| firstGateway nextGateway previousResult nextResult repeatedResult |
+	firstGateway := AgentGateway new.
+	nextGateway := AgentGateway new.
+	previousResult := firstGateway runTool: self asyncFailureToolUse.
+	AgentSystemMessage
+		post: 'Widget update failed in ProbeWidget: late failure'
+		key: #'widgetUpdateFailure-ProbeWidget'.
+	nextResult := nextGateway runTool: self asyncFailureToolUse.
+	repeatedResult := nextGateway runTool: self asyncFailureToolUse.
+	self deny: ((previousResult at: 'content')
+		includesSubstring: 'asynchronous widget update failure').
+	self assert: ((nextResult at: 'content')
+		includesSubstring: 'late failure').
+	self deny: ((repeatedResult at: 'content')
+		includesSubstring: 'asynchronous widget update failure')
+]
+
+{ #category : 'tests' }
+AgentSystemMessageTest >> testCoalescedAsyncFailureDeliversTheLaterOccurrenceOnce [
+	| gateway firstResult laterResult repeatedResult |
+	gateway := AgentGateway new.
+	AgentSystemMessage
+		post: 'Widget update failed in ProbeWidget: first failure'
+		key: #'widgetUpdateFailure-ProbeWidget'.
+	firstResult := gateway runTool: self asyncFailureToolUse.
+	AgentSystemMessage
+		post: 'Widget update failed in ProbeWidget: later failure'
+		key: #'widgetUpdateFailure-ProbeWidget'.
+	laterResult := gateway runTool: self asyncFailureToolUse.
+	repeatedResult := gateway runTool: self asyncFailureToolUse.
+	self assert: ((firstResult at: 'content')
+		includesSubstring: 'first failure').
+	self assert: ((laterResult at: 'content')
+		includesSubstring: 'later failure').
+	self deny: ((repeatedResult at: 'content')
+		includesSubstring: 'asynchronous widget update failure')
+]
+
+{ #category : 'tests' }
+AgentSystemMessageTest >> testDeletingAndRecreatingAsyncFailureStartsNewOccurrence [
+	| gateway recreatedResult repeatedResult originalMessage |
+	gateway := AgentGateway new.
+	originalMessage := AgentSystemMessage
+		post: 'Widget update failed in ProbeWidget: original failure'
+		key: #'widgetUpdateFailure-ProbeWidget'.
+	gateway runTool: self asyncFailureToolUse.
+	originalMessage removeFromParent.
+	AgentSystemMessage
+		post: 'Widget update failed in ProbeWidget: recreated failure'
+		key: #'widgetUpdateFailure-ProbeWidget'.
+	recreatedResult := gateway runTool: self asyncFailureToolUse.
+	repeatedResult := gateway runTool: self asyncFailureToolUse.
+	self assert: ((recreatedResult at: 'content')
+		includesSubstring: 'recreated failure').
+	self deny: ((repeatedResult at: 'content')
+		includesSubstring: 'asynchronous widget update failure')
+]
+
+{ #category : 'support' }
+AgentSystemMessageTest >> asyncFailureToolUse [
+	^ {
+		'id' -> 'async-probe'.
+		'name' -> 'evaluate_smalltalk'.
+		'input' -> ({ 'code' -> '3 + 4' } asDictionary) } asDictionary
 ]
 
 { #category : 'tests' }

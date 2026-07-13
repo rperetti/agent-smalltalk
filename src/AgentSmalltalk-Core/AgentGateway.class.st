@@ -16,7 +16,6 @@ Class {
 		'log',
 		'statusBlock',
 		'transport',
-		'reportedAsyncFailureCounts',
 		'requestCount',
 		'usageTotals',
 		'previousToolFailed',
@@ -97,7 +96,6 @@ AgentGateway >> initialize [
 	log := OrderedCollection new.
 	statusBlock := [ :msg |  ].
 	transport := AgentAnthropicTransport new.
-	reportedAsyncFailureCounts := Dictionary new.
 	self resetEvaluationMetrics
 ]
 
@@ -392,21 +390,16 @@ AgentGateway >> appendPendingAsyncFailuresTo: result [
 { #category : 'running' }
 AgentGateway >> pendingAsyncFailures [
 	| canvasClass failures |
-	reportedAsyncFailureCounts ifNil: [
-		reportedAsyncFailureCounts := Dictionary new ].
 	canvasClass := Smalltalk globals at: #AgentCanvas ifAbsent: [ ^ #() ].
 	failures := OrderedCollection new.
 	canvasClass current systemMessages do: [ :message |
-		| key previousCount |
+		| key |
 		key := message key.
 		(key notNil and: [
 			key asString beginsWith: 'widgetUpdateFailure-' ]) ifTrue: [
-				previousCount := reportedAsyncFailureCounts
-					at: key
-					ifAbsent: [ 0 ].
-				message count > previousCount ifTrue: [
-					reportedAsyncFailureCounts at: key put: message count.
-					failures add: message ] ] ].
+				message failureOccurrencesDelivered < message count ifTrue: [
+					failures add: message.
+					message markFailureOccurrencesDelivered ] ] ].
 	^ failures
 ]
 

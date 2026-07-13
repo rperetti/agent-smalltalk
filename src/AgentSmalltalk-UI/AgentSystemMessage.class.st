@@ -13,7 +13,8 @@ Class {
 		'key',
 		'count',
 		'stamp',
-		'footerLabel'
+		'footerLabel',
+		'failureOccurrencesDelivered'
 	],
 	#category : 'AgentSmalltalk-UI',
 	#package : 'AgentSmalltalk-UI'
@@ -110,6 +111,19 @@ AgentSystemMessage >> key: aSymbolOrNil [
 { #category : 'accessing' }
 AgentSystemMessage >> count [
 	^ count ifNil: [ 1 ]
+]
+
+{ #category : 'async failure delivery' }
+AgentSystemMessage >> failureOccurrencesDelivered [
+	"The delivery cursor belongs to this durable/coalescing card, not to a
+	particular AgentGateway instance. A missing slot means no occurrence has
+	been delivered yet, including for instances migrated from older images."
+	^ failureOccurrencesDelivered ifNil: [ 0 ]
+]
+
+{ #category : 'async failure delivery' }
+AgentSystemMessage >> markFailureOccurrencesDelivered [
+	failureOccurrencesDelivered := self count
 ]
 
 { #category : 'accessing' }

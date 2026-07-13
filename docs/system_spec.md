@@ -65,8 +65,11 @@ The bridge to the Anthropic Messages API and the owner of the agentic loop.
   attempts, and exact API token usage. Explicit paid smoke runs write JSON
   evidence (model, prompt revision, latency, usage, transparent billed-cost
   availability, outcome, and checks) to `logs/provider-evaluations.jsonl`.
-- Asynchronous widget failures are posted as keyed system messages and each
-  new occurrence is injected into the next tool result. The model therefore
+- Asynchronous widget failures are posted as keyed system messages. Each card
+  owns its coalescing count and durable delivery cursor, so a new occurrence is
+  injected into the next available tool result exactly once across gateway
+  instances. A later coalesced occurrence advances the same cursor; deleting
+  and recreating the card starts a new occurrence stream. The model therefore
   sees failures that happen after an earlier evaluation returned and must
   repair/re-verify them before finishing.
 - Entry points: `AgentGateway ask: 'request'` (headless or programmatic);
@@ -148,8 +151,9 @@ Forked network refreshes apply their result through
 `AgentWidget>>runOnUiThreadSafely:`. It catches errors when the queued UI block
 actually executes and posts a visible, keyed system message instead of letting
 an asynchronous UI exception disappear or crash a worker. The gateway injects
-each new async-failure message into the next tool result, forcing the model to
-repair and re-verify before it can finish. `setText:on:fontSize:` is the blessed
+each new async-failure occurrence into the next tool result once, including
+across fresh gateway instances, forcing the model to repair and re-verify before
+it can finish. `setText:on:fontSize:` is the blessed
 generated-code path for styled Bloc text, avoiding keyword-precedence mistakes.
 
 ### AgentCanvas (UI)
