@@ -32,6 +32,7 @@ the `Now` decisions clarify the architecture.
 | 10 | [AS-05](#as-05--coordinate-all-world-mutations) | Coordinate all world mutations | architecture, reliability | P1 | L |
 | 11 | [AS-06](#as-06--decide-whether-automation-restrictions-are-policy-or-enforcement) | Decide whether automation restrictions are policy or enforcement | security, product, architecture | P1 | L |
 | 12 | [AS-19](#as-19--make-the-base-prompt-a-tested-consistent-contract) | Make the base prompt a tested, consistent contract | testing, architecture, maintenance | P1 | M |
+| 13 | [AS-27](#as-27--cache-stable-inference-context-safely) | Cache stable inference context safely | performance, architecture, security, testing | P1 | M |
 
 ## Later
 
@@ -39,11 +40,12 @@ Real work, but not proposed as part of the next foundation milestone.
 
 | rank | ID | title | categories | priority | effort |
 |---:|---|---|---|---|---|
-| 13 | [AS-14](#as-14--introduce-a-provider-neutral-inference-boundary) | Introduce a provider-neutral inference boundary | architecture, reliability | P2 | L |
-| 14 | [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts) | Add provenance, health, and rollback for generated artifacts | architecture, feature, reliability | P1 | L |
-| 15 | [AS-16](#as-16--make-tool-card-removal-match-its-visible-meaning) | Make tool-card removal match its visible meaning | ux, product, reliability | P2 | M |
-| 16 | [AS-17](#as-17--preserve-history-when-system-messages-coalesce) | Preserve history when system messages coalesce | reliability, ux | P2 | S |
-| 17 | [AS-22](#as-22--make-failed-spotlight-runs-inspectable-on-the-canvas) | Make failed Spotlight runs inspectable on the canvas | feature, ux, reliability | P1 | L |
+| 14 | [AS-14](#as-14--introduce-a-provider-neutral-inference-boundary) | Introduce a provider-neutral inference boundary | architecture, reliability | P2 | L |
+| 15 | [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts) | Add provenance, health, and rollback for generated artifacts | architecture, feature, reliability | P1 | L |
+| 16 | [AS-16](#as-16--make-tool-card-removal-match-its-visible-meaning) | Make tool-card removal match its visible meaning | ux, product, reliability | P2 | M |
+| 17 | [AS-17](#as-17--preserve-history-when-system-messages-coalesce) | Preserve history when system messages coalesce | reliability, ux | P2 | S |
+| 18 | [AS-22](#as-22--make-failed-spotlight-runs-inspectable-on-the-canvas) | Make failed Spotlight runs inspectable on the canvas | feature, ux, reliability | P1 | L |
+| 19 | [AS-28](#as-28--measure-model-roi-with-provider-neutral-paid-evaluations) | Measure model ROI with provider-neutral paid evaluations | testing, performance, operations, security | P2 | L |
 
 ## Category views
 
@@ -54,12 +56,12 @@ cross-category priority order above.
 | lens | items |
 |---|---|
 | Bugs and behavioral correctness | [AS-24](#as-24--require-fact-writes-to-use-one-authorized-literal), [AS-25](#as-25--make-new-facts-observable-before-announcement), [AS-26](#as-26--deliver-each-async-failure-occurrence-once), [AS-12](#as-12--specify-whether-run-now-shifts-the-schedule) |
-| Security and authority | [AS-01](#as-01--authenticate-or-remove-the-local-evaluator), [AS-04](#as-04--treat-model-context-as-untrusted-bounded-data), [AS-06](#as-06--decide-whether-automation-restrictions-are-policy-or-enforcement), [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts) |
+| Security and authority | [AS-01](#as-01--authenticate-or-remove-the-local-evaluator), [AS-04](#as-04--treat-model-context-as-untrusted-bounded-data), [AS-06](#as-06--decide-whether-automation-restrictions-are-policy-or-enforcement), [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts), [AS-27](#as-27--cache-stable-inference-context-safely), [AS-28](#as-28--measure-model-roi-with-provider-neutral-paid-evaluations) |
 | Reliability and persistence | [AS-24](#as-24--require-fact-writes-to-use-one-authorized-literal), [AS-25](#as-25--make-new-facts-observable-before-announcement), [AS-26](#as-26--deliver-each-async-failure-occurrence-once), [AS-02](#as-02--make-live-updates-verifiable-and-atomic), [AS-03](#as-03--define-persistence-and-recovery-semantics), [AS-05](#as-05--coordinate-all-world-mutations), [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts), [AS-17](#as-17--preserve-history-when-system-messages-coalesce), [AS-22](#as-22--make-failed-spotlight-runs-inspectable-on-the-canvas) |
-| Operations and testing | [AS-01](#as-01--authenticate-or-remove-the-local-evaluator), [AS-02](#as-02--make-live-updates-verifiable-and-atomic), [AS-03](#as-03--define-persistence-and-recovery-semantics), [AS-19](#as-19--make-the-base-prompt-a-tested-consistent-contract) |
-| Architecture and evolution | [AS-03](#as-03--define-persistence-and-recovery-semantics), [AS-04](#as-04--treat-model-context-as-untrusted-bounded-data), [AS-05](#as-05--coordinate-all-world-mutations), [AS-06](#as-06--decide-whether-automation-restrictions-are-policy-or-enforcement), [AS-14](#as-14--introduce-a-provider-neutral-inference-boundary), [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts), [AS-19](#as-19--make-the-base-prompt-a-tested-consistent-contract) |
+| Operations and testing | [AS-01](#as-01--authenticate-or-remove-the-local-evaluator), [AS-02](#as-02--make-live-updates-verifiable-and-atomic), [AS-03](#as-03--define-persistence-and-recovery-semantics), [AS-19](#as-19--make-the-base-prompt-a-tested-consistent-contract), [AS-27](#as-27--cache-stable-inference-context-safely), [AS-28](#as-28--measure-model-roi-with-provider-neutral-paid-evaluations) |
+| Architecture and evolution | [AS-03](#as-03--define-persistence-and-recovery-semantics), [AS-04](#as-04--treat-model-context-as-untrusted-bounded-data), [AS-05](#as-05--coordinate-all-world-mutations), [AS-06](#as-06--decide-whether-automation-restrictions-are-policy-or-enforcement), [AS-14](#as-14--introduce-a-provider-neutral-inference-boundary), [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts), [AS-19](#as-19--make-the-base-prompt-a-tested-consistent-contract), [AS-27](#as-27--cache-stable-inference-context-safely) |
 | Product, feature, and UX | [AS-06](#as-06--decide-whether-automation-restrictions-are-policy-or-enforcement), [AS-12](#as-12--specify-whether-run-now-shifts-the-schedule), [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts), [AS-16](#as-16--make-tool-card-removal-match-its-visible-meaning), [AS-17](#as-17--preserve-history-when-system-messages-coalesce), [AS-22](#as-22--make-failed-spotlight-runs-inspectable-on-the-canvas), [AS-23](#as-23--add-the-canvas-screenshot-and-clear-the-final-publication-gate) |
-| Performance and maintenance | [AS-04](#as-04--treat-model-context-as-untrusted-bounded-data), [AS-19](#as-19--make-the-base-prompt-a-tested-consistent-contract) |
+| Performance and maintenance | [AS-04](#as-04--treat-model-context-as-untrusted-bounded-data), [AS-19](#as-19--make-the-base-prompt-a-tested-consistent-contract), [AS-27](#as-27--cache-stable-inference-context-safely), [AS-28](#as-28--measure-model-roi-with-provider-neutral-paid-evaluations) |
 
 ---
 
@@ -674,6 +676,119 @@ requests after delivery.
 - Deleting and later recreating a keyed failure produces a new occurrence that
   is not hidden by an older delivered count.
 - Tests cover same-gateway, cross-gateway, coalesced, and delete/recreate paths.
+
+## AS-27 — Cache stable inference context safely
+
+**Status:** candidate<br>
+**Categories:** performance, architecture, security, testing<br>
+**Priority:** P1<br>
+**Effort:** M<br>
+**Dependencies:** AS-04, AS-19; coordinate adapter-specific cache semantics with AS-14<br>
+**Source:** model ROI discussion and repository measurement, 2026-07-13
+
+### Problem and argument
+
+The 27,396-character base prompt, tool definitions, dynamic canvas context, and
+growing turn history are sent again on every model round. The gateway records
+provider cache-creation and cache-read token fields but does not identify a
+stable cacheable prefix or request caching from the provider. Long repair loops
+therefore pay repeatedly for mostly identical input and carry avoidable latency.
+Caching without an explicit boundary would create a different risk: user or
+canvas data could be retained or reused beyond the request that authorized it.
+
+### Proposed outcome
+
+The inference request separates versioned, stable instructions from dynamic
+user and canvas data. Provider adapters cache the stable prefix when their API
+supports it, fall back to an ordinary uncached request when it does not, and
+expose enough evidence to verify hits, invalidation, cost, and unchanged model
+behavior.
+
+### Acceptance criteria
+
+- The cacheable prefix contains only reviewed platform instructions and stable
+  tool schemas; user text, canvas objects, tool results, and generated code are
+  dynamic and are not reused across independent runs.
+- Cache identity accounts for serving provider, pinned model, base-prompt
+  revision, tool-schema revision, and generation settings that affect cache
+  validity.
+- A prompt or tool-schema change invalidates the old prefix deterministically;
+  an unchanged follow-up round can produce a cache hit.
+- Adapters own provider-specific cache controls and usage translation. A model
+  or provider without safe cache support continues uncached without changing
+  gateway semantics.
+- Evaluation evidence distinguishes uncached input, cache writes, cache reads,
+  output, and provider-reported reasoning tokens where applicable.
+- Deterministic tests cover prefix composition, exclusion of dynamic data,
+  invalidation, unsupported providers, malformed cache usage, and uncached
+  fallback.
+- An explicit paid evaluation records cold and warm runs against the same
+  prompt revision and reports token cost, latency, rounds, repairs, and semantic
+  outcome. It is never part of `verify-all.sh`.
+- The system specification, operations guide, and security model document the
+  implemented cache boundary, observability, provider retention assumptions,
+  and invalidation behavior.
+
+## AS-28 — Measure model ROI with provider-neutral paid evaluations
+
+**Status:** candidate<br>
+**Categories:** testing, performance, operations, security<br>
+**Priority:** P2<br>
+**Effort:** L<br>
+**Dependencies:** AS-14, AS-19, AS-27<br>
+**Source:** model ROI discussion, 2026-07-13
+
+### Problem and argument
+
+The paid smoke scripts exercise useful behavior, but the gateway and runner are
+tied to one provider and model, each scenario normally runs once, and recorded
+usage is not converted into dated cost. Public coding benchmarks do not test
+Pharo/Bloc generation, live compilation, state preservation, or repair through
+this project's tool loop. Nominal token prices also hide tokenizer differences,
+reasoning-token billing, cache behavior, failed runs, and additional rounds.
+A cheap model that needs repeated repairs can cost more per successful request.
+
+### Proposed outcome
+
+An explicit, budgeted bake-off runs pinned candidates through the same semantic
+scenarios in fresh disposable images. It ranks models by cost per successful
+evaluation while reporting pass rate, latency, repairs, and operational limits
+separately. Candidate selection also records where inference runs and which
+company serves it, rather than treating a model name as the whole trust
+boundary.
+
+### Acceptance criteria
+
+- A versioned candidate manifest records model publisher, pinned model ID,
+  serving provider, API and endpoint region, reasoning settings, context and
+  output limits, data-retention/training terms with dated source links, and
+  prices with their retrieval date.
+- Models published by organizations outside the United States are evaluated
+  only through a US-based serving provider, not the publisher's own non-US
+  service. A US processing region is selected when the serving provider offers
+  regional control, and the actual region or lack of a guarantee is reported.
+- The current production model is the baseline. Screening includes at least
+  three challengers from at least two model families, subject to the serving
+  policy above.
+- Candidates first pass request/response and tool-call contract tests. The paid
+  stage uses a declared budget and sample count; finalists run the full semantic
+  suite at least five times per scenario and prompt revision.
+- Every run uses the same base-prompt and tool-schema revisions, fresh image
+  setup, round cap, output limit, and declared reasoning policy. Cached and
+  uncached results are separated rather than silently mixed.
+- Evidence records semantic outcome, input/cache/reasoning/output usage,
+  calculated USD cost, latency, rounds, repair attempts, malformed tool calls,
+  and asynchronous failures that appear after an apparent success.
+- The primary comparison is cost per semantic pass. Pass rate, p50/p95 latency,
+  repair distribution, and sample count remain visible so one cheap outlier
+  cannot become the recommendation.
+- A failed candidate cannot hand the partially mutated image to another model;
+  every retry or fallback begins from the scenario's fresh state.
+- Results are written as machine-readable evidence plus a dated summary that
+  names the winning conditions and limitations. Price or model changes make
+  the summary stale without rewriting the historical evidence.
+- Paid comparisons remain an explicit operator action and never run from
+  `verify-all.sh` or routine builds.
 
 ---
 
