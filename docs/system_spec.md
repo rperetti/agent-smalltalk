@@ -566,4 +566,4 @@ records structured evidence; it is never part of the deterministic gate.
   run on the user's machine. The mutable `Agent.image` is user data and is
   exercised only by explicit smoke/acceptance runs. Hosted GitHub CI is
   deliberately deferred.
-- Single user, single space, no multiplayer.
+- One human, one agent, one space — no other people, no networked collaboration.

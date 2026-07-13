@@ -55,8 +55,8 @@ purist ideal; why it runs outside the image instead is recorded in
 
 ## The spatial canvas
 
-The environment replaces the chat window and file tree with an infinite,
-multiplayer spatial canvas.
+The environment replaces the chat window and file tree with an infinite
+spatial canvas that you and the agent share.
 
 * **UI framework.** Built on Bloc, Pharo's low-level UI layer, which treats
   elements (`BlElement`) as nodes in a scene graph with vector graphics,
