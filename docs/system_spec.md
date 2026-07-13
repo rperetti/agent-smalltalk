@@ -10,11 +10,6 @@ in [security.md](security.md), and command/recovery procedures in
 [operations.md](operations.md). This specification keeps enough summary context
 to explain behavior but is not the canonical planning queue or runbook.
 
-*Last updated: 2026-07-10 (gateway round-cap semantics, fact number scanner,
-canvas-space liveness, focus-gated manual fact reactions, compiler-enforced
-reaction and fact-write policies, verification/evaluation gates, and
-result-reporting fallback; 167 clean-image tests).*
-
 ## One-paragraph summary
 
 A Pharo 13 image where an LLM (Anthropic `claude-sonnet-5`) writes Smalltalk
