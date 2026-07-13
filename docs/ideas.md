@@ -186,6 +186,39 @@ have clear scope, precedence, and an explanation of what it changes.
 Promotion trigger: preferences/scoping provide a product model for theme state,
 or visual inconsistency becomes a concrete usability problem.
 
+## A model router for choosing the model per request
+
+*From the open-source-readiness discussion (2026-07-13).*
+
+Every request currently goes to one configured model. Requests differ in need: a
+quick fact edit or a routine restyle does not require the most capable (and most
+expensive) model, while novel widget generation or hard debugging does. A router
+could pick the model per request — by task type, estimated difficulty,
+cost/latency budget, or explicit user preference — so the system spends
+capability where it matters.
+
+This sits on top of a provider-neutral inference boundary: once the gateway can
+reach more than one backend
+([AS-14](backlog.md#as-14--introduce-a-provider-neutral-inference-boundary),
+building on the external-inference decision in
+[ADR-0001](adr/0001-external-inference-boundary.md)), the router decides which
+one a given request uses.
+
+Open questions:
+
+- What signal decides the model — task type, a difficulty estimate, a
+  cost/latency budget, prior failures, or a visible user setting?
+- Does the router classify then route, or start cheap and escalate on
+  failure/repair?
+- Is the choice visible and overridable on the canvas, and recorded in a run's
+  provenance and diagnostics?
+- How does routing interact with the tool-use loop — can the model change
+  mid-run?
+
+Promotion trigger: more than one backend is actually available (AS-14 lands) and
+real usage shows a cost or capability mismatch from routing everything to one
+model.
+
 ## Adding an idea
 
 New entries should answer, briefly:

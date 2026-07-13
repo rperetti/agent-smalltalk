@@ -531,7 +531,7 @@ metrics, and debuggers.
 **Priority:** P0<br>
 **Effort:** S<br>
 **Dependencies:** AS-02, AS-03 (do not publish before the persistence/update model is clear)<br>
-**Source:** AS-20 follow-up, 2026-07-11
+**Source:** AS-20 follow-up, 2026-07-13
 
 ### Problem and argument
 

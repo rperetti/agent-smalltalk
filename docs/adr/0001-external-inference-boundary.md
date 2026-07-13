@@ -1,7 +1,7 @@
 # 0001 — Inference runs outside the image, behind the gateway
 
 **Status:** accepted
-**Date:** 2026-07-12
+**Date:** 2026-07-13
 **Deciders:** Rodrigo Peretti
 **Related backlog:** AS-14
 
