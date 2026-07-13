@@ -174,6 +174,11 @@ Singleton owning the Bloc space (`AgentCanvas open`, 1280×840, `ToBeeTheme`).
   code operates on the actual objects. Globals persist until the next
   selection (follow-up requests keep working). No selection → full canvas,
   as before.
+- **Right-click to browse**: secondary-click any card opens a system browser
+  on its class — the generated widget's own class, or for tool and automation
+  cards the underlying tool/routine class. Nothing on the canvas is opaque; the
+  code behind anything you see is one click away ("knowledge = code", made
+  literal).
 - Cmd/Ctrl+Enter summons the spotlight.
 
 ### AgentWidget (UI)
