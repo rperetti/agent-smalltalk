@@ -1,7 +1,7 @@
 # Architecture decision records
 
 ADRs preserve decisions whose reasoning would otherwise be rediscovered from
-debugging comments, old phase documents, or commit history. They describe why a
+debugging comments, superseded design documents, or commit history. They describe why a
 durable architectural choice was made; they are not implementation plans or
 backlog items.
 

@@ -372,7 +372,7 @@ what depends on it, and how to export, supersede, or roll it back.
 **Priority:** P2<br>
 **Effort:** M<br>
 **Dependencies:** AS-15<br>
-**Source:** completed self-built-tools phase and repository review
+**Source:** completed self-built-tools work and repository review
 
 ### Problem and argument
 

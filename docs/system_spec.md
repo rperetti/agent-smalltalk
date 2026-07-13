@@ -104,7 +104,7 @@ tests via `isUnknown` (an `Object` extension makes every value answer it),
 prints safely (`'unknown (city)'`), and fails loudly beyond that so unknowns
 cannot propagate invisibly.
 
-### Reactions (phase 4)
+### Reactions
 
 One canvas-wide `announcer`. `AgentFactChanged` fires on agent updates
 (`AgentFact key:body:`) and committed manual edits. A focused fact editor is a
@@ -467,13 +467,13 @@ has been verified against the loaded packages.
   interactively.
 - **Persist**: save image, quit, reopen — widgets, positions, and state
   intact; behavior still works.
-- **Remember** (phase 2): "remember that I live in Lisbon" → sticky
+- **Remember**: "remember that I live in Lisbon" → sticky
   appears; "widget showing the current time in my city" → built with no
   clarifying question; "actually I moved to Madrid" → the same sticky
   updated (no duplicate) *and the model retuned the existing clock widget's
   timezone unprompted*; a name stated in passing was captured implicitly
   and used by the requested widget.
-- **Select and operate** (phase 3, verified interactively 2026-07-04): three
+- **Select and operate** (verified interactively 2026-07-04): three
   counters (3, 5, 7) selected, "make a widget that shows the sum of these
   selected counters" → SumCounterWidget built against `SelectionAll` holding
   live references; system prompt contained only the selected widgets;
@@ -487,7 +487,7 @@ has been verified against the loaded packages.
 - **Update itself while running**: `./update.sh` against an open session
   delivered code over localhost:8807, migrated on the UI thread, saved, and
   announced itself with a gray system sticky — observed live.
-- **React by hand** (phase 4, verified interactively 2026-07-05): editing a
+- **React by hand** (verified interactively 2026-07-05): editing a
   `#city` sticky in the GUI retuned a subscribed clock with no request; a
   lassoed sum widget recomputed live as its source counters changed. The
   full canvas — pan, Shift+wheel zoom, lasso across widgets, click-to-front,

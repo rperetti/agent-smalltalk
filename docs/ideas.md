@@ -63,7 +63,7 @@ whole thread a noticeable burden.
 
 ## Variables on the canvas
 
-*From the phase-2 brainstorm (2026-07-03), sparked by fact keys such as
+*From an early brainstorm (2026-07-03), sparked by fact keys such as
 `#city`.*
 
 A keyed fact already behaves like a visible global variable:
@@ -89,7 +89,7 @@ consciously deferred in [postponed.md](postponed.md).
 
 ## Preferences and settings as scoped knowledge
 
-*From the phase-2 brainstorm.*
+*From an early brainstorm.*
 
 "I like dark widgets" is knowledge about how the environment should behave,
 not a fact about the external world. Preferences may be scoped to the whole
@@ -174,7 +174,7 @@ inside a card.
 
 ## Theming the canvas and widgets
 
-*From the phase-2 brainstorm.*
+*From an early brainstorm.*
 
 Possible scope ranges from exposing `ToBeeTheme`/`ToBeeDarkTheme` selection to
 letting the agent restyle generated widgets in response to a scoped preference.

@@ -14,7 +14,7 @@ lives in the ordered [backlog](backlog.md). See the
 
 ## Wiring — user-drawn connections between canvas objects
 
-*Drafted as a full phase spec, postponed 2026-07-05.*
+*Drafted as a full spec, postponed 2026-07-05.*
 
 **What it was.** Drag from one object (a fact, a widget) to another; a visible
 spline connects them and data flows along it — the vision's "draw a line from
@@ -22,10 +22,10 @@ the Email Inbox to the To-Do List" made real. Wires would be first-class
 canvas objects (selectable, deletable, persistent), turning the canvas into a
 runnable dataflow diagram. The money shot: drag a `#city` fact onto a blank
 widget and watch it bind and track. (The full draft is in git history at
-commit `4c44487`, in the then-current `docs/phase5_spec.md`.)
+commit `4c44487`.)
 
 **Why postponed.**
-- **No proven need.** Phase 4's global announcer already gives full
+- **No proven need.** The global announcer already gives full
   reactivity. Wiring only makes that reactivity *visible and composable* —
   valuable, but a solution ahead of its problem. We don't yet know where the
   canvas is going, and drawing this conclusion now is premature.
