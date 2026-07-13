@@ -219,6 +219,50 @@ Promotion trigger: more than one backend is actually available (AS-14 lands) and
 real usage shows a cost or capability mismatch from routing everything to one
 model.
 
+## Promote living-world code from the image to the platform source
+
+*From the documentation review (2026-07-13).*
+
+Code flows one way today: the platform source (`src/`) is built, tested, and
+committed, then loaded into a living world through an update. Nothing flows
+back. But the living world is exactly where the agent builds—classes, tools,
+and widgets accumulate in the running image. When a functionality built from
+inside one world proves useful enough and generic enough to belong to every
+world, there is no path to lift it out of that image and into the shared,
+versioned foundation. It stays trapped in one person's `.image`, invisible to
+the repository and to every other world.
+
+Promotion would turn image-resident code into committed Tonel source: extracted,
+generalized past the one canvas it grew up in, tested to the standard platform
+code is held to, and reconciled with the world it came from so the local copy is
+superseded rather than left to drift.
+
+Open questions:
+
+- What proves a piece is generic enough—that it does not secretly depend on one
+  canvas's facts, instances, or positions?
+- How is it extracted from the live image into versioned Tonel source with
+  tests, and who authors the tests and review that platform code demands?
+- Does promotion lift the source verbatim, or generalize and rename it on the
+  way out?
+- After promotion, how does the originating world reconcile its now-redundant
+  local copy on the next update?
+- What provenance records that a platform capability originated in a living
+  world, and by which agent run?
+
+This is the code counterpart to
+[agent-written tools subsuming the base prompt](#agent-written-tools-may-subsume-parts-of-the-base-prompt):
+that idea moves accumulated *knowledge* from the world back toward the platform
+prompt; this one moves accumulated *code* from the world back into the platform
+source. Both depend on the artifact provenance, health, and export foundations
+in [AS-15](backlog.md#as-15--add-provenance-health-and-rollback-for-generated-artifacts)
+and the export/import path in
+[AS-03](backlog.md#as-03--define-persistence-and-recovery-semantics).
+
+Promotion trigger: a capability built inside a world is repeatedly re-created or
+hand-copied into `src/` by a human, or AS-15/AS-03 make image-to-source
+extraction concrete enough to design the gesture.
+
 ## Adding an idea
 
 New entries should answer, briefly:
