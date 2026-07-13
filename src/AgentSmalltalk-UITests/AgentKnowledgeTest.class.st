@@ -125,6 +125,74 @@ AgentKnowledgeTest >> testNewFactAnnouncementSeesLiveFact [
 ]
 
 { #category : 'tests' }
+AgentKnowledgeTest >> testSandboxReadsNewFactImmediatelyInHeadlessMode [
+	self assert: (AgentSandbox new evaluate:
+		'AgentFact key: #city body: ''Tokyo''. AgentKnowledge at: #city')
+		equals: 'RESULT: ''Tokyo'''
+]
+
+{ #category : 'tests' }
+AgentKnowledgeTest >> testInteractiveFactIsVisibleBeforeAnnouncementAndPulse [
+	| canvas space observations result |
+	AgentRemote enable.
+	canvas := AgentCanvasInteractiveTestProbe new.
+	space := AgentCanvasStaleSpaceProbe new.
+	canvas space: space.
+	AgentCanvas instVarNamed: #current put: canvas.
+	observations := OrderedCollection new.
+	canvas announcer
+		when: AgentFactChanged
+		do: [ :event |
+			observations add: {
+				event fact.
+				AgentKnowledge at: #city.
+				canvas facts includes: event fact } ]
+		for: self.
+	[
+		result := AgentSandbox new evaluate:
+			'AgentFact key: #city body: ''Tokyo''. AgentKnowledge at: #city'.
+		self assert: result equals: 'RESULT: ''Tokyo'''.
+		self assert: observations size equals: 1.
+		self assert: observations first first identicalTo: (canvas factWithKey: #city).
+		self assert: observations first second equals: 'Tokyo'.
+		self assert: observations first third.
+		self assert: space queuedTasks size equals: 1.
+		self assert: canvas facts size equals: 1 ]
+		ensure: [
+			canvas announcer unsubscribe: self.
+			AgentRemote disable.
+			AgentCanvas reset ]
+]
+
+{ #category : 'tests' }
+AgentKnowledgeTest >> testInteractiveSandboxFactBackedWidgetUsesLiveValueAndUpdatesOnce [
+	| canvas space widget |
+	AgentRemote enable.
+	canvas := AgentCanvasInteractiveTestProbe new.
+	space := AgentCanvasStaleSpaceProbe new.
+	canvas space: space.
+	AgentCanvas instVarNamed: #current put: canvas.
+	[
+		AgentFact key: #city body: 'Tokyo'.
+		widget := AgentReactiveLifecycleTestWidget new.
+		self assert: widget initialCity equals: 'Tokyo'.
+		canvas addWidget: widget.
+		space runNextTask.
+		space runNextTask.
+		self assert: widget factReactionCount equals: 0.
+		AgentFact key: #city body: 'Lisbon'.
+		self assert: widget factReactionCount equals: 0.
+		space runNextTask.
+		self assert: widget factReactionCount equals: 1.
+		AgentFact key: #city body: 'Porto'.
+		space runNextTask.
+		self assert: widget factReactionCount equals: 2 ]
+		ensure: [
+			AgentRemote disable.
+			AgentCanvas reset ]
+]
+
+{ #category : 'tests' }
 AgentKnowledgeTest >> testBlurHookIsInert [
 	"The blur path must NOT announce (it ran on the UI thread; subscribers
 	doing network work froze input). Drift sweep covers manual edits."

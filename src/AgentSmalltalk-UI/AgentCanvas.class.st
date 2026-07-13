@@ -29,7 +29,8 @@ Class {
 		'undoStack',
 		'topElevation',
 		'announcer',
-		'widgetAddVersion'
+		'widgetAddVersion',
+		'pendingFacts'
 	],
 	#classInstVars : [
 		'current'
@@ -648,9 +649,15 @@ AgentCanvas >> addWidget: aWidget [
 	already raised by click-to-front -- creations always land visible."
 	(aWidget isKindOf: AgentWidget) ifTrue: [ aWidget raise ].
 	self isInteractive
-		ifTrue: [ space enqueueTask: (BlTaskAction new action: [
-			content addChild: aWidget.
-			(aWidget respondsTo: #addedToCanvas) ifTrue: [ aWidget addedToCanvas ] ]) ]
+		ifTrue: [
+			(aWidget isKindOf: AgentFact) ifTrue: [
+				(self pendingFacts includes: aWidget) ifFalse: [
+					self pendingFacts add: aWidget ] ].
+			space enqueueTask: (BlTaskAction new action: [
+				content addChild: aWidget.
+				(aWidget isKindOf: AgentFact) ifTrue: [
+					self pendingFacts remove: aWidget ifAbsent: [ ] ].
+				(aWidget respondsTo: #addedToCanvas) ifTrue: [ aWidget addedToCanvas ] ]) ]
 		ifFalse: [
 			content addChild: aWidget.
 			(aWidget respondsTo: #addedToCanvas) ifTrue: [ aWidget addedToCanvas ] ]
@@ -663,6 +670,13 @@ AgentCanvas >> widgetAddVersion [
 ]
 
 { #category : 'widgets' }
+AgentCanvas >> pendingFacts [
+	"Facts whose logical canvas presence is committed while their Bloc
+	attachment waits for the interactive space's next pulse."
+	^ pendingFacts ifNil: [ pendingFacts := OrderedCollection new ]
+]
+
+{ #category : 'widgets' }
 AgentCanvas >> widgets [
 	content ifNil: [ ^ #() ].
 	^ content children asArray select: [ :c | c isKindOf: AgentWidget ]
@@ -670,7 +684,9 @@ AgentCanvas >> widgets [
 
 { #category : 'widgets' }
 AgentCanvas >> facts [
-	^ self widgets select: [ :w | w isKindOf: AgentFact ]
+	| attached |
+	attached := self widgets select: [ :w | w isKindOf: AgentFact ].
+	^ attached , ((self pendingFacts reject: [ :f | attached includes: f ]) asArray)
 ]
 
 { #category : 'widgets' }

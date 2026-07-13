@@ -35,6 +35,13 @@ AgentCanvasStaleSpaceProbe >> requestNextPulse [
 	pulseRequests := pulseRequests + 1
 ]
 
+{ #category : 'scheduling' }
+AgentCanvasStaleSpaceProbe >> runNextTask [
+	| task |
+	task := queuedTasks removeFirst.
+	task action value
+]
+
 { #category : 'accessing' }
 AgentCanvasStaleSpaceProbe >> queuedTasks [
 	^ queuedTasks

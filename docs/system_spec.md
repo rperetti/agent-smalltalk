@@ -97,8 +97,9 @@ Evaluates model-generated code with guardrails:
 
 ### AgentKnowledge + AgentUnknown (Core) — live values
 
-`AgentKnowledge at: #city` reads the fact sticky's body (the canvas is the
-only store); `at:ifAbsent:`, `numberAt:` (first number in the body). Missing
+`AgentKnowledge at: #city` reads the fact sticky's logical live body (the
+canvas is the only store); `at:ifAbsent:`, `numberAt:` (first number in the
+body). Missing
 facts answer an **`AgentUnknown`** null-object: carries the missing key,
 tests via `isUnknown` (an `Object` extension makes every value answer it),
 prints safely (`'unknown (city)'`), and fails loudly beyond that so unknowns
@@ -114,6 +115,10 @@ edit, and also catches other unfocused drift. New facts are rendered and placed
 on the canvas before their first `AgentFactChanged` announcement, so subscribers
 can resolve a same-request fact through `AgentKnowledge` during that event;
 existing fact edits continue to announce after their updated body is rendered.
+On an interactive canvas, a new fact enters the logical fact registry while its
+Bloc attachment is queued; this keeps `AgentKnowledge` and `facts` coherent
+without mutating an attached element from the gateway process. Existing updates
+likewise render and announce from one UI task.
 `AgentWidgetChanged` fires via the widget convention `self announceChanged`
 in state mutators. Reactive widgets put `when:do:for: self` subscriptions in
 `installReactions`, never `initialize`. The canvas calls `reconnectReactions`
@@ -158,6 +163,9 @@ Singleton owning the Bloc space (`AgentCanvas open`, 1280×840, `ToBeeTheme`).
   qualify for UI work.
 - Widgets live on a content element; `addWidget:` defers to the UI thread via
   `enqueueTask:` only when the canvas is interactive.
+- Interactive fact additions enter a pending logical registry before that
+  enqueue, so `facts`, `factWithKey:`, and `AgentKnowledge` observe them before
+  `AgentFactChanged`; the pending entry is removed after Bloc attachment.
 - Additions advance a synchronous monotonic version before that enqueue. The
   gateway observes the version, so its pure-answer heuristic cannot race the
   next Bloc pulse and create a duplicate note.

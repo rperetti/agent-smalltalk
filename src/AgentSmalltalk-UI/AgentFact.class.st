@@ -14,7 +14,9 @@ Class {
 	#superclass : 'AgentSticky',
 	#instVars : [
 		'key',
-		'lastAnnouncedBody'
+		'lastAnnouncedBody',
+		'logicalBody',
+		'renderedBody'
 	],
 	#category : 'AgentSmalltalk-UI',
 	#package : 'AgentSmalltalk-UI'
@@ -87,19 +89,39 @@ AgentFact >> key: aSymbol [
 
 { #category : 'accessing' }
 AgentFact >> body: aString [
-	"Update an already-live fact and announce the new value. New facts use
-	#setBody: before placement, then announce after they are discoverable through
-	AgentKnowledge."
-	self setBody: aString.
-	self announceFactChanged
+	"Update the logical value immediately. An interactive canvas renders the
+	attached editor and announces only from its UI task; the gateway process
+	never mutates an attached Bloc element."
+	logicalBody := aString asString.
+	AgentCanvas current isInteractive
+		ifTrue: [ self runOnUiThread: [
+			self renderBodyNow.
+			self announceFactChanged ] ]
+		ifFalse: [
+			self renderBodyNow.
+			self announceFactChanged ]
 ]
 
 { #category : 'private' }
 AgentFact >> setBody: aString [
-	"Render the value without announcing. Creation places the fact before its
-	first announcement so subscribers can resolve it through AgentKnowledge."
+	"Set a new fact's logical value and render it before placement."
+	logicalBody := aString asString.
+	self renderBodyNow
+]
+
+{ #category : 'private' }
+AgentFact >> renderBodyNow [
+	| value |
+	value := self liveBody.
 	bodyEditor ifNotNil: [
-		bodyEditor text: (aString asString asRopedText fontSize: 16; bold) ].
+		bodyEditor text: (value asRopedText fontSize: 16; bold) ].
+	renderedBody := value
+]
+
+{ #category : 'accessing' }
+AgentFact >> liveBody [
+	"The logical value is readable before an interactive attachment pulse."
+	^ logicalBody ifNil: [ self body ]
 ]
 
 { #category : 'migration' }
@@ -109,7 +131,14 @@ AgentFact >> restoreAfterRepair [
 
 { #category : 'reactions' }
 AgentFact >> announceFactChanged [
-	lastAnnouncedBody := self body.
+	"A manual editor change is committed here. Programmatic interactive updates
+	arrive after #renderBodyNow, so this does not touch the attached editor."
+	| displayed |
+	displayed := self body.
+	(renderedBody isNil or: [ displayed ~= renderedBody ]) ifTrue: [
+		logicalBody := displayed.
+		renderedBody := displayed ].
+	lastAnnouncedBody := self liveBody.
 	AgentCanvas current announcer announce:
 		(AgentFactChanged new key: key; fact: self; yourself)
 ]
@@ -118,7 +147,9 @@ AgentFact >> announceFactChanged [
 AgentFact >> hasUnannouncedEdit [
 	"Focused editor text is a draft, not durable fact state. The canvas watcher
 	must therefore ignore it until the editor has lost focus and committed it."
-	^ self isEditing not and: [ lastAnnouncedBody ~= self body ]
+	| currentRenderedBody |
+	currentRenderedBody := renderedBody ifNil: [ self body ].
+	^ self isEditing not and: [ currentRenderedBody ~= self body ]
 ]
 
 { #category : 'testing' }
@@ -131,5 +162,5 @@ AgentFact >> describe [
 	^ String streamContents: [ :s |
 		s << 'fact'.
 		key ifNotNil: [ s << '[' << key asString << ']' ].
-		s << ': ' << self body ]
+		s << ': ' << self liveBody ]
 ]

@@ -23,7 +23,7 @@ AgentKnowledge class >> at: aSymbol [
 	fact := canvasClass current factWithKey: aSymbol.
 	^ fact
 		ifNil: [ AgentUnknown key: aSymbol ]
-		ifNotNil: [ fact body ]
+		ifNotNil: [ fact liveBody ]
 ]
 
 { #category : 'accessing' }

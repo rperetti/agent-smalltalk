@@ -7,7 +7,8 @@ Class {
 	#superclass : 'AgentWidget',
 	#instVars : [
 		'factReactionCount',
-		'widgetReactionCount'
+		'widgetReactionCount',
+		'initialCity'
 	],
 	#category : 'AgentSmalltalk-UITests',
 	#package : 'AgentSmalltalk-UITests'
@@ -16,6 +17,7 @@ Class {
 { #category : 'initialization' }
 AgentReactiveLifecycleTestWidget >> initialize [
 	super initialize.
+	initialCity := AgentKnowledge at: #city.
 	factReactionCount := 0.
 	widgetReactionCount := 0
 ]
@@ -35,6 +37,11 @@ AgentReactiveLifecycleTestWidget >> installReactions [
 { #category : 'accessing' }
 AgentReactiveLifecycleTestWidget >> factReactionCount [
 	^ factReactionCount
+]
+
+{ #category : 'accessing' }
+AgentReactiveLifecycleTestWidget >> initialCity [
+	^ initialCity
 ]
 
 { #category : 'accessing' }
