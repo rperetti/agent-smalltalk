@@ -22,7 +22,7 @@ the Email Inbox to the To-Do List" made real. Wires would be first-class
 canvas objects (selectable, deletable, persistent), turning the canvas into a
 runnable dataflow diagram. The money shot: drag a `#city` fact onto a blank
 widget and watch it bind and track. (The full draft is in git history at
-commit `4c44487`.)
+commit `4c44487`, as `docs/phase5_spec.md`.)
 
 **Why postponed.**
 - **No proven need.** The global announcer already gives full
