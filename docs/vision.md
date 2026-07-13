@@ -11,7 +11,7 @@ The goal is an operating environment where code and knowledge share one space,
 and the user and agent work together in a persistent workspace that keeps
 evolving — not a stateless chat window.
 
-The bet is that living environment, not any single interface to it. The spatial
+The bet is the living environment, not any single interface to it. The spatial
 canvas described below is the current medium for touching it — a serious attempt,
 not a fixed commitment. Smalltalk's own history is the precedent: the image
 persisted while its interface changed — MVC, then Morphic, now Bloc. Like the
