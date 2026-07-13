@@ -62,6 +62,10 @@ chatbot into a shared, editable workspace.
   here: an agent that groups related things by proximity, so keeping the
   workspace tidy isn't one more thing you have to do.
 
+The bet is the living environment, not any one interface to it — the spatial
+canvas is our current medium for touching it, and, like the rest of the project,
+expected to keep evolving.
+
 This is an experiment — push the idea to its limits and find where it breaks. The
 goal is a useful place for a human and an agent to expand what they know and can
 do together. For what runs today versus what's still ahead, see
