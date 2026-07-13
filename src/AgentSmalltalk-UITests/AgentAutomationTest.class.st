@@ -179,6 +179,31 @@ AgentAutomationTest >> testVerificationRunsOnceAndEnablesAfterSuccess [
 ]
 
 { #category : 'tests - running' }
+AgentAutomationTest >> testRunNowPreservesIntervalSchedule [
+	| scheduledAt automation |
+	scheduledAt := self timeAtHour: 9 minute: 0.
+	automation := self
+		newAutomationAt: scheduledAt
+		everyMinutes: 5.
+	automation runNowAt: scheduledAt + 2 minutes.
+	self assert: automation nextRun equals: scheduledAt + 5 minutes
+]
+
+{ #category : 'tests - running' }
+AgentAutomationTest >> testRunNowPreservesDailySchedule [
+	| scheduledAt automation |
+	scheduledAt := self timeAtHour: 6 minute: 30.
+	automation := AgentAutomationTestProbe new
+		schedule: (AgentSchedule dailyAtHour: 7 minute: 0)
+		at: scheduledAt;
+		dependencies: #(AgentTool);
+		register;
+		yourself.
+	automation runNowAt: (self timeAtHour: 8 minute: 0).
+	self assert: automation nextRun equals: (self timeAtHour: 7 minute: 0)
+]
+
+{ #category : 'tests - running' }
 AgentAutomationTest >> testFailedVerificationDoesNotEnable [
 	| now automation |
 	now := self timeAtHour: 9 minute: 0.

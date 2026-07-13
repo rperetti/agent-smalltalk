@@ -367,7 +367,11 @@ AgentAutomation >> verifyAndEnable [
 
 { #category : 'running' }
 AgentAutomation >> runNowAt: aDateAndTime [
-	(AgentScheduler claimManual: self at: aDateAndTime enableOnSuccess: false)
+	(AgentScheduler
+		claimManual: self
+		at: aDateAndTime
+		enableOnSuccess: false
+		preserveSchedule: true)
 		ifTrue: [ self executeClaimedAt: aDateAndTime ].
 	^ self
 ]
@@ -395,10 +399,18 @@ AgentAutomation >> claimScheduledAt: aDateAndTime [
 
 { #category : 'running' }
 AgentAutomation >> claimManualAt: aDateAndTime enableOnSuccess: aBoolean [
+	^ self
+		claimManualAt: aDateAndTime
+		enableOnSuccess: aBoolean
+		preserveSchedule: false
+]
+
+{ #category : 'running' }
+AgentAutomation >> claimManualAt: aDateAndTime enableOnSuccess: aBoolean preserveSchedule: preserveSchedule [
 	(self registered and: [ self running not ]) ifFalse: [ ^ false ].
 	running := true.
 	enableAfterRun := aBoolean.
-	nextRun := schedule nextAfter: aDateAndTime.
+	preserveSchedule ifFalse: [ nextRun := schedule nextAfter: aDateAndTime ].
 	self refreshCard.
 	^ true
 ]

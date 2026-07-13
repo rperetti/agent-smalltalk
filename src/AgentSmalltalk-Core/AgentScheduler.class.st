@@ -47,10 +47,20 @@ AgentScheduler class >> reset [
 
 { #category : 'claiming' }
 AgentScheduler class >> claimManual: anAutomation at: aDateAndTime enableOnSuccess: aBoolean [
+	^ self
+		claimManual: anAutomation
+		at: aDateAndTime
+		enableOnSuccess: aBoolean
+		preserveSchedule: false
+]
+
+{ #category : 'claiming' }
+AgentScheduler class >> claimManual: anAutomation at: aDateAndTime enableOnSuccess: aBoolean preserveSchedule: preserveSchedule [
 	^ self critical: [
 		anAutomation
 			claimManualAt: aDateAndTime
-			enableOnSuccess: aBoolean ]
+			enableOnSuccess: aBoolean
+			preserveSchedule: preserveSchedule ]
 ]
 
 { #category : 'running' }
@@ -114,12 +124,15 @@ AgentScheduler >> claimDueAt: aDateAndTime [
 
 { #category : 'running' }
 AgentScheduler >> runNow: anAutomation [
+	| now |
+	now := DateAndTime now.
 	(self class
 		claimManual: anAutomation
-		at: DateAndTime now
-		enableOnSuccess: false)
+		at: now
+		enableOnSuccess: false
+		preserveSchedule: true)
 		ifTrue: [
-			self startClaimed: anAutomation at: DateAndTime now ].
+			self startClaimed: anAutomation at: now ].
 	^ anAutomation
 ]
 

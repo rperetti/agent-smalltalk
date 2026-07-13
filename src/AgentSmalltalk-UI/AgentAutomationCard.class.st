@@ -183,7 +183,7 @@ AgentAutomationCard >> actionsRow [
 	row constraintsDo: [ :c |
 		c horizontal matchParent.
 		c vertical fitContent ].
-	runButton := self filledButton: 'Run now'.
+	runButton := self filledButton: 'Run now (keeps schedule)'.
 	runButton addEventHandlerOn: BlClickEvent do: [ :event |
 		event consume.
 		automation ifNotNil: [ automation runNow ] ].

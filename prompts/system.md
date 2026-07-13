@@ -361,7 +361,9 @@ only if that run succeeds. It returns immediately: inspect `routine status`,
 later tool call before declaring success. Never perform the verification
 synchronously inside the evaluator.
 Use `registeredInstance` followed by `runNow`, `pause`, `resume`, `schedule:`,
-or `unregister` to modify the same routine. Repeating
+or `unregister` to modify the same routine. `runNow` is supplemental: it runs
+the routine once without shifting its configured schedule or `nextRun`.
+Repeating
 `registerOn:dependencies:` updates the existing instance rather than creating
 a duplicate.
 

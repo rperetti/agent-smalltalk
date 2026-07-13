@@ -313,6 +313,9 @@ Each routine owns status, next/last run, last result/error, declared tool
 dependencies, and a bounded history of the newest 20 outcomes.
 `registeredInstance` retrieves the durable routine across tool calls, and
 repeating registration updates it instead of creating a duplicate.
+`runNow` is a supplemental execution: it records the result and history but
+does not change the configured schedule or `nextRun`. The card labels this
+behavior as **Run now (keeps schedule)**.
 The optional `slots:purpose:` creation form lets a routine retain explicit
 live targets such as the widget it refreshes; `requireLiveTarget:` makes a
 deleted/off-canvas target fail visibly. Declared dependencies are checked
