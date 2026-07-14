@@ -106,6 +106,43 @@ Open questions:
 Promotion trigger: the variable/scope model is concrete enough to state
 resolution rules and a user interaction.
 
+## The system prompt as a canvas citizen
+
+*From a brainstorm (2026-07-14).*
+
+The base prompt (`prompts/system.md`) already governs everything the agent
+does, but it lives off-canvas: invisible, and out of reach for an agent asked
+to act on "everything" it has access to. Putting it (or scoped fragments of
+it) on the canvas would let an agent inspect and, potentially, edit its own
+operating instructions the same way it inspects facts and widgets today.
+
+This is the sharpest-edged member of the
+[preferences-as-scoped-knowledge](#preferences-and-settings-as-scoped-knowledge)
+family: that idea already floats "prompt fragments and system behavior could
+become visible, editable objects on the canvas," and this is that idea taken
+to its most literal, highest-stakes conclusion—the root prompt itself, not
+just a preference layered on top of it.
+
+Open questions:
+
+- Read-only visibility versus editability: does exposing the prompt mean the
+  agent can see it, or that it can change it?
+- If editable, what stops a run from degrading or disabling its own safety
+  disciplines, and who/what reviews a self-authored prompt edit?
+- Is the whole prompt one object, or does it decompose into scoped
+  fragments (bootstrap vocabulary vs. accumulated recipes), echoing the
+  [agent-written-tools-may-subsume-the-base-prompt](#agent-written-tools-may-subsume-parts-of-the-base-prompt)
+  split?
+- Does this need its own provenance/versioning/rollback story before it can be
+  touched safely, or does it ride on the same foundation as generated
+  artifacts ([AS-15](backlog.md#as-15--add-provenance-health-and-rollback-for-generated-artifacts))?
+- Should this start read-only (observability only) with editability
+  deliberately deferred?
+
+Promotion trigger: needs more brainstorming before this is concrete enough to
+promote—in particular, a stance on read-only vs. editable, and how self-edits
+would be reviewed.
+
 ## Promote a note to a fact
 
 *From the answer-notes brainstorm (2026-07-03).*
