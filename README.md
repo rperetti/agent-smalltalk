@@ -14,12 +14,16 @@ requests, and ideas — and get triaged into the file-based backlog. See
 
 ## Demo
 
-<!-- TODO(AS-23): embed a canvas screenshot once we agree on a representative
-     canvas to show. Suggested path: docs/assets/canvas.png -->
+![The Agent Canvas: facts (userName, city), live counter and weather widgets, a
+saved WeatherService tool, an agent note, and a running hourly weather-refresh
+automation — all coexisting as objects in one image.](docs/img/canvas_example.png)
 
-_A canvas screenshot is coming._ Until then, the quickest demonstration is a
-headless one-shot that has the agent write and place a widget (after
-[Setup](#setup), with `ANTHROPIC_API_KEY` exported):
+Everything above is a live object in one running image: yellow **facts** the
+agent can read and edit, interactive **widgets** it compiled on the spot, a
+green **service** it saved to reuse, and a purple **automation** running on a
+pausable schedule. For a hands-on demonstration, the quickest is a headless
+one-shot that has the agent write and place a widget (after [Setup](#setup),
+with `ANTHROPIC_API_KEY` exported):
 
 ```bash
 ./pharo/vm/Pharo.app/Contents/MacOS/Pharo --headless pharo/Agent.image \
