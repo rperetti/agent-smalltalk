@@ -1,13 +1,15 @@
 "
-I reload the AgentSmalltalk packages from src/ into the running image --
-the single implementation behind scripts/update.st (headless), the
-heal-in-image script, and AgentRemote's /update endpoint (live GUI session).
-In an interactive session, migrations and the snapshot are enqueued onto the
-UI thread; headless callers handle saving themselves.
+I reload a preflighted AgentSmalltalk source candidate. The caller owns the
+transaction boundary: load, migrate, verify the generated build manifest, then
+snapshot. Headless callers work on a disposable copy; live callers taint the
+session instead of saving after any failure.
 "
 Class {
 	#name : 'AgentUpdater',
 	#superclass : 'Object',
+	#classInstVars : [
+		'updateTaintedReason'
+	],
 	#category : 'AgentSmalltalk-Core',
 	#package : 'AgentSmalltalk-Core'
 }
@@ -30,85 +32,146 @@ AgentUpdater class >> isInteractive [
 ]
 
 { #category : 'verification' }
-AgentUpdater class >> sentinels [
-	"One recently-added selector per package/key class. A compile error
-	aborts its containing class's load, so a missing sentinel is proof the
-	update did not fully take. Update these when adding classes, not routinely."
-	^ {
-		AgentRemote class -> #killStrayProcesses.
-		AgentProcessManager class -> #terminateAll.
-		AgentUpdater class -> #verifySentinels.
-		AgentGateway -> #transport:.
-		AgentAutomation class -> #contextListing.
-		AgentScheduler -> #tickAt:.
-		(Smalltalk globals at: #AgentKnowledge) class -> #numberAt:.
-		(Smalltalk globals at: #AgentCanvas) -> #announcer.
-		(Smalltalk globals at: #AgentCanvas) -> #widgetAddVersion.
-		(Smalltalk globals at: #AgentWidget) -> #reconnectReactions.
-		(Smalltalk globals at: #AgentAutomationCard) -> #restoredToCanvas.
-		(Smalltalk globals at: #AgentSpotlight) -> #cancel }
+AgentUpdater class >> hasValidBuildManifest: aString [
+	^ aString notNil
+		and: [ (aString beginsWith: 'AS_UPDATE_V1 git:')
+		and: [ aString includesSubstring: ' sha256:' ] ]
 ]
 
 { #category : 'verification' }
-AgentUpdater class >> verifySentinels [
-	"True only when every sentinel selector is understood -- i.e. every
-	watched class compiled fully during the load."
-	^ self sentinels allSatisfy: [ :assoc |
-		[ assoc key canUnderstand: assoc value ] on: Error do: [ :e | false ] ]
+AgentUpdater class >> loadedBuildManifest [
+	| marker |
+	marker := Smalltalk globals at: #AgentUpdateBuild ifAbsent: [ ^ nil ].
+	^ marker manifest
+]
+
+{ #category : 'verification' }
+AgentUpdater class >> manifestsMatch: actualManifest expected: expectedManifest [
+	^ actualManifest = expectedManifest
+		and: [ self hasValidBuildManifest: actualManifest ]
+]
+
+{ #category : 'verification' }
+AgentUpdater class >> verifyLoadedManifest: expectedManifest [
+	"The candidate generator writes its exact revision/hash into
+	AgentUpdateBuild. This proves the loaded Core package belongs to the same
+	candidate that the disposable-image preflight tested; historical selectors
+	are not used as revision evidence."
+	^ self manifestsMatch: self loadedBuildManifest expected: expectedManifest
 ]
 
 { #category : 'updating' }
 AgentUpdater class >> updateFromSrc [
-	"Load the packages (diff semantics: removed definitions unload), then
-	migrate -- on the UI thread when a live space is pulsing."
-	| src |
-	src := self srcDirectory.
+	self error: 'Updates require a preflighted source candidate and build manifest'
+]
+
+{ #category : 'updating' }
+AgentUpdater class >> updateFromSrc: src expectingManifest: expectedManifest [
+	"Load one immutable candidate, migrate it, and prove the loaded build marker
+	before the caller decides whether it may snapshot."
+	self canSaveVerifiedUpdate ifFalse: [
+		self error: 'This session is tainted by a failed update; quit without saving and restart the known-good image' ].
+	(self hasValidBuildManifest: expectedManifest) ifFalse: [
+		self error: 'Invalid update build manifest' ].
 	self packageNames do: [ :pkgName |
 		| reader |
 		reader := TonelReader on: src fileName: pkgName.
 		reader loadDefinitions.
-		MCPackageLoader updatePackage: (MCPackage named: pkgName) withSnapshot: reader snapshot ].
-	self runMigrations
+		MCPackageLoader updatePackage: (MCPackage named: pkgName) withSnapshot: reader snapshot.
+		pkgName = self packageNames first ifTrue: [ self maybeInjectFailureAt: 'load' ] ].
+	self runMigrations.
+	(self verifyLoadedManifest: expectedManifest) ifFalse: [
+		self error: 'Loaded build manifest does not match the preflighted candidate' ].
+	^ expectedManifest
+]
+
+{ #category : 'testing' }
+AgentUpdater class >> maybeInjectFailureAt: phaseName [
+	"A process-local failure seam for scripts/test-update-atomicity.sh. It is
+	inert unless the environment names this phase."
+	| requestedPhase |
+	requestedPhase := OSEnvironment current at: 'AGENT_UPDATE_FAIL_AT' ifAbsent: [ ^ self ].
+	requestedPhase = phaseName ifTrue: [ self error: 'Injected ', phaseName, ' update failure' ]
 ]
 
 { #category : 'updating' }
 AgentUpdater class >> runMigrations [
 	| canvasClass canvas |
+	self maybeInjectFailureAt: 'migration'.
 	canvasClass := Smalltalk globals at: #AgentCanvas ifAbsent: [ ^ self ].
 	canvas := canvasClass current.
 	canvas isInteractive
 		ifTrue: [ self migrateOnUiThreadOf: canvas ]
-		ifFalse: [
-			canvas migrateAfterUpdate.
-			self postUpdateMessage ]
+		ifFalse: [ canvas migrateAfterUpdate ]
 ]
 
 { #category : 'updating' }
 AgentUpdater class >> migrateOnUiThreadOf: canvas [
-	"Migrate + announce on the UI thread (request a pulse; fall back to
-	direct execution if none comes -- an idle window cannot contend). The
-	snapshot ALWAYS runs here on the calling thread: snapshotting inside a
-	Bloc pulse task fails silently (observed: five migrations ran on the UI
-	thread, zero saves reached disk)."
-	| done |
+	"Migrate on the UI thread, but return any asynchronous failure to the
+	updater. Snapshotting belongs to the verified caller, never a Bloc pulse."
+	| done migrationError |
 	done := Semaphore new.
 	canvas space enqueueTask: ((Smalltalk globals at: #BlTaskAction) new action: [
-		[ canvas migrateAfterUpdate.
-		self postUpdateMessage ] ensure: [ done signal ] ]).
+		[ canvas migrateAfterUpdate ]
+			on: Error
+			do: [ :error | migrationError := error ].
+		done signal ]).
 	canvas space requestNextPulse.
-	(done waitTimeoutSeconds: 10) ifTrue: [
-		canvas migrateAfterUpdate.
-		self postUpdateMessage ].
-	Smalltalk snapshot: true andQuit: false
+	(done waitTimeoutSeconds: 10) ifTrue: [ canvas migrateAfterUpdate ].
+	migrationError ifNotNil: [
+		self error: 'Canvas migration failed: ', migrationError messageText ]
+]
+
+{ #category : 'tainting' }
+AgentUpdater class >> canSaveVerifiedUpdate [
+	^ self isUpdateTainted not
+]
+
+{ #category : 'tainting' }
+AgentUpdater class >> clearUpdateTaint [
+	updateTaintedReason := nil
+]
+
+{ #category : 'tainting' }
+AgentUpdater class >> isUpdateTainted [
+	^ updateTaintedReason notNil
+]
+
+{ #category : 'tainting' }
+AgentUpdater class >> taintUpdate: aString [
+	"A live load may have changed memory but has not been snapshotted. Refuse to
+	call that state a valid update; recovery is a restart from the on-disk image."
+	updateTaintedReason := aString.
+	[ (Smalltalk globals at: #AgentSystemMessage ifAbsent: [ ^ self ])
+		post: 'Live update failed. This session is tainted and was not saved; quit without saving and restart the known-good image.'
+		key: #failedImageUpdate ]
+		on: Error
+		do: [ :ignored |  ]
+]
+
+{ #category : 'tainting' }
+AgentUpdater class >> updateTaintedReason [
+	^ updateTaintedReason
 ]
 
 { #category : 'updating' }
-AgentUpdater class >> postUpdateMessage [
-	"The system's voice: announce updates the user did not initiate. A
-	headless (closed-session) update posts too -- the message persists in
-	the image and greets the user on next open."
+AgentUpdater class >> finalizeVerifiedUpdate: manifest [
+	"Post the durable update message only after the build marker has verified."
+	(self verifyLoadedManifest: manifest) ifFalse: [
+		self error: 'Cannot finalize an unverified update' ].
 	(Smalltalk globals at: #AgentSystemMessage ifAbsent: [ ^ self ])
-		post: 'Tooling updated from src ('
-			, self packageNames size printString , ' packages).'
+		post: 'Tooling updated from preflighted src ('
+			, self packageNames size printString , ' packages; '
+			, manifest , ').'
 		key: #imageUpdate
+]
+
+{ #category : 'updating' }
+AgentUpdater class >> snapshotVerifiedUpdate: manifest [
+	"Called only after load, migration, and manifest verification. This runs on
+	the request thread because snapshots inside a Bloc pulse can fail silently."
+	self canSaveVerifiedUpdate ifFalse: [
+		self error: 'Refusing to save a tainted update session' ].
+	self finalizeVerifiedUpdate: manifest.
+	Smalltalk snapshot: true andQuit: false
 ]

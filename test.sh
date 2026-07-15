@@ -6,6 +6,13 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 
+SOURCE_DIR="${AGENT_SOURCE_DIR:-$PWD/src}"
+[ -d "$SOURCE_DIR" ] || {
+  echo "No source directory found: $SOURCE_DIR"
+  exit 1
+}
+SOURCE_DIR=$(cd "$SOURCE_DIR" && pwd -P)
+
 if [ -n "${PHARO_VM:-}" ]; then
   VM="$PHARO_VM"
 elif [ -x "pharo/vm/Pharo.app/Contents/MacOS/Pharo" ]; then
@@ -32,7 +39,7 @@ fi
 
 TEST_ROOT=$(mktemp -d "${TMPDIR:-/tmp}/agent-smalltalk-test.XXXXXX")
 mkdir -p "$TEST_ROOT/pharo" "$TEST_ROOT/home"
-ln -s "$PWD/src" "$TEST_ROOT/src"
+ln -s "$SOURCE_DIR" "$TEST_ROOT/src"
 ln -s "$PWD/prompts" "$TEST_ROOT/prompts"
 mkdir -p "$PWD/pharo/pharo-local"
 ln -s "$PWD/pharo/pharo-local" "$TEST_ROOT/pharo/pharo-local"
@@ -53,3 +60,8 @@ fi
 
 env HOME="$TEST_ROOT/home" "$VM" --headless "$TEST_IMAGE" st scripts/load-all.st
 env HOME="$TEST_ROOT/home" "$VM" --headless "$TEST_IMAGE" st scripts/run-tests.st
+
+if [ -n "${AGENT_UPDATE_MANIFEST:-}" ]; then
+  env HOME="$TEST_ROOT/home" AGENT_UPDATE_MANIFEST="$AGENT_UPDATE_MANIFEST" \
+    "$VM" --headless "$TEST_IMAGE" st scripts/verify-update-preflight.st
+fi

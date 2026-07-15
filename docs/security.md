@@ -74,7 +74,6 @@ not prevent edited Smalltalk from performing a forbidden operation.
 | risk | consequence | backlog |
 |---|---|---|
 | Unauthenticated localhost `/eval` and `/update` | Another local caller may execute code or mutate the live image. | accepted for now; [AS-01](backlog.md#as-01--authenticate-or-remove-the-local-evaluator) |
-| Partial or falsely verified live update | Broken platform code may be saved over the living world. | [AS-02](backlog.md#as-02--make-live-updates-verifiable-and-atomic) |
 | Incomplete checkpoint/backup unit | Unsaved work or matching source history may not be recoverable. | [AS-03](backlog.md#as-03--define-persistence-and-recovery-semantics) |
 | Raw, unbounded dynamic prompt context | Prompt injection, unexpected disclosure, rising cost, or request failure. | [AS-04](backlog.md#as-04--treat-model-context-as-untrusted-bounded-data) |
 | Mutations outside the gateway mutex | Updates, automations, snapshots, or generated code may race. | [AS-05](backlog.md#as-05--coordinate-all-world-mutations) |

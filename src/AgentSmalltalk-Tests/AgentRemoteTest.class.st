@@ -10,7 +10,7 @@ AgentRemoteTest >> testPingResponds [
 	| response |
 	response := AgentRemote handleRequest: (ZnRequest get: '/ping').
 	self assert: response status equals: 200.
-	self assert: (response entity contents includesSubstring: 'alive')
+	self assert: response entity contents equals: 'agent-smalltalk alive update-v1'
 ]
 
 { #category : 'tests' }
@@ -45,4 +45,29 @@ AgentRemoteTest >> testUpdaterConfiguration [
 	self assert: (AgentUpdater packageNames includes: 'AgentSmalltalk-Core').
 	self assert: AgentUpdater srcDirectory exists.
 	self deny: AgentUpdater isInteractive
+]
+
+{ #category : 'tests' }
+AgentRemoteTest >> testBuildManifestMustMatchTheGeneratedMarker [
+	| manifest |
+	manifest := 'AS_UPDATE_V1 git:deadbeef sha256:0123456789abcdef'.
+	self assert: (AgentUpdater hasValidBuildManifest: manifest).
+	self assert: (AgentUpdater manifestsMatch: manifest expected: manifest).
+	self deny: (AgentUpdater manifestsMatch: manifest expected: 'AS_UPDATE_V1 git:other sha256:0123456789abcdef').
+	self deny: (AgentUpdater verifyLoadedManifest: manifest)
+]
+
+{ #category : 'tests' }
+AgentRemoteTest >> testUpdateCandidateBodyRequiresSourceAndManifest [
+	| request candidate manifest |
+	manifest := 'AS_UPDATE_V1 git:deadbeef sha256:0123456789abcdef'.
+	request := ZnRequest post: '/update'.
+	request entity: (ZnEntity text: '/tmp/agent-candidate' , String cr , manifest).
+	candidate := AgentRemote updateCandidateFrom: request.
+	self assert: candidate first equals: '/tmp/agent-candidate'.
+	self assert: candidate second equals: manifest.
+	request entity: (ZnEntity text: '/tmp/agent-candidate').
+	self
+		should: [ AgentRemote updateCandidateFrom: request ]
+		raise: Error
 ]

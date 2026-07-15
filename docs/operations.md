@@ -28,9 +28,9 @@ The currently documented local setup is Pharo 13 on macOS/Apple Silicon:
 2. Unzip the image under `pharo/` and the VM under `pharo/vm/`.
 3. Export `ANTHROPIC_API_KEY` for real gateway requests.
 
-`build.sh` and `test.sh` accept `PHARO_VM` and `PHARO_PRISTINE` overrides, which
-are also the path for other supported local arrangements. `run.sh` and
-`update.sh` currently use the macOS bundle path directly.
+`build.sh`, `test.sh`, and `update.sh` accept `PHARO_VM`; `build.sh` and the
+preflight inside `update.sh` also accept `PHARO_PRISTINE`. `run.sh` still uses
+the macOS bundle path directly.
 
 ## Command summary
 
@@ -39,7 +39,7 @@ are also the path for other supported local arrangements. `run.sh` and
 | `./build.sh` | Build a fresh full image from pristine Pharo and `src/`; run tests before replacement by default. | Replaces the target world after success. Existing default target is backed up first. |
 | `./build.sh core` | Build gateway/sandbox/core tests without Bloc UI. | Creates/replaces the requested target image. |
 | `./build.sh --output /tmp/Review.image` | Build a disposable full image at another path. | Does not replace `pharo/Agent.image`. |
-| `./update.sh` | Reload platform packages into the living image. | Preserves generated classes and canvas state; backs up the image first. |
+| `./update.sh` | Preflight and reload platform packages into the living image. | Preserves generated classes and canvas state; promotes a staged image only after verification. |
 | `./test.sh` | Build a disposable pristine image and run the project SUnit suites. | Never opens or changes `pharo/Agent.image`. |
 | `./run.sh` | Open the Agent canvas. | Opens the living image and enables interactive session services. |
 
@@ -68,23 +68,33 @@ the living world.
   image's loopback `POST /update` endpoint on port 8807.
 - Otherwise it loads `scripts/update.st` headlessly into the image file.
 
+Before either path, `update.sh` copies `src/` into a private candidate, hashes
+that source tree, writes the resulting revision/build manifest into the
+candidate, and runs the full disposable-image SUnit suite against it. The
+preflight image must load the same manifest marker. This is the candidate the
+delivery path receives; later edits to the working tree cannot change it.
+
 `AgentUpdater` reloads the five platform packages with Tonel diff semantics,
-runs canvas migrations, and posts a keyed system message. The interactive path
-performs migration on the UI thread when possible.
+runs canvas migrations (on the UI thread when necessary), verifies the loaded
+candidate manifest, and only then posts the update message and snapshots.
 
-Current limitations are tracked by
-[AS-01](backlog.md#as-01--authenticate-or-remove-the-local-evaluator) and
-[AS-02](backlog.md#as-02--make-live-updates-verifiable-and-atomic): the local
-endpoint is unauthenticated, sentinel verification is not a complete revision
-proof, and the live path can snapshot before endpoint-level verification.
+For a closed image, the loader runs against staged `.image` and `.changes`
+copies in `pharo/`. `update.sh` requires both a zero Pharo exit status and one
+exact `UPDATE_OK <manifest>` line before it backs up and promotes the staged
+pair. A load, migration, verification, or process failure leaves the original
+pair unchanged.
 
-Until AS-02 is resolved:
+For a live image, the listener accepts the private candidate path and manifest,
+then follows the same load → migrate → verify → snapshot order. If any step
+after loading begins fails, it marks the in-memory session **tainted**, returns
+`UPDATE_TAINTED`, and does not snapshot it. Quit that session without saving;
+the prior on-disk world remains the recovery point.
 
-- run `./test.sh` before updating important living worlds;
-- keep the pre-update backup;
-- inspect the update system message and behavior after a live update;
-- treat a failed live update as potentially partial in memory;
-- do not save a failed live-update session over the known-good backup.
+The live protocol identifies itself as `update-v1` on `GET /ping`. `update.sh`
+will not send a staged candidate to an older listener. Quit that image without
+saving and run `./update.sh` headlessly to make the one-time transition.
+Local listener authentication remains the accepted [AS-01](backlog.md#as-01--authenticate-or-remove-the-local-evaluator)
+risk.
 
 ## Testing
 
@@ -97,6 +107,12 @@ plumbing with a fake transport, sandbox results and timeouts, fact/note/context
 behavior, selection math, scheduler timing, histories, widget lifecycle, and
 tool cards. It does not make paid provider calls or prove the living image's
 full snapshot/recovery path.
+
+`scripts/test-update-atomicity.sh` is the focused update-path integration
+check. It copies `pharo/Agent.image` and `.changes` to `/tmp`, injects load and
+migration failures into the staged headless path, and compares both saved files
+after each failure. It is deliberately outside `verify-all.sh`: each case runs
+the full disposable preflight and needs a local living image to copy.
 
 The full build's production UI closure is explicit in
 `BaselineOfAgentSmalltalk` and `scripts/load-all.st`. It includes the canvas
@@ -233,8 +249,10 @@ Current backup behavior differs by path:
 
 - `build.sh` backs up the previous default output `.image` and matching
   `.changes` before replacing it.
-- `update.sh` backs up the `.image` before a headless update, keeping the newest
-  five `pre-update-*.image` files; it does not currently copy `.changes`.
+- `update.sh` backs up the `.image` and matching `.changes` before promoting a
+  verified staged headless update, keeping the newest five `pre-update-*`
+  pairs. Live updates snapshot in place after verification; their prior
+  on-disk pair is already the recovery point if the session becomes tainted.
 - `AgentSandbox>>backupImage` copies the last on-disk `.image` before a gateway
   request and keeps five `agent-backup-*.image` files; it does not currently
   copy `.changes` or unsaved in-memory work.

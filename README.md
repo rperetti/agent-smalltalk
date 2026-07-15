@@ -127,7 +127,7 @@ checkout including the downloaded VM. (Measured 2026-07-11; see the
 | command | what it does |
 |---|---|
 | `./build.sh` | build a FRESH verified `pharo/Agent.image` from `src/`; backs up/replaces any existing world only after the new image loads and tests pass |
-| `./update.sh` | reload tooling from `src/` into the LIVING image — world preserved; use this one |
+| `./update.sh` | preflight and reload tooling from `src/` into the LIVING image — world preserved; use this one |
 | `./test.sh` | build a disposable clean image and run SUnit; never opens `Agent.image` |
 | `./verify-all.sh` | run every deterministic release gate: SUnit, automation smoke, and paid-smoke syntax checks |
 | `./evaluate.sh` | explicitly run paid model evaluations in fresh images; requires `ANTHROPIC_API_KEY` and writes JSON evidence |

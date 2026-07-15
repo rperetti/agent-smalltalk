@@ -3,7 +3,8 @@ I am the living image's ear: a localhost-only HTTP listener (port 8807) so
 tooling outside the process can update the RUNNING session instead of
 refusing (update.sh) or requiring a Playground paste. Endpoints:
   GET  /ping    -- liveness check
-  POST /update  -- AgentUpdater updateFromSrc (reload packages, migrate, save)
+  POST /update  -- receive a preflighted source candidate and manifest; reload,
+                   migrate, verify, then save
   POST /eval    -- evaluate the request body via AgentSandbox (operator
                    diagnostics; localhost-only, gateway-level trust).
 
@@ -157,18 +158,45 @@ AgentRemote class >> logFailure: aString [
 		on: Error do: [ :e |  ]
 ]
 
+{ #category : 'updating' }
+AgentRemote class >> updateCandidateFrom: request [
+	"The body is exactly two non-empty lines: absolute source directory, then
+	the manifest generated for that private candidate. Authentication of this
+	local delivery path remains AS-01's separate concern."
+	| lines |
+	lines := request contents withInternalLineEndings lines.
+	(lines size = 2 and: [ lines allSatisfy: [ :each | each isEmpty not ] ]) ifFalse: [
+		self error: 'Update body must contain a candidate source directory and build manifest' ].
+	^ lines
+]
+
 { #category : 'running' }
 AgentRemote class >> handleRequest: request [
+	| updateBegan |
 	"ZnUrl>>path answers the path without its leading slash."
 	request uri path = 'ping' ifTrue: [
-		^ ZnResponse ok: (ZnEntity text: 'agent-smalltalk alive') ].
+		^ ZnResponse ok: (ZnEntity text: 'agent-smalltalk alive update-v1') ].
 	(request uri path = 'update' and: [ request method = #POST ]) ifTrue: [
-		^ [ AgentUpdater updateFromSrc.
-			AgentUpdater verifySentinels
-				ifTrue: [ ZnResponse ok: (ZnEntity text: 'UPDATE_OK') ]
-				ifFalse: [ ZnResponse serverError: 'UPDATE_FAILED: sentinel selectors missing (incomplete load)' ] ]
+		updateBegan := false.
+		^ [ | candidate source manifest |
+			candidate := self updateCandidateFrom: request.
+			source := FileSystem disk referenceTo: candidate first.
+			manifest := candidate second.
+			source isDirectory ifFalse: [ self error: 'Update candidate source directory is missing' ].
+			(AgentUpdater hasValidBuildManifest: manifest) ifFalse: [
+				self error: 'Invalid update build manifest' ].
+			updateBegan := true.
+			AgentUpdater updateFromSrc: source expectingManifest: manifest.
+			AgentUpdater snapshotVerifiedUpdate: manifest.
+			ZnResponse ok: (ZnEntity text: 'UPDATE_OK ' , manifest) ]
 			on: Error
-			do: [ :e | ZnResponse serverError: 'UPDATE_FAILED load error: ' , (e messageText ifNil: [ e class name ]) ] ].
+			do: [ :e |
+				updateBegan ifTrue: [
+					AgentUpdater taintUpdate: (e messageText ifNil: [ e class name ]) ].
+				ZnResponse serverError: (updateBegan
+					ifTrue: [ 'UPDATE_TAINTED: quit without saving and restart the known-good image; ' ]
+					ifFalse: [ 'UPDATE_FAILED: ' ])
+					, (e messageText ifNil: [ e class name ]) ] ].
 	(request uri path = 'eval' and: [ request method = #POST ]) ifTrue: [
 		^ ZnResponse ok: (ZnEntity text: (AgentSandbox new evaluate: request contents)) ].
 	^ ZnResponse notFound: request uri

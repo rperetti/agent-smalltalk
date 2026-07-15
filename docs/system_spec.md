@@ -510,9 +510,11 @@ has been verified against the loaded packages.
   blue notes with question provenance; a scoped Q&A test (facts selected,
   score widget excluded) had the model fetch a sports API on its own and
   answer honestly about unplayed fixtures.
-- **Update itself while running**: `./update.sh` against an open session
-  delivered code over localhost:8807, migrated on the UI thread, saved, and
-  announced itself with a gray system sticky — observed live.
+- **Update itself while running**: `./update.sh` first preflights a private
+  source candidate in a disposable image, then delivers its manifest-marked
+  copy over localhost:8807. The live path migrates on the UI thread, verifies
+  that manifest, saves, and announces itself with a gray system sticky. A
+  failed live load taints the unsaved session instead of saving it.
 - **React by hand** (verified interactively 2026-07-05): editing a
   `#city` sticky in the GUI retuned a subscribed clock with no request; a
   lassoed sum widget recomputed live as its source counters changed. The
@@ -568,6 +570,12 @@ records structured evidence; it is never part of the deterministic gate.
   therefore updates a running session *through* it: `AgentRemote`, a
   localhost-only listener on port 8807 (`GET /ping`, `POST /update`,
   `POST /eval` — operator diagnostics via AgentSandbox, gateway-level trust).
+  It stages and tests an immutable source candidate first, and requires its
+  generated manifest after load and migration before snapshotting. The
+  headless path makes the same changes to a staged image pair and promotes it
+  only after an exact success result and zero process exit. A live failure after
+  loading taints the session and deliberately omits the snapshot; restart the
+  prior on-disk image instead of saving that memory.
   The listener design is the scar tissue of a multi-session debugging saga;
   the lessons are load-bearing:
   - **`enabled` flag as the only reliable discriminator.** A headless VM
