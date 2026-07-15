@@ -41,13 +41,17 @@ The bridge to the Anthropic Messages API and the owner of the agentic loop.
   the final answer. If that inference fails or has no text, the gateway reports
   the final tool results directly so an already-executed mutation is not hidden.
   API key from `ANTHROPIC_API_KEY` (never logged, never stored).
-- Declares two tools to the model:
+- Declares three tools to the model:
   - **`evaluate_smalltalk`** — code is evaluated by `AgentSandbox`; the tool
     result is `RESULT: <printString>` or `ERROR: <report>`, and the model
     iterates on errors (self-repair).
   - **`search_image`** — structured image exploration via `AgentImageSearch`:
     `find_classes` (name fragment), `find_selectors` (class + fragment),
     `method_source` (class + selector, `'Foo class'` for class side).
+  - **`inspect_knowledge`** — read-only exploration of a catalog snapshot frozen
+    at the start of the request: `overview`, bounded `search`, bounded `read` by
+    request-local handle, and exact `get_fact` by key. Results are structured
+    JSON marked `untrusted-data`; the tool never returns live source objects.
 - System prompt = the base prompt (`prompts/system.md`) + canvas context
   (`## Known facts` and `## Widgets on the canvas`) + the reusable capability
   catalog + a compact `## Scheduled automations` catalog.
@@ -107,6 +111,18 @@ facts answer an **`AgentUnknown`** null-object: carries the missing key,
 tests via `isUnknown` (an `Object` extension makes every value answer it),
 prints safely (`'unknown (city)'`), and fails loudly beyond that so unknowns
 cannot propagate invisibly.
+
+`AgentKnowledgeCatalog` provides a read-only local query seam over facts,
+canvas objects, generated capabilities, and registered automations. It keeps no
+registry or persistent copy: each catalog instance creates bounded, typed
+`AgentKnowledgeProjection` values with request-local handles, selection state,
+and deterministic case-insensitive search. The live objects remain the sole
+source of truth. `inspect_knowledge` exposes one snapshot per gateway request;
+changes made after that snapshot become visible on the next request, not under
+existing handles. Summary search returns at most 10 items, reads accept at most
+5 handles, labels/summaries/content carry explicit truncation flags, and exact
+fact lookup is case-insensitive. The catalog is additive in this slice: it does
+not yet remove or change the gateway's current prompt context.
 
 ### Reactions
 

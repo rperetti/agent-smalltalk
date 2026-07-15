@@ -587,6 +587,24 @@ AgentAutomation >> contextDescription [
 				separatedBy: [ s << ', ' ] ] ]
 ]
 
+{ #category : 'knowledge catalog' }
+AgentAutomation >> contributesToKnowledgeCatalog [
+	^ true
+]
+
+{ #category : 'knowledge catalog' }
+AgentAutomation >> knowledgeProjectionWithHandle: aHandle selected: isSelected [
+	^ AgentKnowledgeProjection
+		handle: aHandle
+		kind: #automation
+		key: self name
+		label: self name
+		summary: self purpose
+		content: self contextDescription
+		selected: isSelected
+		source: self
+]
+
 { #category : 'printing' }
 AgentAutomation >> printOn: aStream [
 	aStream

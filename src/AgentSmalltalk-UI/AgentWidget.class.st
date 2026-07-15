@@ -359,6 +359,26 @@ AgentWidget >> describe [
 	^ 'a widget with no description'
 ]
 
+{ #category : 'knowledge catalog' }
+AgentWidget >> contributesToKnowledgeCatalog [
+	^ true
+]
+
+{ #category : 'knowledge catalog' }
+AgentWidget >> knowledgeProjectionWithHandle: aHandle selected: isSelected [
+	| description |
+	description := self describe.
+	^ AgentKnowledgeProjection
+		handle: aHandle
+		kind: #widget
+		key: nil
+		label: self class name
+		summary: description
+		content: description
+		selected: isSelected
+		source: self
+]
+
 { #category : 'actions' }
 AgentWidget >> browseSource [
 	self class browse

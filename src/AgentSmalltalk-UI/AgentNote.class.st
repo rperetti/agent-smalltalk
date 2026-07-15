@@ -125,3 +125,16 @@ AgentNote >> describe [
 		question ifNotNil: [ s << ' re: ''' << question << '''' ].
 		s << ' -- ' << (self truncate: self body to: 160) ]
 ]
+
+{ #category : 'knowledge catalog' }
+AgentNote >> knowledgeProjectionWithHandle: aHandle selected: isSelected [
+	^ AgentKnowledgeProjection
+		handle: aHandle
+		kind: #note
+		key: nil
+		label: (question ifNil: [ 'note' ] ifNotNil: [ question ])
+		summary: self describe
+		content: self body
+		selected: isSelected
+		source: self
+]

@@ -34,7 +34,7 @@ The system can affect or disclose:
 | boundary | current behavior | trust implication |
 |---|---|---|
 | User request → model | User text is sent to the configured cloud model. | The provider receives the request and dynamic context. |
-| Canvas → model | Known facts, selected/full widget descriptions, capabilities, and automations are appended to the system prompt. | Canvas content is both disclosed and able to influence model behavior. |
+| Canvas → model | Known facts, selected/full widget descriptions, capabilities, and automations are appended to the system prompt; the model can also request bounded catalog projections through `inspect_knowledge`. | Canvas content is both disclosed and able to influence model behavior. Tool results label catalog content as untrusted data, but that label is prompt guidance rather than enforcement. |
 | Model → image | `evaluate_smalltalk` executes generated source immediately. | Model output has the authority of the Pharo process. |
 | Generated automation → later execution | Saved Smalltalk runs on its schedule without another model call. | Prompt restrictions are policy, not runtime enforcement. |
 | Localhost → image | `AgentRemote` currently exposes `/update` and arbitrary `/eval` on port 8807 without authentication. | Any caller able to reach the listener may obtain image authority. |
@@ -62,6 +62,9 @@ form a capability sandbox:
 - Gateway fact-write screening requires each direct model-authored Fact body to
   be one decoded string literal whose complete value appears in the current
   user request; rejected writes are not evaluated.
+- `inspect_knowledge` freezes one read-only catalog snapshot per gateway
+  request, caps result counts and copied field sizes, marks truncation, and
+  labels every result envelope `untrusted-data`.
 - The base prompt forbids secrets in facts and discourages irreversible
   unattended behavior.
 
@@ -108,6 +111,10 @@ accepted decisions return before publication.
   their data handling is determined by generated source.
 - Facts are visible and deletable, but there is currently no sensitivity label,
   provider scope, retention policy, or local-only fact mode.
+- `inspect_knowledge` is not a confidentiality boundary: the existing prompt
+  still sends dynamic canvas context, and `evaluate_smalltalk` retains general
+  image authority. The catalog only makes one read path structured, bounded,
+  and request-stable.
 
 ## Security principles for future work
 

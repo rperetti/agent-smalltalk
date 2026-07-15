@@ -27,6 +27,12 @@ Class {
 	#package : 'AgentSmalltalk-UI'
 }
 
+{ #category : 'knowledge catalog' }
+AgentAutomationCard >> contributesToKnowledgeCatalog [
+	"The registered automation contributes the commitment projection."
+	^ false
+]
+
 { #category : 'instance creation' }
 AgentAutomationCard class >> summonFor: anAutomation [
 	| existing card |

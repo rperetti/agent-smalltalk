@@ -159,3 +159,9 @@ AgentToolCard >> browseSource [
 AgentToolCard >> describe [
 	^ 'tool card for ' , (toolClass ifNil: [ '?' ] ifNotNil: [ :t | t name ])
 ]
+
+{ #category : 'knowledge catalog' }
+AgentToolCard >> contributesToKnowledgeCatalog [
+	"The underlying tool contributes the capability projection."
+	^ false
+]

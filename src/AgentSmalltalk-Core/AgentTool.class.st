@@ -71,6 +71,33 @@ AgentTool class >> capabilitySelectors [
 	^ self class selectors asSortedCollection asArray
 ]
 
+{ #category : 'knowledge catalog' }
+AgentTool class >> contributesToKnowledgeCatalog [
+	^ true
+]
+
+{ #category : 'knowledge catalog' }
+AgentTool class >> knowledgeProjectionWithHandle: aHandle selected: isSelected [
+	| toolPurpose details |
+	toolPurpose := self purpose ifNil: [ self name ].
+	details := String streamContents: [ :stream |
+		stream << toolPurpose.
+		self capabilitySelectors ifNotEmpty: [ :selectors |
+			stream << '; selectors: '.
+			selectors
+				do: [ :selector | stream << selector asString ]
+				separatedBy: [ stream space ] ] ].
+	^ AgentKnowledgeProjection
+		handle: aHandle
+		kind: #capability
+		key: self name
+		label: self name
+		summary: toolPurpose
+		content: details
+		selected: isSelected
+		source: self
+]
+
 { #category : 'automations' }
 AgentTool class >> automationActionDescription [
 	"Short status text for tools that opt into the zero-argument automation

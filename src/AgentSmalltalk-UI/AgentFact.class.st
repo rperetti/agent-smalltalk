@@ -164,3 +164,16 @@ AgentFact >> describe [
 		key ifNotNil: [ s << '[' << key asString << ']' ].
 		s << ': ' << self liveBody ]
 ]
+
+{ #category : 'knowledge catalog' }
+AgentFact >> knowledgeProjectionWithHandle: aHandle selected: isSelected [
+	^ AgentKnowledgeProjection
+		handle: aHandle
+		kind: #fact
+		key: key
+		label: (key ifNil: [ 'unkeyed fact' ] ifNotNil: [ key asString ])
+		summary: self liveBody
+		content: self liveBody
+		selected: isSelected
+		source: self
+]

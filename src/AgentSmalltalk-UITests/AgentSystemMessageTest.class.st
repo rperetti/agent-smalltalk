@@ -64,10 +64,17 @@ AgentSystemMessageTest >> testNotCountedAsFactOrNote [
 
 { #category : 'tests' }
 AgentSystemMessageTest >> testUpdaterPostsWithImageUpdateKey [
-	AgentUpdater postUpdateMessage.
-	AgentUpdater postUpdateMessage.
-	self assert: AgentCanvas current systemMessages size equals: 1.
-	self assert: AgentCanvas current systemMessages first key equals: #imageUpdate
+	| manifest originalManifestSource |
+	manifest := 'AS_UPDATE_V1 git:test sha256:test'.
+	originalManifestSource := (AgentUpdateBuild class >> #manifest) sourceCode.
+	[
+		AgentUpdateBuild class compile:
+			'manifest ^ ''AS_UPDATE_V1 git:test sha256:test'''.
+		AgentUpdater finalizeVerifiedUpdate: manifest.
+		AgentUpdater finalizeVerifiedUpdate: manifest.
+		self assert: AgentCanvas current systemMessages size equals: 1.
+		self assert: AgentCanvas current systemMessages first key equals: #imageUpdate ]
+		ensure: [ AgentUpdateBuild class compile: originalManifestSource ]
 ]
 
 { #category : 'tests' }

@@ -151,3 +151,16 @@ AgentSystemMessage >> describe [
 		s << ': ' << (self truncate: self body to: 160).
 		self count > 1 ifTrue: [ s << ' (x' << self count printString << ')' ] ]
 ]
+
+{ #category : 'knowledge catalog' }
+AgentSystemMessage >> knowledgeProjectionWithHandle: aHandle selected: isSelected [
+	^ AgentKnowledgeProjection
+		handle: aHandle
+		kind: #diagnostic
+		key: key
+		label: (key ifNil: [ 'system message' ] ifNotNil: [ key asString ])
+		summary: self describe
+		content: self body
+		selected: isSelected
+		source: self
+]

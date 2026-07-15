@@ -24,10 +24,13 @@ AgentGatewayTest >> testToolDefinitionShapes [
 	| tools |
 	tools := gateway toolDefinitions.
 	self assert: (tools collect: [ :t | t at: 'name' ])
-		equals: { 'evaluate_smalltalk'. 'search_image' }.
+		equals: { 'evaluate_smalltalk'. 'search_image'. 'inspect_knowledge' }.
 	self assert: (((tools first at: 'input_schema') at: 'properties') includesKey: 'code').
 	self assert: ((tools first at: 'input_schema') at: 'required') equals: #('code').
-	self assert: (((tools second at: 'input_schema') at: 'properties') includesKey: 'action')
+	self assert: (((tools second at: 'input_schema') at: 'properties') includesKey: 'action').
+	self assert: (((tools third at: 'input_schema') at: 'properties') includesKey: 'action').
+	self assert: ((((tools third at: 'input_schema') at: 'properties') at: 'action') at: 'enum')
+		equals: #('overview' 'search' 'read' 'get_fact')
 ]
 
 { #category : 'tests' }
@@ -44,6 +47,149 @@ AgentGatewayTest >> testRunToolDispatchesToImageSearch [
 		'input' -> ({ 'action' -> 'find_classes'. 'query' -> 'AgentGateway' } asDictionary) } asDictionary.
 	result := gateway runTool: toolUse.
 	self assert: ((result at: 'content') includesSubstring: 'AgentGateway')
+]
+
+{ #category : 'tests' }
+AgentGatewayTest >> testInspectKnowledgeUsesFrozenSnapshot [
+	| firstUse secondUse first second fresh |
+	[
+		AgentCanvas reset.
+		AgentFact key: #city body: 'Tokyo'.
+		firstUse := {
+			'id' -> 'tu_knowledge_first'.
+			'name' -> 'inspect_knowledge'.
+			'input' -> ({ 'action' -> 'get_fact'. 'key' -> 'CITY' } asDictionary) }
+			asDictionary.
+		first := STONJSON fromString: ((gateway runTool: firstUse) at: 'content').
+		self assert: (first at: 'trust') equals: 'untrusted-data'.
+		self assert: (first at: 'found').
+		self assert: (((first at: 'items') first at: 'content')) equals: 'Tokyo'.
+
+		AgentFact key: #country body: 'Portugal'.
+		secondUse := {
+			'id' -> 'tu_knowledge_second'.
+			'name' -> 'inspect_knowledge'.
+			'input' -> ({ 'action' -> 'get_fact'. 'key' -> 'country' } asDictionary) }
+			asDictionary.
+		second := STONJSON fromString: ((gateway runTool: secondUse) at: 'content').
+		self deny: (second at: 'found').
+
+		fresh := STONJSON fromString:
+			(((AgentGateway new runTool: secondUse) at: 'content')).
+		self assert: (fresh at: 'found').
+		self assert: (((fresh at: 'items') first at: 'content')) equals: 'Portugal' ]
+		ensure: [ AgentCanvas reset ]
+]
+
+{ #category : 'tests' }
+AgentGatewayTest >> testInspectKnowledgeOverviewCountsAndSummarizesSelection [
+	| note toolUse overview available selectedItem |
+	[
+		AgentCanvas reset.
+		AgentFact key: #city body: 'Tokyo'.
+		note := AgentNote question: 'Trip plan' answer: 'Visit the gardens'.
+		AgentCanvas current selectWidgets: { note }.
+		toolUse := {
+			'id' -> 'tu_knowledge_overview'.
+			'name' -> 'inspect_knowledge'.
+			'input' -> ({ 'action' -> 'overview' } asDictionary) } asDictionary.
+		overview := STONJSON fromString: ((gateway runTool: toolUse) at: 'content').
+		available := overview at: 'available'.
+		self assert: (available at: 'fact') equals: 1.
+		self assert: (available at: 'note') equals: 1.
+		self assert: (overview at: 'selected_total') equals: 1.
+		self deny: (overview at: 'selected_truncated').
+		selectedItem := (overview at: 'items') first.
+		self assert: (selectedItem at: 'kind') equals: 'note'.
+		self assert: (selectedItem at: 'selected') ]
+		ensure: [ AgentCanvas reset ]
+]
+
+{ #category : 'tests' }
+AgentGatewayTest >> testInspectKnowledgeSearchAndReadAreBounded [
+	| body searchUse search readUse read item |
+	[
+		AgentCanvas reset.
+		body := String new: 3000 withAll: $x.
+		AgentFact key: #knowledgeToolLargeFact body: body.
+		searchUse := {
+			'id' -> 'tu_knowledge_search'.
+			'name' -> 'inspect_knowledge'.
+			'input' -> ({
+				'action' -> 'search'.
+				'query' -> 'knowledgeToolLargeFact'.
+				'kinds' -> #('fact').
+				'limit' -> 1 } asDictionary) } asDictionary.
+		search := STONJSON fromString: ((gateway runTool: searchUse) at: 'content').
+		self assert: (search at: 'returned') equals: 1.
+		self deny: (((search at: 'items') first) includesKey: 'content').
+
+		readUse := {
+			'id' -> 'tu_knowledge_read'.
+			'name' -> 'inspect_knowledge'.
+			'input' -> ({
+				'action' -> 'read'.
+				'handles' -> { ((search at: 'items') first at: 'handle') } } asDictionary) }
+			asDictionary.
+		read := STONJSON fromString: ((gateway runTool: readUse) at: 'content').
+		item := (read at: 'items') first.
+		self assert: (item at: 'content_truncated').
+		self assert: (item at: 'content') size
+			equals: AgentKnowledgeProjection maxContentCharacters.
+		self assert: ((item at: 'content') endsWith: '[truncated]') ]
+		ensure: [ AgentCanvas reset ]
+]
+
+{ #category : 'tests' }
+AgentGatewayTest >> testInspectKnowledgeClampsResultCounts [
+	| searchUse search handles readUse read |
+	[
+		AgentCanvas reset.
+		1 to: 12 do: [ :index |
+			AgentFact
+				key: ('boundedKnowledge' , index printString) asSymbol
+				body: 'shared bounded knowledge match' ].
+		searchUse := {
+			'id' -> 'tu_knowledge_clamped_search'.
+			'name' -> 'inspect_knowledge'.
+			'input' -> ({
+				'action' -> 'search'.
+				'query' -> 'shared bounded knowledge match'.
+				'kinds' -> #('fact').
+				'limit' -> 99 } asDictionary) } asDictionary.
+		search := STONJSON fromString: ((gateway runTool: searchUse) at: 'content').
+		self assert: (search at: 'returned') equals: AgentKnowledgeTool maxSearchResults.
+		self assert: (search at: 'truncated').
+		handles := (search at: 'items') collect: [ :item | item at: 'handle' ].
+		readUse := {
+			'id' -> 'tu_knowledge_clamped_read'.
+			'name' -> 'inspect_knowledge'.
+			'input' -> ({ 'action' -> 'read'. 'handles' -> handles } asDictionary) }
+			asDictionary.
+		read := STONJSON fromString: ((gateway runTool: readUse) at: 'content').
+		self assert: (read at: 'requested') equals: AgentKnowledgeTool maxSearchResults.
+		self assert: (read at: 'items') size equals: AgentKnowledgeTool maxReadItems.
+		self assert: (read at: 'truncated') ]
+		ensure: [ AgentCanvas reset ]
+]
+
+{ #category : 'tests' }
+AgentGatewayTest >> testInspectKnowledgeRejectsMalformedBounds [
+	| result |
+	result := gateway runTool: ({
+		'id' -> 'tu_knowledge_bad_limit'.
+		'name' -> 'inspect_knowledge'.
+		'input' -> ({
+			'action' -> 'search'.
+			'query' -> 'anything'.
+			'limit' -> 0 } asDictionary) } asDictionary).
+	self assert: (result at: 'content') equals: 'ERROR: limit must be a positive integer'.
+	result := gateway runTool: ({
+		'id' -> 'tu_knowledge_bad_handles'.
+		'name' -> 'inspect_knowledge'.
+		'input' -> ({ 'action' -> 'read'. 'handles' -> 'K1' } asDictionary) }
+		asDictionary).
+	self assert: (result at: 'content') equals: 'ERROR: handles must be an array'
 ]
 
 { #category : 'tests' }
@@ -388,6 +534,41 @@ AgentGatewayTest >> testScriptedTransportExercisesCompleteToolLoop [
 	toolResult := ((secondRequest at: 'messages') last at: 'content') first.
 	self assert: (toolResult at: 'tool_use_id') equals: 'tu_loop'.
 	self assert: (toolResult at: 'content') equals: 'RESULT: 7'
+]
+
+{ #category : 'tests' }
+AgentGatewayTest >> testScriptedTransportExercisesKnowledgeToolLoop [
+	| transport result secondRequest toolResult knowledgeResult |
+	[
+		AgentCanvas reset.
+		AgentFact key: #city body: 'Tokyo'.
+		transport := AgentGatewayFakeTransport responses: {
+			{ 'content' -> {
+				{ 'type' -> 'tool_use'.
+					'id' -> 'tu_knowledge_loop'.
+					'name' -> 'inspect_knowledge'.
+					'input' -> ({ 'action' -> 'get_fact'. 'key' -> 'city' } asDictionary) }
+					asDictionary
+				} } asDictionary.
+			{ 'content' -> {
+				{ 'type' -> 'text'. 'text' -> 'The saved city is Tokyo.' } asDictionary
+				} } asDictionary }.
+		gateway
+			transport: transport;
+			apiKey: 'test-key';
+			maxRounds: 10.
+		result := gateway run: 'What city is saved?'.
+		self assert: result equals: 'The saved city is Tokyo.'.
+		self assert: transport payloads size equals: 2.
+		secondRequest := transport payloads second.
+		toolResult := ((secondRequest at: 'messages') last at: 'content') first.
+		self assert: (toolResult at: 'tool_use_id') equals: 'tu_knowledge_loop'.
+		knowledgeResult := STONJSON fromString: (toolResult at: 'content').
+		self assert: (knowledgeResult at: 'schema') equals: 'agent-knowledge/v1'.
+		self assert: (knowledgeResult at: 'trust') equals: 'untrusted-data'.
+		self assert: (knowledgeResult at: 'found').
+		self assert: (((knowledgeResult at: 'items') first at: 'content')) equals: 'Tokyo' ]
+		ensure: [ AgentCanvas reset ]
 ]
 
 { #category : 'tests' }
