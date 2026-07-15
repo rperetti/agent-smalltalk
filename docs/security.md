@@ -73,13 +73,21 @@ not prevent edited Smalltalk from performing a forbidden operation.
 
 | risk | consequence | backlog |
 |---|---|---|
-| Unauthenticated localhost `/eval` and `/update` | Another local caller may execute code or mutate the live image. | [AS-01](backlog.md#as-01--authenticate-or-remove-the-local-evaluator) |
+| Unauthenticated localhost `/eval` and `/update` | Another local caller may execute code or mutate the live image. | accepted for now; [AS-01](backlog.md#as-01--authenticate-or-remove-the-local-evaluator) |
 | Partial or falsely verified live update | Broken platform code may be saved over the living world. | [AS-02](backlog.md#as-02--make-live-updates-verifiable-and-atomic) |
 | Incomplete checkpoint/backup unit | Unsaved work or matching source history may not be recoverable. | [AS-03](backlog.md#as-03--define-persistence-and-recovery-semantics) |
 | Raw, unbounded dynamic prompt context | Prompt injection, unexpected disclosure, rising cost, or request failure. | [AS-04](backlog.md#as-04--treat-model-context-as-untrusted-bounded-data) |
 | Mutations outside the gateway mutex | Updates, automations, snapshots, or generated code may race. | [AS-05](backlog.md#as-05--coordinate-all-world-mutations) |
 | Automation restrictions exist only in prompt policy | Later unattended Smalltalk retains full process authority. | [AS-06](backlog.md#as-06--decide-whether-automation-restrictions-are-policy-or-enforcement) |
 | Generated artifacts lack provenance and health | A failed or compromised run can leave persistent behavior that is difficult to audit. | [AS-15](backlog.md#as-15--add-provenance-health-and-rollback-for-generated-artifacts) |
+
+The first row is accepted rather than scheduled. The evaluator is the only thing
+that can question a live session, and both ways of closing the boundary cost
+more than the exposure does while this remains a single-user experiment:
+authenticating it puts ceremony between the operator and their own image, and
+removing it trades away the visibility the experiment runs on. The terms are
+recorded in AS-01, which is revisited if publication is ever on the table rather
+than on a schedule.
 
 ## Data handling
 

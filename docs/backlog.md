@@ -12,11 +12,10 @@ Small enough to discuss as the next foundation milestone.
 
 | rank | ID | title | categories | priority | effort |
 |---:|---|---|---|---|---|
-| 1 | [AS-01](#as-01--authenticate-or-remove-the-local-evaluator) | Authenticate or remove the local evaluator | security, operations | P0 | M |
-| 2 | [AS-02](#as-02--make-live-updates-verifiable-and-atomic) | Make live updates verifiable and atomic | reliability, operations | P0 | L |
-| 3 | [AS-03](#as-03--define-persistence-and-recovery-semantics) | Define persistence and recovery semantics | architecture, reliability, operations | P0 | L |
-| 4 | [AS-04](#as-04--treat-model-context-as-untrusted-bounded-data) | Treat model context as untrusted, bounded data | security, architecture, performance | P0 | L |
-| 5 | [AS-29](#as-29--clear-the-final-publication-gate) | Clear the final publication gate | documentation, operations, product | P0 | S |
+| 1 | [AS-02](#as-02--make-live-updates-verifiable-and-atomic) | Make live updates verifiable and atomic | reliability, operations | P0 | L |
+| 2 | [AS-03](#as-03--define-persistence-and-recovery-semantics) | Define persistence and recovery semantics | architecture, reliability, operations | P0 | L |
+| 3 | [AS-04](#as-04--treat-model-context-as-untrusted-bounded-data) | Treat model context as untrusted, bounded data | security, architecture, performance | P0 | L |
+| 4 | [AS-29](#as-29--clear-the-final-publication-gate) | Clear the final publication gate | documentation, operations, product | P0 | S |
 
 ## Next
 
@@ -25,10 +24,10 @@ the `Now` decisions clarify the architecture.
 
 | rank | ID | title | categories | priority | effort |
 |---:|---|---|---|---|---|
-| 6 | [AS-05](#as-05--coordinate-all-world-mutations) | Coordinate all world mutations | architecture, reliability | P1 | L |
-| 7 | [AS-06](#as-06--decide-whether-automation-restrictions-are-policy-or-enforcement) | Decide whether automation restrictions are policy or enforcement | security, product, architecture | P1 | L |
-| 8 | [AS-19](#as-19--make-the-base-prompt-a-tested-consistent-contract) | Make the base prompt a tested, consistent contract | testing, architecture, maintenance | P1 | M |
-| 9 | [AS-27](#as-27--cache-stable-inference-context-safely) | Cache stable inference context safely | performance, architecture, security, testing | P1 | M |
+| 5 | [AS-05](#as-05--coordinate-all-world-mutations) | Coordinate all world mutations | architecture, reliability | P1 | L |
+| 6 | [AS-06](#as-06--decide-whether-automation-restrictions-are-policy-or-enforcement) | Decide whether automation restrictions are policy or enforcement | security, product, architecture | P1 | L |
+| 7 | [AS-19](#as-19--make-the-base-prompt-a-tested-consistent-contract) | Make the base prompt a tested, consistent contract | testing, architecture, maintenance | P1 | M |
+| 8 | [AS-27](#as-27--cache-stable-inference-context-safely) | Cache stable inference context safely | performance, architecture, security, testing | P1 | M |
 
 ## Later
 
@@ -36,12 +35,13 @@ Real work, but not proposed as part of the next foundation milestone.
 
 | rank | ID | title | categories | priority | effort |
 |---:|---|---|---|---|---|
-| 10 | [AS-14](#as-14--introduce-a-provider-neutral-inference-boundary) | Introduce a provider-neutral inference boundary | architecture, reliability | P2 | L |
-| 11 | [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts) | Add provenance, health, and rollback for generated artifacts | architecture, feature, reliability | P1 | L |
-| 12 | [AS-16](#as-16--make-tool-card-removal-match-its-visible-meaning) | Make tool-card removal match its visible meaning | ux, product, reliability | P2 | M |
-| 13 | [AS-17](#as-17--preserve-history-when-system-messages-coalesce) | Preserve history when system messages coalesce | reliability, ux | P2 | S |
-| 14 | [AS-22](#as-22--make-failed-spotlight-runs-inspectable-on-the-canvas) | Make failed Spotlight runs inspectable on the canvas | feature, ux, reliability | P1 | L |
-| 15 | [AS-28](#as-28--measure-model-roi-with-provider-neutral-paid-evaluations) | Measure model ROI with provider-neutral paid evaluations | testing, performance, operations, security | P2 | L |
+| 9 | [AS-14](#as-14--introduce-a-provider-neutral-inference-boundary) | Introduce a provider-neutral inference boundary | architecture, reliability | P2 | L |
+| 10 | [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts) | Add provenance, health, and rollback for generated artifacts | architecture, feature, reliability | P1 | L |
+| 11 | [AS-16](#as-16--make-tool-card-removal-match-its-visible-meaning) | Make tool-card removal match its visible meaning | ux, product, reliability | P2 | M |
+| 12 | [AS-17](#as-17--preserve-history-when-system-messages-coalesce) | Preserve history when system messages coalesce | reliability, ux | P2 | S |
+| 13 | [AS-22](#as-22--make-failed-spotlight-runs-inspectable-on-the-canvas) | Make failed Spotlight runs inspectable on the canvas | feature, ux, reliability | P1 | L |
+| 14 | [AS-28](#as-28--measure-model-roi-with-provider-neutral-paid-evaluations) | Measure model ROI with provider-neutral paid evaluations | testing, performance, operations, security | P2 | L |
+| 15 | [AS-01](#as-01--authenticate-or-remove-the-local-evaluator) | Authenticate or remove the local evaluator | security, operations | P2 | M |
 
 ## Category views
 
@@ -65,20 +65,23 @@ cross-category priority order above.
 
 ## AS-01 — Authenticate or remove the local evaluator
 
-**Status:** candidate<br>
+**Status:** postponed<br>
 **Categories:** security, operations<br>
-**Priority:** P0<br>
+**Priority:** P2<br>
 **Effort:** M<br>
-**Dependencies:** none<br>
-**Source:** repository review, 2026-07-09
+**Dependencies:** none; revisit before publication (AS-29)<br>
+**Source:** repository review, 2026-07-09; postponed 2026-07-15
 
 ### Problem and argument
 
-`AgentRemote class>>handleRequest:` accepts unauthenticated `POST /eval` and
-passes the body to `AgentSandbox`. Loopback binding limits network reach but
-does not authenticate the caller: another local process receives the same
-arbitrary Smalltalk authority as the agent. This is a broader trust boundary
-than the README's deliberate decision to trust the agent.
+`AgentRemote class>>handleRequest:` hands any local caller the authority the
+README grants only to the agent; the [security model](security.md) states that
+boundary and why it is accepted for now. This item holds the work that closing
+it would take, so a later reviewer finds a decision here instead of filing the
+finding again: authenticating `/update`, which `update.sh` depends on, and
+authenticating or dropping `/eval`, which is what the operator and any code
+agent use to question a live session. That price is worth paying to publish and
+not worth paying to experiment, so the trigger is publication, not the calendar.
 
 ### Proposed outcome
 

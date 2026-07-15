@@ -204,6 +204,29 @@ most recent gateway run. The API key is sent as an HTTP header and is not
 intentionally logged. Canvas facts and request content do appear in full HTTP
 payload logs. `gateway.log` currently has no rotation.
 
+### Questioning a live session
+
+Those files are a record of what happened. To ask the running image what is true
+*now* — live selections, widget state, an automation's runtime state — post the
+expression to the loopback evaluator:
+
+```bash
+curl -s -X POST --data-binary 'AgentAutomation allInstances size' \
+  http://127.0.0.1:8807/eval
+```
+
+A headless `Pharo eval` cannot answer these questions: it loads the image file,
+not the session in front of you, so anything held only in the live world is
+invisible to it. The remaining alternative is pasting into a Playground, which
+needs a human at the keyboard and so is closed to a code agent working alone.
+
+`AgentSandbox` evaluates the body, so the reply is the same `RESULT:`/`ERROR:`
+report the model gets, and the same rotating image backups make a bad expression
+recoverable. It is an instrument for a deliberate investigation: it carries full
+image authority and authenticates nobody, which
+[the security model](security.md#known-risks-and-planned-work) accepts on
+purpose and explains.
+
 ## Backups and recovery
 
 Current backup behavior differs by path:
