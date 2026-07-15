@@ -16,7 +16,7 @@ Small enough to discuss as the next foundation milestone.
 | 2 | [AS-02](#as-02--make-live-updates-verifiable-and-atomic) | Make live updates verifiable and atomic | reliability, operations | P0 | L |
 | 3 | [AS-03](#as-03--define-persistence-and-recovery-semantics) | Define persistence and recovery semantics | architecture, reliability, operations | P0 | L |
 | 4 | [AS-04](#as-04--treat-model-context-as-untrusted-bounded-data) | Treat model context as untrusted, bounded data | security, architecture, performance | P0 | L |
-| 5 | [AS-23](#as-23--add-the-canvas-screenshot-and-clear-the-final-publication-gate) | Add the canvas screenshot and clear the final publication gate | documentation, product | P0 | S |
+| 5 | [AS-29](#as-29--clear-the-final-publication-gate) | Clear the final publication gate | documentation, operations, product | P0 | S |
 
 ## Next
 
@@ -54,9 +54,9 @@ cross-category priority order above.
 | Bugs and behavioral correctness | *(none currently)* |
 | Security and authority | [AS-01](#as-01--authenticate-or-remove-the-local-evaluator), [AS-04](#as-04--treat-model-context-as-untrusted-bounded-data), [AS-06](#as-06--decide-whether-automation-restrictions-are-policy-or-enforcement), [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts), [AS-27](#as-27--cache-stable-inference-context-safely), [AS-28](#as-28--measure-model-roi-with-provider-neutral-paid-evaluations) |
 | Reliability and persistence | [AS-02](#as-02--make-live-updates-verifiable-and-atomic), [AS-03](#as-03--define-persistence-and-recovery-semantics), [AS-05](#as-05--coordinate-all-world-mutations), [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts), [AS-17](#as-17--preserve-history-when-system-messages-coalesce), [AS-22](#as-22--make-failed-spotlight-runs-inspectable-on-the-canvas) |
-| Operations and testing | [AS-01](#as-01--authenticate-or-remove-the-local-evaluator), [AS-02](#as-02--make-live-updates-verifiable-and-atomic), [AS-03](#as-03--define-persistence-and-recovery-semantics), [AS-19](#as-19--make-the-base-prompt-a-tested-consistent-contract), [AS-27](#as-27--cache-stable-inference-context-safely), [AS-28](#as-28--measure-model-roi-with-provider-neutral-paid-evaluations) |
+| Operations and testing | [AS-01](#as-01--authenticate-or-remove-the-local-evaluator), [AS-02](#as-02--make-live-updates-verifiable-and-atomic), [AS-03](#as-03--define-persistence-and-recovery-semantics), [AS-19](#as-19--make-the-base-prompt-a-tested-consistent-contract), [AS-27](#as-27--cache-stable-inference-context-safely), [AS-28](#as-28--measure-model-roi-with-provider-neutral-paid-evaluations), [AS-29](#as-29--clear-the-final-publication-gate) |
 | Architecture and evolution | [AS-03](#as-03--define-persistence-and-recovery-semantics), [AS-04](#as-04--treat-model-context-as-untrusted-bounded-data), [AS-05](#as-05--coordinate-all-world-mutations), [AS-06](#as-06--decide-whether-automation-restrictions-are-policy-or-enforcement), [AS-14](#as-14--introduce-a-provider-neutral-inference-boundary), [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts), [AS-19](#as-19--make-the-base-prompt-a-tested-consistent-contract), [AS-27](#as-27--cache-stable-inference-context-safely) |
-| Product, feature, and UX | [AS-06](#as-06--decide-whether-automation-restrictions-are-policy-or-enforcement), [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts), [AS-16](#as-16--make-tool-card-removal-match-its-visible-meaning), [AS-17](#as-17--preserve-history-when-system-messages-coalesce), [AS-22](#as-22--make-failed-spotlight-runs-inspectable-on-the-canvas), [AS-23](#as-23--add-the-canvas-screenshot-and-clear-the-final-publication-gate) |
+| Product, feature, and UX | [AS-06](#as-06--decide-whether-automation-restrictions-are-policy-or-enforcement), [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts), [AS-16](#as-16--make-tool-card-removal-match-its-visible-meaning), [AS-17](#as-17--preserve-history-when-system-messages-coalesce), [AS-22](#as-22--make-failed-spotlight-runs-inspectable-on-the-canvas), [AS-29](#as-29--clear-the-final-publication-gate) |
 | Performance and maintenance | [AS-04](#as-04--treat-model-context-as-untrusted-bounded-data), [AS-19](#as-19--make-the-base-prompt-a-tested-consistent-contract), [AS-27](#as-27--cache-stable-inference-context-safely), [AS-28](#as-28--measure-model-roi-with-provider-neutral-paid-evaluations) |
 
 ---
@@ -501,40 +501,6 @@ metrics, and debuggers.
   diagnostic event model with widget/trigger attribution and repeated-failure
   coalescing.
 
-## AS-23 — Add the canvas screenshot and clear the final publication gate
-
-**Status:** ready<br>
-**Categories:** documentation, product<br>
-**Priority:** P0<br>
-**Effort:** S<br>
-**Dependencies:** AS-02, AS-03 (do not publish before the persistence/update model is clear)<br>
-**Source:** AS-20 follow-up, 2026-07-13
-
-### Problem and argument
-
-The open-source readiness pass (former AS-20) landed the license, the
-contribution guide, a shared writing-voice guide, the architecture overview, and
-platform/disk-time expectations. Two gaps remain before a first public release:
-the README still promises a canvas screenshot it does not have, and the
-repository has not had a single end-to-end pass to confirm nothing else blocks a
-newcomer with no private context.
-
-### Proposed outcome
-
-The README shows a representative canvas, and a short pre-publication sweep
-confirms the repository is ready to open to newcomers.
-
-### Acceptance criteria
-
-- A representative canvas is agreed, captured, stored under `docs/assets/`, and
-  embedded in the README `Demo` section, replacing the `TODO(AS-23)` placeholder.
-- The screenshot reflects the current UI (post canvas redesign) and shows the
-  core object kinds — a fact, a widget, and a tool card or routine.
-- A final readiness sweep confirms links resolve, commands match the current
-  scripts, the contributor PR flow and issue triage are documented, and no
-  private-context assumptions remain.
-- Publication still respects the AS-02/AS-03 persistence/update gate.
-
 ## AS-27 — Cache stable inference context safely
 
 **Status:** candidate<br>
@@ -647,6 +613,40 @@ boundary.
   the summary stale without rewriting the historical evidence.
 - Paid comparisons remain an explicit operator action and never run from
   `verify-all.sh` or routine builds.
+
+## AS-29 — Clear the final publication gate
+
+**Status:** blocked<br>
+**Categories:** documentation, operations, product<br>
+**Priority:** P0<br>
+**Effort:** S<br>
+**Dependencies:** AS-02, AS-03 (do not publish before the persistence/update model is clear)<br>
+**Source:** AS-23 split, 2026-07-15
+
+### Problem and argument
+
+The open-source readiness pass (former AS-20) landed the license, the
+contribution guide, the writing-voice guide, the architecture overview, and
+platform/disk-time expectations. Its follow-up (former AS-23) added the canvas
+screenshot the README had been promising. What remains is the part that was
+never really a documentation task: the repository has not had a single
+end-to-end pass by someone assuming no private context, and publishing is still
+gated on the persistence and update model being clear. Those two are held
+together here so the last P0 before a public release says plainly what it is
+waiting for.
+
+### Proposed outcome
+
+A short sweep confirms the repository is ready to open to newcomers, and
+publication happens only once the persistence/update model behind it is settled.
+
+### Acceptance criteria
+
+- A readiness sweep confirms links resolve, commands match the current scripts,
+  the contributor PR flow and issue triage are documented, and no
+  private-context assumptions remain.
+- Publication respects the AS-02/AS-03 persistence/update gate: the item cannot
+  close while either is open.
 
 ---
 
