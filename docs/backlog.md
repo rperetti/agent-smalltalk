@@ -643,6 +643,53 @@ specific blockers so the next look is cheap.
 - If it is not viable, the blockers and a revisit trigger are recorded, and this
   item stays open rather than closing as "not now".
 
+## AS-31 — Tell a first-time image how to start
+
+**Status:** candidate<br>
+**Categories:** ux, product, documentation<br>
+**Priority:** P2<br>
+**Effort:** S<br>
+**Dependencies:** none<br>
+**Source:** onboarding observation, 2026-07-15
+
+### Problem and argument
+
+A fresh image opens on an empty canvas that says nothing about itself. The one
+gesture that unlocks everything — Cmd/Ctrl+Enter to summon the Spotlight — is
+documented in the README and the operations guide, which is exactly where a
+person who has just double-clicked the image is not looking. Right-click to
+browse, the resize grip, and lasso selection are in the same position: real
+affordances with no visible hint. The canvas is discoverable only to someone who
+already read about it, which is a strange property for a product whose whole
+pitch is that you talk to it.
+
+The counter-argument is that permanent chrome would fight the empty-canvas
+aesthetic and become noise the second time you open the image. So the useful
+version of this is a first-run affordance that knows it is a first run, and that
+gets out of the way for good once the user has actually done the thing.
+
+### Proposed outcome
+
+A first-time image shows the user how to start without teaching a tutorial. The
+hint states the summoning shortcut, is dismissible, disappears once the user has
+opened the Spotlight, and never returns in a world that has been used.
+
+### Acceptance criteria
+
+- A fresh image displays the Spotlight shortcut on the empty canvas; the hint is
+  visible without a click and readable without documentation.
+- The hint is dismissible, and opening the Spotlight dismisses it implicitly. A
+  world that has been used never shows it again, across image saves.
+- The hint is a canvas-native affordance, not a modal: it does not take keyboard
+  focus, block canvas work, or interfere with lasso selection or placement.
+- Beyond the shortcut, the hint suggests at most one concrete first request, so
+  the empty canvas has an obvious next move rather than a feature list.
+- Whether the other unlabeled gestures — right-click to browse, resize grip,
+  Cmd/Ctrl+Z — belong in this surface is decided explicitly and recorded, rather
+  than accumulating by default.
+- The README and system specification describe the first-run behavior, and tests
+  cover a fresh world, a dismissed hint, and a used world after reopening.
+
 ---
 
 ## Conventions
