@@ -74,19 +74,25 @@ not prevent edited Smalltalk from performing a forbidden operation.
 | risk | consequence | backlog |
 |---|---|---|
 | Unauthenticated localhost `/eval` and `/update` | Another local caller may execute code or mutate the live image. | accepted for now; [AS-01](backlog.md#as-01--authenticate-or-remove-the-local-evaluator) |
-| Incomplete checkpoint/backup unit | Unsaved work or matching source history may not be recoverable. | [AS-03](backlog.md#as-03--define-persistence-and-recovery-semantics) |
+| Incomplete checkpoint/backup unit | Unsaved work or matching source history may not be recoverable. | accepted for the current prototype; [AS-03](backlog.md#as-03--define-persistence-and-recovery-semantics) |
 | Raw, unbounded dynamic prompt context | Prompt injection, unexpected disclosure, rising cost, or request failure. | [AS-04](backlog.md#as-04--treat-model-context-as-untrusted-bounded-data) |
 | Mutations outside the gateway mutex | Updates, automations, snapshots, or generated code may race. | [AS-05](backlog.md#as-05--coordinate-all-world-mutations) |
 | Automation restrictions exist only in prompt policy | Later unattended Smalltalk retains full process authority. | [AS-06](backlog.md#as-06--decide-whether-automation-restrictions-are-policy-or-enforcement) |
 | Generated artifacts lack provenance and health | A failed or compromised run can leave persistent behavior that is difficult to audit. | [AS-15](backlog.md#as-15--add-provenance-health-and-rollback-for-generated-artifacts) |
 
-The first row is accepted rather than scheduled. The evaluator is the only thing
-that can question a live session, and both ways of closing the boundary cost
-more than the exposure does while this remains a single-user experiment:
-authenticating it puts ceremony between the operator and their own image, and
-removing it trades away the visibility the experiment runs on. The terms are
-recorded in AS-01, which is revisited if publication is ever on the table rather
-than on a schedule.
+The first two rows are accepted rather than scheduled. The evaluator is the
+only thing that can question a live session, and both ways of closing that
+boundary cost more than the exposure does while this remains a single-user
+experiment. Authenticating it puts ceremony between the operator and their own
+image; removing it trades away the visibility the experiment runs on. The terms
+are recorded in AS-01.
+
+AS-03 accepts a different trade-off. `update.sh` preserves the ordinary living
+world in place, but the project does not yet promise a coherent checkpoint or a
+portable migration into a fresh image. Defining that boundary now would add a
+large compatibility and import-security surface without a concrete user world
+to test it. The current limits remain operational facts, not mitigations. Both
+accepted decisions return before publication.
 
 ## Data handling
 

@@ -12,21 +12,17 @@ Small enough to discuss as the next foundation milestone.
 
 | rank | ID | title | categories | priority | effort |
 |---:|---|---|---|---|---|
-| 1 | [AS-03](#as-03--define-persistence-and-recovery-semantics) | Define persistence and recovery semantics | architecture, reliability, operations | P0 | L |
-| 2 | [AS-04](#as-04--treat-model-context-as-untrusted-bounded-data) | Treat model context as untrusted, bounded data | security, architecture, performance | P0 | L |
-| 3 | [AS-29](#as-29--clear-the-final-publication-gate) | Clear the final publication gate | documentation, operations, product | P0 | S |
+| 1 | [AS-04](#as-04--treat-model-context-as-untrusted-bounded-data) | Treat model context as untrusted, bounded data | security, architecture, performance | P0 | L |
 
 ## Next
 
-Important existing-system work. Its internal order should be revisited after
-the `Now` decisions clarify the architecture.
+Important existing-system work that can proceed after the current foundation
+decision.
 
 | rank | ID | title | categories | priority | effort |
 |---:|---|---|---|---|---|
-| 4 | [AS-05](#as-05--coordinate-all-world-mutations) | Coordinate all world mutations | architecture, reliability | P1 | L |
-| 5 | [AS-06](#as-06--decide-whether-automation-restrictions-are-policy-or-enforcement) | Decide whether automation restrictions are policy or enforcement | security, product, architecture | P1 | L |
-| 6 | [AS-19](#as-19--make-the-base-prompt-a-tested-consistent-contract) | Make the base prompt a tested, consistent contract | testing, architecture, maintenance | P1 | M |
-| 7 | [AS-27](#as-27--cache-stable-inference-context-safely) | Cache stable inference context safely | performance, architecture, security, testing | P1 | M |
+| 2 | [AS-19](#as-19--make-the-base-prompt-a-tested-consistent-contract) | Make the base prompt a tested, consistent contract | testing, architecture, maintenance | P1 | M |
+| 3 | [AS-27](#as-27--cache-stable-inference-context-safely) | Cache stable inference context safely | performance, architecture, security, testing | P1 | M |
 
 ## Later
 
@@ -34,12 +30,16 @@ Real work, but not proposed as part of the next foundation milestone.
 
 | rank | ID | title | categories | priority | effort |
 |---:|---|---|---|---|---|
-| 8 | [AS-14](#as-14--introduce-a-provider-neutral-inference-boundary) | Introduce a provider-neutral inference boundary | architecture, reliability | P2 | L |
-| 9 | [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts) | Add provenance, health, and rollback for generated artifacts | architecture, feature, reliability | P1 | L |
-| 10 | [AS-16](#as-16--make-tool-card-removal-match-its-visible-meaning) | Make tool-card removal match its visible meaning | ux, product, reliability | P2 | M |
-| 11 | [AS-17](#as-17--preserve-history-when-system-messages-coalesce) | Preserve history when system messages coalesce | reliability, ux | P2 | S |
-| 12 | [AS-22](#as-22--make-failed-spotlight-runs-inspectable-on-the-canvas) | Make failed Spotlight runs inspectable on the canvas | feature, ux, reliability | P1 | L |
-| 13 | [AS-28](#as-28--measure-model-roi-with-provider-neutral-paid-evaluations) | Measure model ROI with provider-neutral paid evaluations | testing, performance, operations, security | P2 | L |
+| 4 | [AS-14](#as-14--introduce-a-provider-neutral-inference-boundary) | Introduce a provider-neutral inference boundary | architecture, reliability | P2 | L |
+| 5 | [AS-17](#as-17--preserve-history-when-system-messages-coalesce) | Preserve history when system messages coalesce | reliability, ux | P2 | S |
+| 6 | [AS-22](#as-22--make-failed-spotlight-runs-inspectable-on-the-canvas) | Make failed Spotlight runs inspectable on the canvas | feature, ux, reliability | P1 | L |
+| 7 | [AS-28](#as-28--measure-model-roi-with-provider-neutral-paid-evaluations) | Measure model ROI with provider-neutral paid evaluations | testing, performance, operations, security | P2 | L |
+| 8 | [AS-03](#as-03--define-persistence-and-recovery-semantics) | Define persistence and recovery semantics | architecture, reliability, operations | P0 | L |
+| 9 | [AS-29](#as-29--clear-the-final-publication-gate) | Clear the final publication gate | documentation, operations, product | P0 | S |
+| 10 | [AS-05](#as-05--coordinate-all-world-mutations) | Coordinate all world mutations | architecture, reliability | P1 | L |
+| 11 | [AS-06](#as-06--decide-whether-automation-restrictions-are-policy-or-enforcement) | Decide whether automation restrictions are policy or enforcement | security, product, architecture | P1 | L |
+| 12 | [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts) | Add provenance, health, and rollback for generated artifacts | architecture, feature, reliability | P1 | L |
+| 13 | [AS-16](#as-16--make-tool-card-removal-match-its-visible-meaning) | Make tool-card removal match its visible meaning | ux, product, reliability | P2 | M |
 | 14 | [AS-01](#as-01--authenticate-or-remove-the-local-evaluator) | Authenticate or remove the local evaluator | security, operations | P2 | M |
 
 ## Category views
@@ -99,12 +99,12 @@ logged or persisted accidentally.
 
 ## AS-03 — Define persistence and recovery semantics
 
-**Status:** candidate<br>
+**Status:** postponed<br>
 **Categories:** architecture, reliability, operations<br>
 **Priority:** P0<br>
 **Effort:** L<br>
 **Dependencies:** none<br>
-**Source:** repository review, 2026-07-09
+**Source:** repository review, 2026-07-09; design review and postponed 2026-07-15
 
 ### Problem and argument
 
@@ -113,7 +113,18 @@ backup copies the last on-disk `.image`, not unsaved current work, and does not
 copy the matching `.changes` source file. Generated widgets, tools, automations,
 facts, and positions have no portable export outside the mutable image. This is
 weaker than the vision's current "never forgets" language and particularly
-important because source browsing is part of the product.
+important because source browsing is part of the product. The agent can also
+reshape generated classes, patch existing methods, and mutate live object
+instances, so a portable boundary cannot be inferred from package names alone.
+
+### Decision
+
+Postpone implementation at the current research-prototype stage. Routine
+platform updates already preserve the living world in place, while coherent
+checkpoints and cross-image migration would add a compatibility and security
+surface before a concrete user need has tested it. The accepted limits,
+candidate architecture, and return triggers are recorded in the
+[deferred design](postponed.md#as-03--persistence-recovery-and-portable-world-migration).
 
 ### Proposed outcome
 
@@ -125,9 +136,15 @@ independently of one image file.
 
 - The product defines explicit manual or automatic checkpoint semantics.
 - The UI exposes saved, unsaved, saving, and failed-save state.
-- Backups atomically include `.image`, `.changes`, platform source revision,
-  prompt revision, and a generated-package manifest.
-- Generated packages and canvas state have an export/import path.
+- Checkpoints atomically include `.image`, `.changes`, compatible runtime
+  identification, platform and prompt revisions, a generated-package manifest,
+  checksums, and an unambiguous completion marker.
+- Generated packages export as Tonel; logical world state uses a versioned data
+  format with stable object identities and explicit migration steps.
+- Platform or dependency patches carry a baseline revision and pre-change hash;
+  an import reports conflicts instead of applying a stale patch silently.
+- Imports validate data and code in a staged image, restore automations disabled,
+  and promote the result only after verification.
 - A recovery test restores a checkpoint and verifies facts, tools,
   automations, widget state, positions, behavior, and browsable source.
 - Vision, README, and operations language match the implemented guarantee.
@@ -585,7 +602,7 @@ boundary.
 **Categories:** documentation, operations, product<br>
 **Priority:** P0<br>
 **Effort:** S<br>
-**Dependencies:** AS-03 (do not publish before the persistence model is clear)<br>
+**Dependencies:** AS-03 (postponed; do not publish before the persistence model is clear)<br>
 **Source:** AS-23 split, 2026-07-15
 
 ### Problem and argument

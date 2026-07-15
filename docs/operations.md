@@ -258,8 +258,9 @@ Current backup behavior differs by path:
   copy `.changes` or unsaved in-memory work.
 
 Restore only after preserving the current failed files for post-mortem. A
-coherent checkpoint/recovery unit and generated-world export are tracked by
-[AS-03](backlog.md#as-03--define-persistence-and-recovery-semantics).
+coherent checkpoint/recovery unit and generated-world export are deliberately
+deferred. [AS-03](backlog.md#as-03--define-persistence-and-recovery-semantics)
+records the accepted limit and links the design and return triggers.
 
 ## Remote-listener recovery
 
