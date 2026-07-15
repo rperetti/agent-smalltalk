@@ -6,7 +6,7 @@ SERVICE chip, the tool's name in bold, and its purpose muted below. Right-click
 opens the TOOL class's source so a human can read and tweak it, and the fix
 benefits every reuse. I am meta (a handle on a capability, not a capability
 myself), so I stay out of the LLM's widget context -- the tool itself is listed
-under '## Capabilities you've built'.
+in the bounded dynamic capability data.
 "
 Class {
 	#name : 'AgentToolCard',

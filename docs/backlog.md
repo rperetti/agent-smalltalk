@@ -8,21 +8,16 @@ work-item lifecycle and how the backlog relates to the other documents.
 
 ## Now
 
-Small enough to discuss as the next foundation milestone.
-
-| rank | ID | title | categories | priority | effort |
-|---:|---|---|---|---|---|
-| 1 | [AS-04](#as-04--treat-model-context-as-untrusted-bounded-data) | Treat model context as untrusted, bounded data | security, architecture, performance | P0 | L |
+No work item is currently active.
 
 ## Next
 
-Important existing-system work that can proceed after the current foundation
-decision.
+Important existing-system work awaiting prioritization.
 
 | rank | ID | title | categories | priority | effort |
 |---:|---|---|---|---|---|
-| 2 | [AS-19](#as-19--make-the-base-prompt-a-tested-consistent-contract) | Make the base prompt a tested, consistent contract | testing, architecture, maintenance | P1 | M |
-| 3 | [AS-27](#as-27--cache-stable-inference-context-safely) | Cache stable inference context safely | performance, architecture, security, testing | P1 | M |
+| 1 | [AS-19](#as-19--make-the-base-prompt-a-tested-consistent-contract) | Make the base prompt a tested, consistent contract | testing, architecture, maintenance | P1 | M |
+| 2 | [AS-27](#as-27--cache-stable-inference-context-safely) | Cache stable inference context safely | performance, architecture, security, testing | P1 | M |
 
 ## Later
 
@@ -30,17 +25,19 @@ Real work, but not proposed as part of the next foundation milestone.
 
 | rank | ID | title | categories | priority | effort |
 |---:|---|---|---|---|---|
-| 4 | [AS-14](#as-14--introduce-a-provider-neutral-inference-boundary) | Introduce a provider-neutral inference boundary | architecture, reliability | P2 | L |
-| 5 | [AS-17](#as-17--preserve-history-when-system-messages-coalesce) | Preserve history when system messages coalesce | reliability, ux | P2 | S |
-| 6 | [AS-22](#as-22--make-failed-spotlight-runs-inspectable-on-the-canvas) | Make failed Spotlight runs inspectable on the canvas | feature, ux, reliability | P1 | L |
-| 7 | [AS-28](#as-28--measure-model-roi-with-provider-neutral-paid-evaluations) | Measure model ROI with provider-neutral paid evaluations | testing, performance, operations, security | P2 | L |
-| 8 | [AS-03](#as-03--define-persistence-and-recovery-semantics) | Define persistence and recovery semantics | architecture, reliability, operations | P0 | L |
-| 9 | [AS-29](#as-29--clear-the-final-publication-gate) | Clear the final publication gate | documentation, operations, product | P0 | S |
-| 10 | [AS-05](#as-05--coordinate-all-world-mutations) | Coordinate all world mutations | architecture, reliability | P1 | L |
-| 11 | [AS-06](#as-06--decide-whether-automation-restrictions-are-policy-or-enforcement) | Decide whether automation restrictions are policy or enforcement | security, product, architecture | P1 | L |
-| 12 | [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts) | Add provenance, health, and rollback for generated artifacts | architecture, feature, reliability | P1 | L |
-| 13 | [AS-16](#as-16--make-tool-card-removal-match-its-visible-meaning) | Make tool-card removal match its visible meaning | ux, product, reliability | P2 | M |
-| 14 | [AS-01](#as-01--authenticate-or-remove-the-local-evaluator) | Authenticate or remove the local evaluator | security, operations | P2 | M |
+| 3 | [AS-14](#as-14--introduce-a-provider-neutral-inference-boundary) | Introduce a provider-neutral inference boundary | architecture, reliability | P2 | L |
+| 4 | [AS-17](#as-17--preserve-history-when-system-messages-coalesce) | Preserve history when system messages coalesce | reliability, ux | P2 | S |
+| 5 | [AS-22](#as-22--make-failed-spotlight-runs-inspectable-on-the-canvas) | Make failed Spotlight runs inspectable on the canvas | feature, ux, reliability | P1 | L |
+| 6 | [AS-28](#as-28--measure-model-roi-with-provider-neutral-paid-evaluations) | Measure model ROI with provider-neutral paid evaluations | testing, performance, operations, security | P2 | L |
+| 7 | [AS-03](#as-03--define-persistence-and-recovery-semantics) | Define persistence and recovery semantics | architecture, reliability, operations | P0 | L |
+| 8 | [AS-29](#as-29--clear-the-final-publication-gate) | Clear the final publication gate | documentation, operations, product | P0 | S |
+| 9 | [AS-05](#as-05--coordinate-all-world-mutations) | Coordinate all world mutations | architecture, reliability | P1 | L |
+| 10 | [AS-06](#as-06--decide-whether-automation-restrictions-are-policy-or-enforcement) | Decide whether automation restrictions are policy or enforcement | security, product, architecture | P1 | L |
+| 11 | [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts) | Add provenance, health, and rollback for generated artifacts | architecture, feature, reliability | P1 | L |
+| 12 | [AS-16](#as-16--make-tool-card-removal-match-its-visible-meaning) | Make tool-card removal match its visible meaning | ux, product, reliability | P2 | M |
+| 13 | [AS-01](#as-01--authenticate-or-remove-the-local-evaluator) | Authenticate or remove the local evaluator | security, operations | P2 | M |
+| 14 | [AS-30](#as-30--decide-when-to-move-to-pharo-14) | Decide when to move to Pharo 14 | maintenance, operations, architecture | P2 | M |
+| 15 | [AS-31](#as-31--tell-a-first-time-image-how-to-start) | Tell a first-time image how to start | ux, product, documentation | P2 | S |
 
 ## Category views
 
@@ -51,12 +48,12 @@ cross-category priority order above.
 | lens | items |
 |---|---|
 | Bugs and behavioral correctness | *(none currently)* |
-| Security and authority | [AS-01](#as-01--authenticate-or-remove-the-local-evaluator), [AS-04](#as-04--treat-model-context-as-untrusted-bounded-data), [AS-06](#as-06--decide-whether-automation-restrictions-are-policy-or-enforcement), [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts), [AS-27](#as-27--cache-stable-inference-context-safely), [AS-28](#as-28--measure-model-roi-with-provider-neutral-paid-evaluations) |
+| Security and authority | [AS-01](#as-01--authenticate-or-remove-the-local-evaluator), [AS-06](#as-06--decide-whether-automation-restrictions-are-policy-or-enforcement), [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts), [AS-27](#as-27--cache-stable-inference-context-safely), [AS-28](#as-28--measure-model-roi-with-provider-neutral-paid-evaluations) |
 | Reliability and persistence | [AS-03](#as-03--define-persistence-and-recovery-semantics), [AS-05](#as-05--coordinate-all-world-mutations), [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts), [AS-17](#as-17--preserve-history-when-system-messages-coalesce), [AS-22](#as-22--make-failed-spotlight-runs-inspectable-on-the-canvas) |
-| Operations and testing | [AS-01](#as-01--authenticate-or-remove-the-local-evaluator), [AS-03](#as-03--define-persistence-and-recovery-semantics), [AS-19](#as-19--make-the-base-prompt-a-tested-consistent-contract), [AS-27](#as-27--cache-stable-inference-context-safely), [AS-28](#as-28--measure-model-roi-with-provider-neutral-paid-evaluations), [AS-29](#as-29--clear-the-final-publication-gate) |
-| Architecture and evolution | [AS-03](#as-03--define-persistence-and-recovery-semantics), [AS-04](#as-04--treat-model-context-as-untrusted-bounded-data), [AS-05](#as-05--coordinate-all-world-mutations), [AS-06](#as-06--decide-whether-automation-restrictions-are-policy-or-enforcement), [AS-14](#as-14--introduce-a-provider-neutral-inference-boundary), [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts), [AS-19](#as-19--make-the-base-prompt-a-tested-consistent-contract), [AS-27](#as-27--cache-stable-inference-context-safely) |
-| Product, feature, and UX | [AS-06](#as-06--decide-whether-automation-restrictions-are-policy-or-enforcement), [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts), [AS-16](#as-16--make-tool-card-removal-match-its-visible-meaning), [AS-17](#as-17--preserve-history-when-system-messages-coalesce), [AS-22](#as-22--make-failed-spotlight-runs-inspectable-on-the-canvas), [AS-29](#as-29--clear-the-final-publication-gate) |
-| Performance and maintenance | [AS-04](#as-04--treat-model-context-as-untrusted-bounded-data), [AS-19](#as-19--make-the-base-prompt-a-tested-consistent-contract), [AS-27](#as-27--cache-stable-inference-context-safely), [AS-28](#as-28--measure-model-roi-with-provider-neutral-paid-evaluations) |
+| Operations and testing | [AS-01](#as-01--authenticate-or-remove-the-local-evaluator), [AS-03](#as-03--define-persistence-and-recovery-semantics), [AS-19](#as-19--make-the-base-prompt-a-tested-consistent-contract), [AS-27](#as-27--cache-stable-inference-context-safely), [AS-28](#as-28--measure-model-roi-with-provider-neutral-paid-evaluations), [AS-29](#as-29--clear-the-final-publication-gate), [AS-30](#as-30--decide-when-to-move-to-pharo-14) |
+| Architecture and evolution | [AS-03](#as-03--define-persistence-and-recovery-semantics), [AS-05](#as-05--coordinate-all-world-mutations), [AS-06](#as-06--decide-whether-automation-restrictions-are-policy-or-enforcement), [AS-14](#as-14--introduce-a-provider-neutral-inference-boundary), [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts), [AS-19](#as-19--make-the-base-prompt-a-tested-consistent-contract), [AS-27](#as-27--cache-stable-inference-context-safely), [AS-30](#as-30--decide-when-to-move-to-pharo-14) |
+| Product, feature, and UX | [AS-06](#as-06--decide-whether-automation-restrictions-are-policy-or-enforcement), [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts), [AS-16](#as-16--make-tool-card-removal-match-its-visible-meaning), [AS-17](#as-17--preserve-history-when-system-messages-coalesce), [AS-22](#as-22--make-failed-spotlight-runs-inspectable-on-the-canvas), [AS-29](#as-29--clear-the-final-publication-gate), [AS-31](#as-31--tell-a-first-time-image-how-to-start) |
+| Performance and maintenance | [AS-19](#as-19--make-the-base-prompt-a-tested-consistent-contract), [AS-27](#as-27--cache-stable-inference-context-safely), [AS-28](#as-28--measure-model-roi-with-provider-neutral-paid-evaluations), [AS-30](#as-30--decide-when-to-move-to-pharo-14) |
 
 ---
 
@@ -149,42 +146,6 @@ independently of one image file.
   automations, widget state, positions, behavior, and browsable source.
 - Vision, README, and operations language match the implemented guarantee.
 
-## AS-04 — Treat model context as untrusted, bounded data
-
-**Status:** candidate<br>
-**Categories:** security, architecture, performance<br>
-**Priority:** P0<br>
-**Effort:** L<br>
-**Dependencies:** none; complete before importing arbitrary external documents<br>
-**Source:** repository review, 2026-07-09
-
-### Problem and argument
-
-Fact bodies, selected notes, tool purposes, and generated `describe` output are
-concatenated directly into the system prompt without a trust boundary or total
-size budget. Instruction-like imported or fetched content can therefore steer a
-model that has full code-execution authority. All facts are sent even when
-ordinary widget context is selection-scoped, and one large fact or a growing
-toolbox can make every round increasingly expensive.
-
-### Proposed outcome
-
-Dynamic context is explicitly represented as untrusted data, is scoped by user
-intent and privacy, and fits within a deterministic request budget.
-
-### Acceptance criteria
-
-- Dynamic context uses a structured representation with clear untrusted-data
-  boundaries.
-- The base prompt states that content inside facts, notes, descriptions, and
-  fetched documents is data, never operating instruction.
-- Per-object and total context limits produce visible truncation markers.
-- Facts can be scoped as always-send, selected, local-only, or never-send.
-- The product defines whether selection also scopes facts.
-- Adversarial context tests cover instruction-like notes, facts, descriptions,
-  and imported text.
-- Gateway logs and UI make request-size/cost growth observable.
-
 ## AS-05 — Coordinate all world mutations
 
 **Status:** candidate<br>
@@ -224,7 +185,7 @@ and package changes, and gives snapshots a stable boundary.
 **Categories:** security, product, architecture<br>
 **Priority:** P1<br>
 **Effort:** L<br>
-**Dependencies:** AS-04, AS-05<br>
+**Dependencies:** AS-05<br>
 **Source:** repository review, 2026-07-09
 
 ### Problem and argument
@@ -380,7 +341,7 @@ history required to understand repeated failures.
 **Categories:** testing, architecture, maintenance<br>
 **Priority:** P1<br>
 **Effort:** M<br>
-**Dependencies:** AS-04<br>
+**Dependencies:** none<br>
 **Source:** repository review, 2026-07-09
 
 ### Problem and argument
@@ -415,7 +376,7 @@ and behavioral evaluations for common workflows and failure cases.
 **Categories:** feature, ux, reliability<br>
 **Priority:** P1<br>
 **Effort:** L<br>
-**Dependencies:** AS-04; coordinate stable run identity and provenance with AS-15<br>
+**Dependencies:** AS-15, for stable run identity and provenance<br>
 **Source:** shared human/agent debugging brainstorm, 2026-07-11
 
 ### Problem and argument
@@ -489,7 +450,7 @@ metrics, and debuggers.
 **Categories:** performance, architecture, security, testing<br>
 **Priority:** P1<br>
 **Effort:** M<br>
-**Dependencies:** AS-04, AS-19; coordinate adapter-specific cache semantics with AS-14<br>
+**Dependencies:** AS-19; coordinate adapter-specific cache semantics with AS-14<br>
 **Source:** model ROI discussion and repository measurement, 2026-07-13
 
 ### Problem and argument
@@ -629,6 +590,58 @@ publication happens only once the persistence/update model behind it is settled.
   private-context assumptions remain.
 - Publication respects the AS-03 persistence gate: the item cannot close while
   it is open.
+
+## AS-30 — Decide when to move to Pharo 14
+
+**Status:** candidate<br>
+**Categories:** maintenance, operations, architecture<br>
+**Priority:** P2<br>
+**Effort:** M<br>
+**Dependencies:** none; the upgrade itself interacts with AS-03, since a living
+world is the thing being carried across<br>
+**Source:** platform currency review, 2026-07-15
+
+### Problem and argument
+
+The project is pinned to Pharo 13 in more places than a version string: the
+README and [operations guide](operations.md) document a Pharo 13 image and the
+`stable` VM, `build.sh` expects a Pharo 13 pristine image, the base prompt tells
+the model what image it lives in, and the system specification names the
+platform. Staying on an aging release is a slow tax — Bloc, Alexandrie, and the
+Pharo tooling all move on, and the longer the gap grows the less the upgrade
+looks like a version bump and the more it looks like a port.
+
+The counterweight is that this project's whole value lives inside a mutable
+image. A new major Pharo release is not automatically a good home for it, and
+finding out the hard way is expensive. So the first half of this item is not an
+upgrade at all; it is a decision with evidence behind it.
+
+### Proposed outcome
+
+A dated readiness assessment says whether Pharo 14 is a viable host for this
+project, and — if it is — a concrete upgrade plan exists with the conditions
+that would trigger it. If it is not viable yet, the assessment records the
+specific blockers so the next look is cheap.
+
+### Acceptance criteria
+
+- The assessment records Pharo 14's release status, whether an arm64 macOS image
+  and VM are published, and how its stability is being characterized upstream.
+- Every dependency the project actually relies on — Bloc, Alexandrie, Toplo,
+  Zinc, NeoJSON, and the test tooling — is checked for a Pharo 14 story, and the
+  gaps are named rather than assumed.
+- A throwaway Pharo 14 image attempts a full load of the project's packages and
+  a deterministic verification run; the result is reported honestly, including
+  partial failure.
+- The assessment names what an upgrade would cost across the pinned surfaces:
+  README, operations guide, `build.sh`, `run.sh`, `update.sh`, the base prompt,
+  and the system specification.
+- If Pharo 14 is viable, an upgrade plan exists with a migration path for
+  existing images, a rollback story, and an explicit trigger (a Pharo release
+  milestone, a dependency dropping Pharo 13 support, or a feature the project
+  actually wants).
+- If it is not viable, the blockers and a revisit trigger are recorded, and this
+  item stays open rather than closing as "not now".
 
 ---
 

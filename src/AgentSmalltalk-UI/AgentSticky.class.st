@@ -1,7 +1,7 @@
 "
 I am the abstract sticky: a redesigned card with an edge-to-edge coloured header
 chip (icon + category label + x) over a white, editable ToAlbum body. My species
-are AgentFact (amber, durable truths, always in context), AgentNote (blue,
+are AgentFact (amber, durable truths retrieved on demand), AgentNote (blue,
 answers, context only when selected) and AgentSystemMessage (gray, the system's
 own voice, context only when selected). Subclasses override the default* hooks
 plus #chipAccent / #chipIconColor for their category colour. Slot names

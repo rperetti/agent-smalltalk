@@ -2,8 +2,9 @@
 I am a fact: one durable truth the user wants remembered, living as a visible
 object on the canvas. Editing my body IS editing the memory; deleting me IS
 forgetting. An optional key gives me an identity: AgentFact key:body: updates the
-existing fact with that key instead of creating a duplicate. Facts are ALWAYS in
-the LLM context ('## Known facts').
+existing fact with that key instead of creating a duplicate. Facts are available
+to the agent through the bounded inspect_knowledge tool; their values are not
+appended to every request's system prompt.
 
 In the redesign I am a white card with an amber FACT chip; my key shows as the
 muted meta label over the value in bold. The card chrome is inherited from

@@ -49,26 +49,56 @@ The bridge to the Anthropic Messages API and the owner of the agentic loop.
     `find_classes` (name fragment), `find_selectors` (class + fragment),
     `method_source` (class + selector, `'Foo class'` for class side).
   - **`inspect_knowledge`** — read-only exploration of a catalog snapshot frozen
-    at the start of the request: `overview`, bounded `search`, bounded `read` by
-    request-local handle, and exact `get_fact` by key. Results are structured
-    JSON marked `untrusted-data`; the tool never returns live source objects.
-- System prompt = the base prompt (`prompts/system.md`) + canvas context
-  (`## Known facts` and `## Widgets on the canvas`) + the reusable capability
-  catalog + a compact `## Scheduled automations` catalog.
+    at the start of the request: `overview`, bounded and paged `list_facts`,
+    bounded `search`, bounded `read` by request-local handle, and exact
+    `get_fact` by key. Results are structured JSON marked `untrusted-data`; the
+    tool never returns live source objects.
+    Successful envelopes share a provisional, configurable 65,536-character
+    request budget and report exact result, used, and remaining counts. A result
+    that does not fit is replaced by a structured rejection that tells the model
+    to narrow the search, lower its limit, or read fewer handles.
+- System prompt = the base prompt (`prompts/system.md`) + one frozen
+  `agent-prompt-context/v1` JSON appendix marked `untrusted-data`. The appendix
+  is bounded to 32,768 characters including its header and size metadata. It
+  carries ordinary widget summaries in full-canvas scope, selected-item metadata
+  in selection scope, capability and automation projections, projection-failure
+  reports, and explicit omission/truncation counts. Persistent fact values are
+  omitted even when selected and are retrieved through `inspect_knowledge` when
+  a request depends on them. Its internal candidate collections never leave the
+  image; the JSON boundary uses arrays only. Deterministic adversarial fixtures
+  cover instruction-like fact values, selected notes (including imported-style
+  text), and widget descriptions: facts remain omitted and other text remains
+  inside the marked JSON data envelope.
 - Status callbacks (`statusBlock:`) drive the spotlight's status line:
   `thinking... / evaluating... / working (round N of 30)... / finishing...`.
+  On completion it stays open with the run's request count, total serialized
+  payload characters, appendix usage, and exact provider token counts. Billed
+  USD is explicitly unavailable because the provider response does not report
+  it.
 - A class-wide mutex makes the gateway the image's **single writer**:
   concurrent asks wait rather than interleaving tool calls and class changes.
 - HTTP lives behind `AgentAnthropicTransport`; tests substitute a scripted
   transport and exercise the complete loop without network, credentials,
   latency, or API cost.
 - Transcript: every event and the **full HTTP request/response JSON** are
-  appended to `logs/gateway.log`; `AgentGateway last log` gives in-image
-  access to the most recent run.
+  appended to `logs/gateway.log`, followed by a structured
+  `agent-request-metrics/v1` record for each response. That record makes the
+  latest and cumulative serialized request sizes, dynamic-context and
+  knowledge-result allowances, exact token usage, and the unavailable billed
+  cost visible; `AgentGateway last log` gives in-image access to the most
+  recent run.
 - Provider-evaluation metrics: each gateway tracks request rounds, repair
   attempts, and exact API token usage. Explicit paid smoke runs write JSON
   evidence (model, prompt revision, latency, usage, transparent billed-cost
   availability, outcome, and checks) to `logs/provider-evaluations.jsonl`.
+  `context-adversarial` seeds selected fact, note/import-style, and widget
+  description markers, then verifies one requested note is created without the
+  marker's requested compromise. It is an evidence-producing provider check,
+  not proof that prompt guidance is an enforcement boundary.
+  `fact-baseline` runs the same natural-reference query through tool-first
+  retrieval and a disposable gateway that serializes every fixture fact into
+  every prompt. It records answer quality plus exact token and payload deltas;
+  the comparison does not assume tool-first wins at every fact-set size.
 - Asynchronous widget failures are posted as keyed system messages. Each card
   owns its coalescing count and durable delivery cursor, so a new occurrence is
   injected into the next available tool result exactly once across gateway
@@ -92,6 +122,8 @@ Evaluates model-generated code with guardrails:
   retrying can accumulate partial instances.
 - Before each gateway request: copies the image file to `pharo/backups/`
   (rotating, keeps 5) so a corrupted image is recoverable.
+  The copy completes before the knowledge snapshot invokes object projection
+  hooks such as generated widget `describe` methods.
 - Not sandboxed in the capability sense: the model can touch anything in the
   image. Accepted risk for a single-user prototype.
 - `AgentProcessManager` terminates AgentSmalltalk-owned background processes
@@ -119,10 +151,16 @@ registry or persistent copy: each catalog instance creates bounded, typed
 and deterministic case-insensitive search. The live objects remain the sole
 source of truth. `inspect_knowledge` exposes one snapshot per gateway request;
 changes made after that snapshot become visible on the next request, not under
-existing handles. Summary search returns at most 10 items, reads accept at most
-5 handles, labels/summaries/content carry explicit truncation flags, and exact
-fact lookup is case-insensitive. The catalog is additive in this slice: it does
-not yet remove or change the gateway's current prompt context.
+existing handles. Fact browsing returns at most 10 summaries per page, summary
+search returns at most 10 items, reads accept at most 5 handles,
+labels/summaries/content carry explicit truncation flags, and exact fact lookup
+is case-insensitive. A projection error skips only that source;
+`overview` reports up to 10 bounded failure records plus the total skipped
+count, and the gateway log records the count. These failure records are also
+untrusted data. The base prompt directs the model to retrieve stored facts
+before resolving references such as "my city" or claiming that a fact is
+missing. Facts stated in the current request remain immediately usable; they do
+not enter the frozen catalog until the next request.
 
 ### Reactions
 
@@ -202,12 +240,13 @@ Singleton owning the Bloc space (`AgentCanvas open`, 1280×840, `ToBeeTheme`).
   widgets (facts included) highlight with an accent border. Click on empty
   background clears the selection. Selection state is lazy-initialized —
   singletons in user images are migrated with nil slots, never re-initialized.
-- **Selection-scoped context**: with a selection, `contextDescription` lists
-  ONLY the selected widgets, in rich form (describe, slots, selectors), and
-  binds them to live globals `Selection1..N` and `SelectionAll` so generated
-  code operates on the actual objects. Globals persist until the next
-  selection (follow-up requests keep working). No selection → full canvas,
-  as before.
+- **Selection-scoped context**: `AgentPromptContext` records `canvas.scope` as
+  `selected`, includes only selected items (with bounded summary, slots,
+  selectors, and `Selection1..N` names), and marks other canvas items omitted.
+  `SelectionAll` and the individual globals still bind generated code to the
+  actual objects and persist until the next selection. Selected fact values are
+  deliberately omitted; their keys point the model to `inspect_knowledge`.
+  With no selection, the appendix carries ordinary widget summaries only.
 - **Right-click to browse**: secondary-click any card opens a system browser
   on its class — the generated widget's own class, or for tool and automation
   cards the underlying tool/routine class. Nothing on the canvas is opaque; the
@@ -276,15 +315,15 @@ blessed helper `AgentTool defineNamed: #WeatherService purpose: '...'` (a
 ...'`). Tools land in a live `AgentSmalltalk-Tools` package (not `src/`, so
 `update.sh` never wipes them) and persist with the image.
 
-Discovery is the whole game: `AgentTool contextListing` renders a
-`## Capabilities you've built` section (each tool's name, purpose, and
-class-side selectors) that the gateway appends to every system prompt, so
-reuse is automatic — no recurrence-detection. The base prompt teaches the
-discipline: consult capabilities, reuse if present, else build a tool, inline
-only glue. `AgentTool tools` discovers subclasses directly and returns them
-name-sorted; no separate registry can drift from the live classes. Only
-selectors defined on each tool's class side are exposed, keeping inherited
-framework and private instance methods out of context.
+Discovery is the whole game: `AgentPromptContext` projects each tool's name,
+purpose, and class-side selectors into the bounded, explicitly untrusted
+`capabilities.items` appendix. The base prompt teaches the discipline: consult
+capabilities, reuse if present, else build a tool, inline only glue. `AgentTool
+tools` discovers subclasses directly and returns them name-sorted; no separate
+registry can drift from the live classes. Only selectors defined on each tool's
+class side are exposed, keeping inherited framework and private instance
+methods out of context. `AgentTool contextListing` remains only as a local
+human-readable inspection helper.
 
 `AgentToolCard` (UI) is the visible face — a white card with a green **SERVICE**
 chip, auto-summoned into the **bottom-right toolbox corner** (completing the
@@ -467,9 +506,9 @@ selection, clipboard; grows from 34px to a 210px maximum as text wraps) plus a
 scrolls; clearing the text returns to the compact height without changing focus
 or the caret. Enter submits and Esc closes via capture-phase event filters
 (they win over the editor). The gateway runs in a forked
-process; UI updates are enqueued onto the space pulse. On success the bar
-closes itself — answers live on the canvas (widget or note), never in the
-bar; on failure it stays open showing the error. While a run is active,
+process; UI updates are enqueued onto the space pulse. On success the bar closes
+and the answer lives on the canvas (widget or note), not in the bar; on failure
+it stays open showing the error. While a run is active,
 additional submissions are ignored and Esc cancels while leaving the prompt
 available to edit and retry.
 

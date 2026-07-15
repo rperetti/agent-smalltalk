@@ -5,7 +5,7 @@ set -euo pipefail
 cd "$(dirname "$0")"
 
 if [ "$#" -eq 0 ]; then
-  set -- fact-widget widget modify textfield facts tools selection reactive
+  set -- fact-retrieval fact-baseline context-adversarial fact-widget widget modify textfield facts tools selection reactive
 fi
 
 for name in "$@"; do

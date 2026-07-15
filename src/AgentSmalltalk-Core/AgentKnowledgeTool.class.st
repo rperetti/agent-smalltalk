@@ -27,6 +27,11 @@ AgentKnowledgeTool class >> maxKindNameCharacters [
 ]
 
 { #category : 'limits' }
+AgentKnowledgeTool class >> maxFactListResults [
+	^ 10
+]
+
+{ #category : 'limits' }
 AgentKnowledgeTool class >> maxQueryCharacters [
 	^ 200
 ]
@@ -67,6 +72,7 @@ AgentKnowledgeTool class >> handle: input using: catalog [
 	action := input at: 'action' ifAbsent: [ ^ 'ERROR: missing action' ].
 	action isString ifFalse: [ ^ 'ERROR: action must be a string' ].
 	action = 'overview' ifTrue: [ ^ self overviewUsing: catalog ].
+	action = 'list_facts' ifTrue: [ ^ self listFacts: input using: catalog ].
 	action = 'search' ifTrue: [ ^ self search: input using: catalog ].
 	action = 'read' ifTrue: [ ^ self read: input using: catalog ].
 	action = 'get_fact' ifTrue: [ ^ self getFact: input using: catalog ].
@@ -97,8 +103,37 @@ AgentKnowledgeTool class >> getFact: input using: catalog [
 ]
 
 { #category : 'handling' }
+AgentKnowledgeTool class >> listFacts: input using: catalog [
+	| offset requestedLimit facts remaining shown envelope |
+	offset := input at: 'offset' ifAbsent: [ 0 ].
+	(offset isInteger and: [ offset >= 0 ])
+		ifFalse: [ ^ 'ERROR: offset must be a non-negative integer' ].
+	requestedLimit := input at: 'limit' ifAbsent: [ self maxFactListResults ].
+	(requestedLimit isInteger and: [ requestedLimit > 0 ])
+		ifFalse: [ ^ 'ERROR: limit must be a positive integer' ].
+	requestedLimit := requestedLimit min: self maxFactListResults.
+	facts := catalog projectionsOfKind: #fact.
+	remaining := offset >= facts size
+		ifTrue: [ #() ]
+		ifFalse: [ facts allButFirst: offset ].
+	shown := remaining first: (remaining size min: requestedLimit).
+	envelope := self
+		envelopeFor: 'list_facts'
+		items: (shown collect: [ :projection |
+			self summaryDictionaryFor: projection ]).
+	envelope
+		at: 'total' put: facts size;
+		at: 'offset' put: offset;
+		at: 'returned' put: shown size;
+		at: 'truncated' put: offset + shown size < facts size.
+	(envelope at: 'truncated') ifTrue: [
+		envelope at: 'next_offset' put: offset + shown size ].
+	^ self json: envelope
+]
+
+{ #category : 'handling' }
 AgentKnowledgeTool class >> overviewUsing: catalog [
-	| counts selected shown envelope |
+	| counts selected shown failures envelope |
 	counts := Dictionary new.
 	catalog projections do: [ :projection |
 		| kind |
@@ -106,6 +141,7 @@ AgentKnowledgeTool class >> overviewUsing: catalog [
 		counts at: kind put: (counts at: kind ifAbsent: [ 0 ]) + 1 ].
 	selected := catalog projections select: [ :projection | projection selected ].
 	shown := selected first: (selected size min: self maxSelectedOverviewItems).
+	failures := catalog projectionFailures.
 	envelope := self
 		envelopeFor: 'overview'
 		items: (shown collect: [ :projection |
@@ -114,7 +150,11 @@ AgentKnowledgeTool class >> overviewUsing: catalog [
 		at: 'available' put: counts;
 		at: 'total' put: catalog projections size;
 		at: 'selected_total' put: selected size;
-		at: 'selected_truncated' put: selected size > shown size.
+		at: 'selected_truncated' put: selected size > shown size;
+		at: 'projection_failures' put: failures;
+		at: 'projection_failures_total' put: catalog projectionFailureCount;
+		at: 'projection_failures_truncated'
+			put: catalog projectionFailureCount > failures size.
 	^ self json: envelope
 ]
 

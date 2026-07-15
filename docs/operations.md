@@ -175,6 +175,9 @@ return billed USD), outcome, and check-specific details.
 |---|---:|---|
 | `smoke-automations.st` | no | Deterministic automation vertical slice with a real pass/fail exit. |
 | `verify-provider-smoke-syntax.st` | no | Parses every paid script as part of `verify-all`. |
+| `smoke-fact-retrieval.st` | yes | Tool-first exact reference and bounded broad fact-discovery gate. |
+| `smoke-fact-baseline.st` | yes | Compares tool-first retrieval with a disposable always-serialized-facts baseline; records answer quality and exact token/payload deltas without assuming either must be lower. |
+| `smoke-context-adversarial.st` | yes | Selected fact, note/import-style text, and widget-description injection gate; records one model/prompt outcome, not a security proof. |
 | `smoke-fact-widget.st` | yes | Same-request fact-backed weather widget gate. |
 | `smoke-widget.st` | yes | Counter creation and real instance increment gate. |
 | `smoke-modify.st` | yes | Live modification/state-preservation gate. |
@@ -207,7 +210,11 @@ Real requests require `ANTHROPIC_API_KEY` and incur provider cost.
 Files under `logs/` are gitignored:
 
 - `gateway.log` — append-only user requests, status events, generated code,
-  tool results/errors, and complete HTTP request/response JSON;
+  tool results/errors, complete HTTP request/response JSON, and one
+  `agent-request-metrics/v1` JSON record per provider response. The record
+  includes latest/cumulative serialized payload characters, dynamic-context
+  and knowledge-result budgets, exact provider token usage, and an explicit
+  billed-USD-unavailable marker;
 - `provider-evaluations.jsonl` — structured evidence from explicit paid
   evaluations; provider token usage is exact, while billed USD is marked
   unavailable because the API response does not return it;
@@ -215,8 +222,11 @@ Files under `logs/` are gitignored:
 - `session.status` — listener heartbeat written roughly every 30 seconds while
   the interactive watchdog is active.
 
-In the image, `AgentGateway last log` returns the in-memory transcript of the
-most recent gateway run. The API key is sent as an HTTP header and is not
+In the image, `AgentGateway last log` returns the in-memory transcript and
+`AgentGateway last requestMetrics` returns the latest structured growth summary.
+The spotlight closes after a successful request; the provider does not return
+billed USD, so metrics record it as unavailable rather than estimating a price.
+The API key is sent as an HTTP header and is not
 intentionally logged. Canvas facts and request content do appear in full HTTP
 payload logs. `gateway.log` currently has no rotation.
 

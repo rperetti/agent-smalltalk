@@ -23,7 +23,7 @@ AgentCanvas reset.
 		counter ].
 	canvas selectWidgets: counters.
 	prompt := AgentGateway new systemPrompt.
-	promptScoped := (prompt includesSubstring: 'Selected widgets')
+	promptScoped := (prompt includesSubstring: '"scope":"selected"')
 		and: [ prompt includesSubstring: cls name ].
 	Stdio stdout nextPutAll: 'scoped prompt contains selected counters: '
 		, promptScoped printString; lf.
@@ -37,9 +37,18 @@ AgentCanvas reset.
 		ifNone: [ nil ].
 	total ifNotNil: [
 		(Smalltalk globals at: #Selection1) count: 13.
-		(total respondsTo: #refresh) ifTrue: [ total refresh ].
-		liveReferences := (total respondsTo: #refresh)
+		(total respondsTo: #refresh)
+			ifTrue: [ total refresh ]
+			ifFalse: [ (total respondsTo: #recompute) ifTrue: [ total recompute ] ].
+		liveReferences := ((total respondsTo: #refresh)
+			or: [ total respondsTo: #recompute ])
 			and: [ total describe includesSubstring: '25' ] ].
+	liveReferences ifFalse: [
+		Stdio stdout nextPutAll: '=== EVALUATED CODE AND ERRORS ==='; lf.
+		gateway log do: [ :line |
+			((line beginsWith: '>>> ')
+				or: [ line beginsWith: 'ERROR:' ]) ifTrue: [
+					Stdio stdout nextPutAll: line; lf ] ] ].
 	passed := failure isNil and: [ promptScoped and: [ liveReferences ] ] ]
 	ensure: [
 		AgentEvaluation

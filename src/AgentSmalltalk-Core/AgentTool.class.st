@@ -3,8 +3,8 @@ I am the base class for the agent's own reusable capabilities -- tools it
 writes once and reuses instead of re-deriving the same fetch/parse/compute on
 every request. A tool is an ordinary class with class-side capability methods
 (the stateless-service default); subclassing me makes it discoverable
-(AgentTool allSubclasses) and lists it in the agent's context under
-'## Capabilities you've built'.
+(AgentTool allSubclasses). The gateway's bounded dynamic context exposes each
+tool's name, purpose, and capability selectors as untrusted data.
 
 The agent creates tools via the blessed helper (insulated from Pharo
 class-builder API drift):
@@ -116,9 +116,8 @@ AgentTool class >> runAutomatedAction [
 
 { #category : 'context' }
 AgentTool class >> contextListing [
-	"The '## Capabilities you've built' section the gateway appends to the
-	system prompt: every tool with its purpose and class-side capability
-	selectors, so the agent reuses instead of rebuilding."
+	"Legacy human-readable rendering retained for local inspection and tests.
+	The gateway uses AgentPromptContext's bounded JSON envelope instead."
 	^ String streamContents: [ :s |
 		s << '## Capabilities you''ve built'.
 		s cr.

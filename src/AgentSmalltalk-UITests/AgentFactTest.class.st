@@ -1,7 +1,7 @@
 "
 Headless tests for the sticky-note memory: creation, keyed dedup, in-place
-updates, and the two-section context rendering. Uses the canvas in headless
-mode (detached content, no space).
+updates, and exclusion from the always-sent canvas context. Uses the canvas in
+headless mode (detached content, no space).
 "
 Class {
 	#name : 'AgentFactTest',
@@ -59,15 +59,14 @@ AgentFactTest >> testFactWithKeyLookup [
 ]
 
 { #category : 'tests' }
-AgentFactTest >> testContextDescriptionHasTwoSections [
+AgentFactTest >> testContextDescriptionExcludesFacts [
 	| context |
 	AgentFact key: #city body: 'lives in Porto Alegre'.
 	AgentWidget new position: 100 @ 100; in: [ :w | AgentCanvas current addWidget: w ].
 	context := AgentCanvas current contextDescription.
-	self assert: (context includesSubstring: '## Known facts').
-	self assert: (context includesSubstring: 'fact[city]: lives in Porto Alegre').
-	self assert: (context includesSubstring: '## Widgets on the canvas').
-	self deny: (context lines first: 4) last isEmpty description: 'facts listed under their header'
+	self deny: (context includesSubstring: '## Known facts').
+	self deny: (context includesSubstring: 'fact[city]: lives in Porto Alegre').
+	self assert: (context includesSubstring: '## Widgets on the canvas')
 ]
 
 { #category : 'tests' }

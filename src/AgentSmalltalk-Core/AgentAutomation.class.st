@@ -141,6 +141,8 @@ AgentAutomation class >> resetRuntimeState [
 
 { #category : 'context' }
 AgentAutomation class >> contextListing [
+	"Legacy human-readable rendering retained for local inspection and tests.
+	The gateway uses AgentPromptContext's bounded JSON envelope instead."
 	^ String streamContents: [ :s |
 		s << '## Scheduled automations'.
 		s cr.

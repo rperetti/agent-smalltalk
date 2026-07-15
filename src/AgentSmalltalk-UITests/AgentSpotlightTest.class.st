@@ -22,6 +22,18 @@ AgentSpotlightTest >> testCancelTerminatesRunAndClearsBusyState [
 ]
 
 { #category : 'tests' }
+AgentSpotlightTest >> testSuccessfulCompletionClosesSpotlight [
+	| spotlight container |
+	spotlight := AgentSpotlight new.
+	container := BlElement new.
+	container addChild: spotlight.
+	spotlight instVarNamed: #running put: true.
+	spotlight completeSuccess.
+	self deny: spotlight isRunning.
+	self assert: spotlight parent isNil
+]
+
+{ #category : 'tests' }
 AgentSpotlightTest >> testSubmitWhileRunningDoesNotStartAnotherProcess [
 	| spotlight process blocker |
 	spotlight := AgentSpotlight new.

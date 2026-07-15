@@ -711,9 +711,8 @@ AgentCanvas >> systemMessages [
 
 { #category : 'widgets' }
 AgentCanvas >> contextWidgets [
-	"What the full-canvas context lists: notes, system messages, and tool
-	cards stay out unless lassoed. Tool cards are meta -- the tools they
-	front are listed under '## Capabilities you've built' instead."
+	"The legacy local full-canvas description excludes notes, diagnostics, and
+	meta cards. Gateway prompt construction uses AgentPromptContext instead."
 	^ self toolWidgets reject: [ :w |
 		(w isKindOf: AgentNote)
 			or: [ (w isKindOf: AgentSystemMessage)
@@ -723,14 +722,9 @@ AgentCanvas >> contextWidgets [
 
 { #category : 'agent context' }
 AgentCanvas >> contextDescription [
+	"Legacy human-readable description retained for local inspection and tests.
+	The gateway serializes AgentPromptContext, not this text."
 	^ String streamContents: [ :s |
-		s << '## Known facts'.
-		s cr.
-		self facts
-			ifEmpty: [ s << '(none yet)'. s cr ]
-			ifNotEmpty: [ :fs |
-				fs do: [ :f | s << '- ' << f describe. s cr ] ].
-		s cr.
 		self selection
 			ifEmpty: [ self fullWidgetsOn: s ]
 			ifNotEmpty: [ self selectedWidgetsOn: s ] ]

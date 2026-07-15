@@ -21,7 +21,8 @@ AgentCanvas reset.
 		(tool name asLowercase includesSubstring: 'weather')
 			or: [ (tool purpose ifNil: [ '' ]) asLowercase includesSubstring: 'weather' ] ].
 	before := weatherTools size.
-	promptHadCapabilities := (AgentGateway new systemPrompt includesSubstring: 'Capabilities you''ve built')
+	promptHadCapabilities := (AgentGateway new systemPrompt
+		includesSubstring: '"capabilities":')
 		and: [ weatherTools notEmpty and: [
 			AgentGateway new systemPrompt includesSubstring: weatherTools anyOne name ] ].
 	Stdio stdout nextPutAll: 'capabilities section lists the weather tool: '
@@ -32,6 +33,12 @@ AgentCanvas reset.
 	answer := [ gateway run: 'make a widget comparing the current temperature in Tokyo and London' ]
 		on: Error do: [ :e | failure := e messageText. '' ].
 	Stdio stdout nextPutAll: answer; lf.
+	failure ifNotNil: [
+		Stdio stdout nextPutAll: '--- B evaluated code and errors ---'; lf.
+		gateway log do: [ :line |
+			((line beginsWith: '>>> ')
+				or: [ line beginsWith: 'ERROR:' ]) ifTrue: [
+					Stdio stdout nextPutAll: line; lf ] ] ].
 	weatherTools := AgentTool tools select: [ :tool |
 		(tool name asLowercase includesSubstring: 'weather')
 			or: [ (tool purpose ifNil: [ '' ]) asLowercase includesSubstring: 'weather' ] ].

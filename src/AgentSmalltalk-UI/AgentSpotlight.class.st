@@ -3,8 +3,9 @@ I am the floating prompt bar. Summoned with Cmd/Ctrl+Return on the canvas,
 I collect a request in a ToAlbum (multi-line, wrapping text editor: cursor,
 selection, clipboard), run the AgentGateway in a background process, and show
 its status line ('thinking... / evaluating... / working...') while the loop
-runs. Enter/Esc are attached as event filters so they win over the editor —
-Enter submits instead of inserting a newline.
+runs. A successful run closes me; cancellation and failure stay visible so the
+user can retry or inspect the outcome. Enter/Esc are attached as event filters
+so they win over the editor — Enter submits instead of inserting a newline.
 "
 Class {
 	#name : 'AgentSpotlight',

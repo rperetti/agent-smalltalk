@@ -1,6 +1,6 @@
 "
 I am a blue note: the agent's answer as an object on the canvas. Unlike
-AgentFact (durable truths, always in context), I am conversation residue --
+AgentFact (durable truths retrieved on demand), I am conversation residue --
 deletable paper. I do NOT feed the LLM context by default; lasso me to make
 a follow-up question about my content. The question I answer shows as my muted
 meta line (provenance), and a Reply footer continues the thread from here.

@@ -1,14 +1,16 @@
 "
 I build an ephemeral, typed view over knowledge already owned by the live
 image. I keep no registry and write no state. Each instance snapshots the
-currently visible sources, assigns request-local handles, and supports bounded,
-deterministic local search.
+currently available sources, assigns request-local handles, and supports
+bounded, deterministic local search.
 "
 Class {
 	#name : 'AgentKnowledgeCatalog',
 	#superclass : 'Object',
 	#instVars : [
-		'projections'
+		'projections',
+		'projectionFailures',
+		'projectionFailureCount'
 	],
 	#category : 'AgentSmalltalk-Core',
 	#package : 'AgentSmalltalk-Core'
@@ -22,6 +24,11 @@ AgentKnowledgeCatalog class >> snapshot [
 { #category : 'limits' }
 AgentKnowledgeCatalog class >> maxSearchResults [
 	^ 20
+]
+
+{ #category : 'limits' }
+AgentKnowledgeCatalog class >> maxProjectionFailures [
+	^ 10
 ]
 
 { #category : 'private' }
@@ -82,6 +89,13 @@ AgentKnowledgeCatalog >> projectionWithHandle: aString [
 ]
 
 { #category : 'accessing' }
+AgentKnowledgeCatalog >> projectionForSource: anObject [
+	^ projections
+		detect: [ :projection | projection source == anObject ]
+		ifNone: [ nil ]
+]
+
+{ #category : 'accessing' }
 AgentKnowledgeCatalog >> projections [
 	^ projections asArray
 ]
@@ -91,22 +105,67 @@ AgentKnowledgeCatalog >> projectionsOfKind: aSymbol [
 	^ self projections select: [ :projection | projection kind = aSymbol asSymbol ]
 ]
 
+{ #category : 'accessing' }
+AgentKnowledgeCatalog >> projectionFailureCount [
+	^ projectionFailureCount ifNil: [ 0 ]
+]
+
+{ #category : 'accessing' }
+AgentKnowledgeCatalog >> projectionFailures [
+	^ projectionFailures
+		ifNil: [ #() ]
+		ifNotNil: [
+			(projectionFailures collect: [ :failure | failure copy ]) asArray ]
+]
+
+{ #category : 'private' }
+AgentKnowledgeCatalog >> boundedFailureText: aValue [
+	| string limit marker keep |
+	string := aValue ifNil: [ '' ] ifNotNil: [ aValue asString ].
+	limit := AgentKnowledgeProjection maxSummaryCharacters.
+	string size <= limit ifTrue: [ ^ string ].
+	marker := ' ... [truncated]'.
+	keep := limit - marker size.
+	^ (string first: keep) , marker
+]
+
+{ #category : 'private' }
+AgentKnowledgeCatalog >> recordProjectionFailureFor: source at: sourceIndex error: error [
+	projectionFailureCount := self projectionFailureCount + 1.
+	projectionFailures size >= self class maxProjectionFailures ifTrue: [ ^ self ].
+	projectionFailures add: ({
+		'source_index' -> sourceIndex.
+		'source_class' -> (self boundedFailureText: source class name).
+		'error_class' -> error class name.
+		'message' -> (self boundedFailureText: error messageText) } asDictionary)
+]
+
 { #category : 'initialization' }
 AgentKnowledgeCatalog >> rebuild [
-	| nextHandle |
+	| nextHandle sourceIndex |
 	projections := OrderedCollection new.
+	projectionFailures := OrderedCollection new.
+	projectionFailureCount := 0.
 	nextHandle := 1.
+	sourceIndex := 0.
 	self liveSources do: [ :sourceAndSelection |
 		| source selected projection |
+		sourceIndex := sourceIndex + 1.
 		source := sourceAndSelection first.
 		selected := sourceAndSelection second.
-		((source respondsTo: #contributesToKnowledgeCatalog)
-			and: [ source contributesToKnowledgeCatalog ]) ifTrue: [
-			projection := source
-				knowledgeProjectionWithHandle: 'K' , nextHandle printString
-				selected: selected.
-			projections add: projection.
-			nextHandle := nextHandle + 1 ] ]
+		[ ((source respondsTo: #contributesToKnowledgeCatalog)
+				and: [ source contributesToKnowledgeCatalog ]) ifTrue: [
+				projection := source
+					knowledgeProjectionWithHandle: 'K' , nextHandle printString
+					selected: selected.
+				projections add: projection.
+				nextHandle := nextHandle + 1 ] ]
+			on: Error
+			do: [ :error |
+				self
+					recordProjectionFailureFor: source
+					at: sourceIndex
+					error: error ] ]
 ]
 
 { #category : 'searching' }

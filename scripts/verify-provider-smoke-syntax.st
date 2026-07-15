@@ -4,6 +4,9 @@ mistake must still fail a local release signal."
 | root names passed |
 root := FileLocator image asFileReference parent parent.
 names := #(
+	'smoke-fact-retrieval.st'
+	'smoke-fact-baseline.st'
+	'smoke-context-adversarial.st'
 	'smoke-fact-widget.st'
 	'smoke-widget.st'
 	'smoke-modify.st'
@@ -20,7 +23,7 @@ names do: [ :name |
 		do: [ :error |
 			passed := false.
 			Stdio stdout nextPutAll: 'PARSE FAILED: ' , name , ' ('
-				, error class name , ')'; lf ] ].
+				, error class name , '): ' , error messageText; lf ] ].
 passed
 	ifTrue: [ Smalltalk exitSuccess ]
 	ifFalse: [ Smalltalk exitFailure ]
