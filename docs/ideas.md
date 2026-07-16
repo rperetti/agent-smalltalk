@@ -301,6 +301,57 @@ Promotion trigger: a capability built inside a world is repeatedly re-created or
 hand-copied into `src/` by a human, or AS-15/AS-03 make image-to-source
 extraction concrete enough to design the gesture.
 
+## A browser demo image, playable from GitHub
+
+*From wanting the project to be tried, not just read (2026-07-16).*
+
+Trying this today costs a clone, a Pharo 13 image and VM downloaded by hand
+from files.pharo.org, an Anthropic key with credits, and a ~1.5 minute build —
+before anyone sees a single widget appear. The README's screenshot carries the
+whole first impression. A demo image running in the browser, linked from the
+README, would let someone form a real opinion in a minute: press
+Cmd/Ctrl+Enter, ask for a counter widget, watch it get compiled and placed.
+The goal is enticement, not production quality. If it convinces people to clone
+and set up properly, it has done its job; a demo that is slow, feature-clipped,
+or occasionally broken still beats a static PNG.
+
+Two hard parts, roughly independent:
+
+- **Getting the image into a browser.** Pharo images can run in JavaScript
+  hosts (SqueakJS-style interpreters, and the ongoing WASM VM work), but the
+  canvas is Bloc/Alexandrie, which leans on native rendering. Whether the real
+  canvas renders acceptably in a browser VM — or whether a demo needs a
+  different, thinner front end for the same living image — is unknown and worth
+  a spike before anything else. A ~95 MiB image plus `.changes` is also a rude
+  first download; what a trimmed demo image contains is part of the question.
+- **Inference without handing out a key.** Every interesting interaction is a
+  paid model call. Options: a hosted proxy with rate limits and a spend cap
+  (real money, real abuse surface), bring-your-own-key pasted into the page (a
+  key in a browser page we host — see [security.md](security.md)), or no live
+  inference at all, replaying canned responses for a few scripted prompts. The
+  canned path is cheapest and safest and still shows compile-and-place; it just
+  can't show the agent handling *your* question, which is the part that
+  convinces.
+
+Open questions:
+
+- Does the spike show Bloc/Alexandrie rendering usefully in a browser VM, and
+  at what load time?
+- Scripted replay or live inference? If live, who pays, and what stops the demo
+  from becoming a free API proxy?
+- Sandbox blast radius: the demo agent compiles arbitrary generated Smalltalk
+  in a world strangers share or reset. What is the reset story, and does one
+  visitor's session leak into the next?
+- Where does it live — GitHub Pages off this repo, or a separate host — and who
+  keeps it from rotting behind `src/` once it exists?
+- Does the demo image build from `src/` in CI, or is it a hand-made artifact
+  that drifts?
+
+Promotion trigger: a spike proves an image renders and responds in a browser at
+a tolerable size and load time, and the inference stance is settled. Absent
+that, a cheaper answer to the same problem — a recorded screencast in the
+README — may be the honest substitute.
+
 ## Adding an idea
 
 New entries should answer, briefly:
