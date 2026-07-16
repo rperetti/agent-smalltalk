@@ -24,7 +24,7 @@ BEGIN {
   inPlanningSurface = 0
 }
 
-/^## Now/ {
+/^## Top 10 priorities/ {
   inPlanningSurface = 1
 }
 
@@ -75,6 +75,11 @@ END {
     valid = 0
   }
 
+  if (foundRows != 10) {
+    printf "Backlog order error: expected 10 planning rows, found %d.\n", foundRows > "/dev/stderr"
+    valid = 0
+  }
+
   for (id in tablePresent) {
     if (!detailPresent[id]) {
       printf "Backlog consistency error: planning item %s has no detailed entry.\n", id > "/dev/stderr"
@@ -85,17 +90,10 @@ END {
     }
   }
 
-  for (id in detailPresent) {
-    if (!tablePresent[id]) {
-      printf "Backlog consistency error: detailed item %s has no planning row.\n", id > "/dev/stderr"
-      valid = 0
-    }
-  }
-
   if (!valid) {
     exit 1
   }
 }
 ' docs/backlog.md
 
-echo "BACKLOG_ORDER_OK: ranks are contiguous, bug categories agree, and all bugs precede non-bugs."
+echo "BACKLOG_ORDER_OK: top-ten ranks are contiguous, bug categories agree, and all bugs precede non-bugs."

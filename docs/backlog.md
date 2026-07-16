@@ -1,29 +1,22 @@
 # Backlog
 
-The single ordered register of actionable work for Agent Smalltalk. The order
-below is an initial proposal, not a frozen roadmap. The field schema, category
-vocabulary, and ordering rules are defined in the [Conventions](#conventions)
-section at the end of this file; see [README.md](README.md) for the
-work-item lifecycle and how the backlog relates to the other documents.
+The ordered register of actionable work for Agent Smalltalk. The table below is
+the current top-ten planning view; the detailed entries retain lower-priority
+work so it is not lost. The order is an initial proposal, not a frozen roadmap.
+The field schema, category vocabulary, and ordering rules are defined in the
+[Conventions](#conventions) section at the end of this file; see
+[README.md](README.md) for the work-item lifecycle and how the backlog relates
+to the other documents.
 
-## Now
+## Top 10 priorities
 
-No work item is currently active.
-
-## Next
-
-Important existing-system work awaiting prioritization.
+These are the ten items we should address first, in agreed order. Detailed
+entries below the category views include additional backlog candidates that are
+not currently in the top ten.
 
 | rank | ID | title | categories | priority | effort |
 |---:|---|---|---|---|---|
 | 1 | [AS-27](#as-27--cache-stable-inference-context-safely) | Cache stable inference context safely | performance, architecture, security, testing | P1 | M |
-
-## Later
-
-Real work, but not proposed as part of the next foundation milestone.
-
-| rank | ID | title | categories | priority | effort |
-|---:|---|---|---|---|---|
 | 2 | [AS-14](#as-14--introduce-a-provider-neutral-inference-boundary) | Introduce a provider-neutral inference boundary | architecture, reliability | P2 | L |
 | 3 | [AS-17](#as-17--preserve-history-when-system-messages-coalesce) | Preserve history when system messages coalesce | reliability, ux | P2 | S |
 | 4 | [AS-22](#as-22--make-failed-spotlight-runs-inspectable-on-the-canvas) | Make failed Spotlight runs inspectable on the canvas | feature, ux, reliability | P1 | L |
@@ -33,16 +26,12 @@ Real work, but not proposed as part of the next foundation milestone.
 | 8 | [AS-05](#as-05--coordinate-all-world-mutations) | Coordinate all world mutations | architecture, reliability | P1 | L |
 | 9 | [AS-06](#as-06--decide-whether-automation-restrictions-are-policy-or-enforcement) | Decide whether automation restrictions are policy or enforcement | security, product, architecture | P1 | L |
 | 10 | [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts) | Add provenance, health, and rollback for generated artifacts | architecture, feature, reliability | P1 | L |
-| 11 | [AS-16](#as-16--make-tool-card-removal-match-its-visible-meaning) | Make tool-card removal match its visible meaning | ux, product, reliability | P2 | M |
-| 12 | [AS-01](#as-01--authenticate-or-remove-the-local-evaluator) | Authenticate or remove the local evaluator | security, operations | P2 | M |
-| 13 | [AS-30](#as-30--decide-when-to-move-to-pharo-14) | Decide when to move to Pharo 14 | maintenance, operations, architecture | P2 | M |
-| 14 | [AS-31](#as-31--tell-a-first-time-image-how-to-start) | Tell a first-time image how to start | ux, product, documentation | P2 | S |
 
 ## Category views
 
-These are alternate indexes over the same ordered backlog, not independent
-queues. They make it possible to review one kind of work without losing the
-cross-category priority order above.
+These are alternate indexes over the full detailed backlog, not independent
+queues. The top-ten table is the ranked planning surface; these views also
+include unranked candidates outside it.
 
 | lens | items |
 |---|---|
@@ -696,9 +685,11 @@ non-bug, regardless of priority.
 
 ### Ordering
 
-The `Now`, `Next`, and `Later` tables at the top of this file are the planning
-surface. Reordering those rows should be a small, explicit change; detailed
-entries do not need to move or be rewritten.
+The `Top 10 priorities` table at the top of this file is the planning surface.
+Reordering those rows should be a small, explicit change; detailed entries do
+not need to move or be rewritten. Items outside the top ten remain available
+for promotion when the order changes, but do not receive a planning rank until
+they enter the table.
 
 When ordering work, use these default decision drivers:
 
@@ -713,5 +704,5 @@ When ordering work, use these default decision drivers:
 Bug-first ordering is invariant. The remaining drivers are defaults, not a
 permanent scoring formula; new evidence can justify a different order within
 the bug and non-bug groups. `scripts/check-backlog-order.sh`, included in the
-deterministic verification path, checks this invariant along with contiguous
-ranks and agreement between planning rows and detailed entries.
+deterministic verification path, checks this invariant along with the ten
+contiguous ranks and agreement between planning rows and detailed entries.
