@@ -9,7 +9,7 @@ usage() {
   cat <<'EOF'
 Usage:
   ./smoke.sh <automations|provider-syntax>
-  ./smoke.sh --provider <fact-retrieval|fact-baseline|context-adversarial|fact-widget|widget|modify|textfield|facts|tools|selection|reactive|prompt-contract>
+  ./smoke.sh --provider <fact-retrieval|fact-baseline|context-adversarial|prompt-cache|fact-widget|widget|modify|textfield|facts|tools|selection|reactive|prompt-contract>
 
 Each run loads a fresh disposable image. --provider requires ANTHROPIC_API_KEY
 and records structured evidence in logs/provider-evaluations.jsonl.
@@ -37,7 +37,7 @@ case "$NAME" in
     [ "$MODE" = "deterministic" ] || { echo "provider-syntax is deterministic; omit --provider"; exit 1; }
     SCRIPT="scripts/verify-provider-smoke-syntax.st"
     ;;
-  fact-retrieval|fact-baseline|context-adversarial|fact-widget|widget|modify|textfield|facts|tools|selection|reactive|prompt-contract)
+  fact-retrieval|fact-baseline|context-adversarial|prompt-cache|fact-widget|widget|modify|textfield|facts|tools|selection|reactive|prompt-contract)
     [ "$MODE" = "provider" ] || { echo "$NAME is provider-backed; pass --provider explicitly"; exit 1; }
     SCRIPT="scripts/smoke-$NAME.st"
     ;;

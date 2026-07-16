@@ -47,6 +47,12 @@ effects are understood. Details in
   `./verify-all.sh` before committing platform changes. It is free and does not
   open or mutate `Agent.image`. `./evaluate.sh` exercises the real model and
   costs money; use it when gateway, generation, or base-prompt behavior changes.
+- Testing is native-only: verify with the repository's local Pharo VM through
+  `./test.sh` or `./verify-all.sh`. Do not use Docker or a container as a test
+  fallback or verification gate.
+- Keep the native test suite working. If it fails or stops during a session,
+  investigate and fix the failure before handoff; do not bypass it or report
+  unrelated checks as a substitute.
 - Treat `prompts/system.md` as executable product behavior: review it like code,
   keep its promises aligned with the loaded dependency closure, and verify any
   changed generation behavior at the appropriate gate.

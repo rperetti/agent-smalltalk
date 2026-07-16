@@ -7,6 +7,7 @@ names := #(
 	'smoke-fact-retrieval.st'
 	'smoke-fact-baseline.st'
 	'smoke-context-adversarial.st'
+	'smoke-prompt-cache.st'
 	'smoke-fact-widget.st'
 	'smoke-widget.st'
 	'smoke-modify.st'

@@ -25,7 +25,8 @@ Class {
 		'knowledgeCatalog',
 		'knowledgeResultBudgetCharacters',
 		'knowledgeResultCharactersUsed',
-		'promptContext'
+		'promptContext',
+		'lastCacheConfiguration'
 	],
 	#classInstVars : [
 		'last',
@@ -122,6 +123,7 @@ AgentGateway >> resetEvaluationMetrics [
 	requestCount := 0.
 	requestPayloadCharacters := 0.
 	lastRequestPayloadCharacters := 0.
+	lastCacheConfiguration := nil.
 	usageTotals := Dictionary new.
 	#(input_tokens output_tokens cache_creation_input_tokens cache_read_input_tokens)
 		do: [ :key | usageTotals at: key put: 0 ].
@@ -229,12 +231,32 @@ AgentGateway >> requestMetrics [
 		'knowledge_results' -> {
 			'used_characters' -> self knowledgeResultCharactersUsed.
 			'limit_characters' -> self knowledgeResultBudgetCharacters } asDictionary.
+		'cache' -> (lastCacheConfiguration ifNil: [
+			self cacheConfigurationForIncludeTools: true ]).
 		'usage' -> self usageTotals.
 		'cost' -> {
 			'currency' -> 'USD'.
 			'amount' -> nil.
 			'source' -> 'not returned by the provider; exact token usage recorded' }
 			asDictionary } asDictionary
+]
+
+{ #category : 'prompt caching' }
+AgentGateway >> cacheConfigurationForIncludeTools: includeTools [
+	| tools |
+	tools := includeTools ifTrue: [ self toolDefinitions ] ifFalse: [ nil ].
+	^ transport
+		cacheConfigurationForModel: model
+		stableInstructions: self stableSystemPrompt
+		tools: tools
+		generationSettings: (self generationSettingsForIncludeTools: includeTools)
+]
+
+{ #category : 'prompt caching' }
+AgentGateway >> generationSettingsForIncludeTools: includeTools [
+	^ {
+		'max_tokens' -> 8192.
+		'tools_enabled' -> includeTools } asDictionary
 ]
 
 { #category : 'accessing' }
@@ -591,14 +613,22 @@ AgentGateway >> post: messages [
 
 { #category : 'running' }
 AgentGateway >> post: messages includeTools: includeTools [
-	| payload payloadJson response systemPrompt |
-	systemPrompt := self systemPrompt.
-	payload := {
-		'model' -> model.
-		'max_tokens' -> 8192.
-		'system' -> systemPrompt.
-		'messages' -> messages asArray } asDictionary.
-	includeTools ifTrue: [ payload at: 'tools' put: self toolDefinitions ].
+	| payload payloadJson response tools stableInstructions dynamicInstructions |
+	tools := includeTools ifTrue: [ self toolDefinitions ] ifFalse: [ nil ].
+	stableInstructions := self stableSystemPrompt.
+	dynamicInstructions := self dynamicSystemPrompt.
+	lastCacheConfiguration := transport
+		cacheConfigurationForModel: model
+		stableInstructions: stableInstructions
+		tools: tools
+		generationSettings: (self generationSettingsForIncludeTools: includeTools).
+	payload := transport
+		requestPayloadForModel: model
+		maxTokens: 8192
+		stableInstructions: stableInstructions
+		dynamicInstructions: dynamicInstructions
+		messages: messages asArray
+		tools: tools.
 	payloadJson := STONJSON toString: payload.
 	lastRequestPayloadCharacters := payloadJson size.
 	requestPayloadCharacters := self requestPayloadCharacters
@@ -618,11 +648,10 @@ AgentGateway >> post: messages includeTools: includeTools [
 
 { #category : 'evaluation metrics' }
 AgentGateway >> recordUsageFrom: response [
-	"Messages API responses report token usage but not the billed dollar amount.
-	Keep exact usage totals so provider evaluations can record evidence without
-	pretending to know a price that was not returned by the API."
+	"Adapters translate their own usage shapes. The gateway retains the shared
+	evaluation vocabulary without assuming a provider's raw response format."
 	| usage |
-	usage := response at: 'usage' ifAbsent: [ ^ self ].
+	usage := transport usageFromResponse: response.
 	usageTotals ifNil: [ usageTotals := Dictionary new ].
 	#(input_tokens output_tokens cache_creation_input_tokens cache_read_input_tokens)
 		do: [ :key |
@@ -793,9 +822,21 @@ AgentGateway >> finalTextFrom: content [
 
 { #category : 'running' }
 AgentGateway >> systemPrompt [
-	| base |
-	base := self class basePrompt.
-	^ base , String cr , String cr , self promptContext asString
+	^ self stableSystemPrompt , self dynamicSystemPrompt
+]
+
+{ #category : 'prompt caching' }
+AgentGateway >> stableSystemPrompt [
+	"Reviewed, versioned platform instructions. This is the only system content
+	marked cacheable by the Anthropic adapter."
+	^ self class basePrompt
+]
+
+{ #category : 'prompt caching' }
+AgentGateway >> dynamicSystemPrompt [
+	"The canvas appendix follows the cache breakpoint. It is rebuilt for each
+	request and is never eligible for reuse across independent runs."
+	^ String cr , String cr , self promptContext asString
 ]
 
 { #category : 'private' }

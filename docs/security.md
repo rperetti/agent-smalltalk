@@ -132,6 +132,13 @@ Smalltalk. These accepted limits return for review before publication.
 - Widget descriptions, selected slot/selector metadata, tool purposes and
   selectors, and automation descriptions are copied into the bounded JSON
   appendix, where every field is labelled untrusted data.
+- Anthropic prompt caching marks only the reviewed base prompt after the stable
+  tool definitions. The dynamic canvas appendix, user text, conversation
+  history, tool results, and generated code follow that breakpoint and are not
+  part of a reusable prefix. The provider labels the cache `ephemeral` with its
+  default five-minute TTL; this project does not establish a Zero Data
+  Retention agreement or otherwise turn provider caching into a local retention
+  control.
 - `logs/gateway.log` records user requests, evaluated code, tool results,
   errors, complete HTTP request/response JSON, and one compact structured
   request-metrics record after each response. Those records expose serialized

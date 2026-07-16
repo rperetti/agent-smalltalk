@@ -16,7 +16,7 @@ not currently in the top ten.
 
 | rank | ID | title | categories | priority | effort |
 |---:|---|---|---|---|---|
-| 1 | [AS-27](#as-27--cache-stable-inference-context-safely) | Cache stable inference context safely | performance, architecture, security, testing | P1 | M |
+| 1 | [AS-32](#as-32--make-native-dependency-loading-warning-free-and-observable) | Make native dependency loading warning-free and observable | reliability, testing, operations | P1 | M |
 | 2 | [AS-14](#as-14--introduce-a-provider-neutral-inference-boundary) | Introduce a provider-neutral inference boundary | architecture, reliability | P2 | L |
 | 3 | [AS-17](#as-17--preserve-history-when-system-messages-coalesce) | Preserve history when system messages coalesce | reliability, ux | P2 | S |
 | 4 | [AS-22](#as-22--make-failed-spotlight-runs-inspectable-on-the-canvas) | Make failed Spotlight runs inspectable on the canvas | feature, ux, reliability | P1 | L |
@@ -36,12 +36,12 @@ include unranked candidates outside it.
 | lens | items |
 |---|---|
 | Bugs and behavioral correctness | *(none currently)* |
-| Security and authority | [AS-01](#as-01--authenticate-or-remove-the-local-evaluator), [AS-06](#as-06--decide-whether-automation-restrictions-are-policy-or-enforcement), [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts), [AS-27](#as-27--cache-stable-inference-context-safely), [AS-28](#as-28--measure-model-roi-with-provider-neutral-paid-evaluations) |
+| Security and authority | [AS-01](#as-01--authenticate-or-remove-the-local-evaluator), [AS-06](#as-06--decide-whether-automation-restrictions-are-policy-or-enforcement), [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts), [AS-28](#as-28--measure-model-roi-with-provider-neutral-paid-evaluations) |
 | Reliability and persistence | [AS-03](#as-03--define-persistence-and-recovery-semantics), [AS-05](#as-05--coordinate-all-world-mutations), [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts), [AS-17](#as-17--preserve-history-when-system-messages-coalesce), [AS-22](#as-22--make-failed-spotlight-runs-inspectable-on-the-canvas) |
-| Operations and testing | [AS-01](#as-01--authenticate-or-remove-the-local-evaluator), [AS-03](#as-03--define-persistence-and-recovery-semantics), [AS-27](#as-27--cache-stable-inference-context-safely), [AS-28](#as-28--measure-model-roi-with-provider-neutral-paid-evaluations), [AS-29](#as-29--clear-the-final-publication-gate), [AS-30](#as-30--decide-when-to-move-to-pharo-14) |
-| Architecture and evolution | [AS-03](#as-03--define-persistence-and-recovery-semantics), [AS-05](#as-05--coordinate-all-world-mutations), [AS-06](#as-06--decide-whether-automation-restrictions-are-policy-or-enforcement), [AS-14](#as-14--introduce-a-provider-neutral-inference-boundary), [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts), [AS-27](#as-27--cache-stable-inference-context-safely), [AS-30](#as-30--decide-when-to-move-to-pharo-14) |
+| Operations and testing | [AS-01](#as-01--authenticate-or-remove-the-local-evaluator), [AS-03](#as-03--define-persistence-and-recovery-semantics), [AS-28](#as-28--measure-model-roi-with-provider-neutral-paid-evaluations), [AS-29](#as-29--clear-the-final-publication-gate), [AS-30](#as-30--decide-when-to-move-to-pharo-14), [AS-32](#as-32--make-native-dependency-loading-warning-free-and-observable) |
+| Architecture and evolution | [AS-03](#as-03--define-persistence-and-recovery-semantics), [AS-05](#as-05--coordinate-all-world-mutations), [AS-06](#as-06--decide-whether-automation-restrictions-are-policy-or-enforcement), [AS-14](#as-14--introduce-a-provider-neutral-inference-boundary), [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts), [AS-30](#as-30--decide-when-to-move-to-pharo-14) |
 | Product, feature, and UX | [AS-06](#as-06--decide-whether-automation-restrictions-are-policy-or-enforcement), [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts), [AS-16](#as-16--make-tool-card-removal-match-its-visible-meaning), [AS-17](#as-17--preserve-history-when-system-messages-coalesce), [AS-22](#as-22--make-failed-spotlight-runs-inspectable-on-the-canvas), [AS-29](#as-29--clear-the-final-publication-gate), [AS-31](#as-31--tell-a-first-time-image-how-to-start) |
-| Performance and maintenance | [AS-27](#as-27--cache-stable-inference-context-safely), [AS-28](#as-28--measure-model-roi-with-provider-neutral-paid-evaluations), [AS-30](#as-30--decide-when-to-move-to-pharo-14) |
+| Performance and maintenance | [AS-28](#as-28--measure-model-roi-with-provider-neutral-paid-evaluations), [AS-30](#as-30--decide-when-to-move-to-pharo-14) |
 
 ---
 
@@ -397,65 +397,13 @@ metrics, and debuggers.
   diagnostic event model with widget/trigger attribution and repeated-failure
   coalescing.
 
-## AS-27 — Cache stable inference context safely
-
-**Status:** candidate<br>
-**Categories:** performance, architecture, security, testing<br>
-**Priority:** P1<br>
-**Effort:** M<br>
-**Dependencies:** coordinate adapter-specific cache semantics with AS-14<br>
-**Source:** model ROI discussion and repository measurement, 2026-07-13
-
-### Problem and argument
-
-The 27,396-character base prompt, tool definitions, dynamic canvas context, and
-growing turn history are sent again on every model round. The gateway records
-provider cache-creation and cache-read token fields but does not identify a
-stable cacheable prefix or request caching from the provider. Long repair loops
-therefore pay repeatedly for mostly identical input and carry avoidable latency.
-Caching without an explicit boundary would create a different risk: user or
-canvas data could be retained or reused beyond the request that authorized it.
-
-### Proposed outcome
-
-The inference request separates versioned, stable instructions from dynamic
-user and canvas data. Provider adapters cache the stable prefix when their API
-supports it, fall back to an ordinary uncached request when it does not, and
-expose enough evidence to verify hits, invalidation, cost, and unchanged model
-behavior.
-
-### Acceptance criteria
-
-- The cacheable prefix contains only reviewed platform instructions and stable
-  tool schemas; user text, canvas objects, tool results, and generated code are
-  dynamic and are not reused across independent runs.
-- Cache identity accounts for serving provider, pinned model, base-prompt
-  revision, tool-schema revision, and generation settings that affect cache
-  validity.
-- A prompt or tool-schema change invalidates the old prefix deterministically;
-  an unchanged follow-up round can produce a cache hit.
-- Adapters own provider-specific cache controls and usage translation. A model
-  or provider without safe cache support continues uncached without changing
-  gateway semantics.
-- Evaluation evidence distinguishes uncached input, cache writes, cache reads,
-  output, and provider-reported reasoning tokens where applicable.
-- Deterministic tests cover prefix composition, exclusion of dynamic data,
-  invalidation, unsupported providers, malformed cache usage, and uncached
-  fallback.
-- An explicit paid evaluation records cold and warm runs against the same
-  prompt revision and reports token cost, latency, rounds, repairs, and semantic
-  outcome. It is never part of `verify-all.sh`.
-- The system specification, operations guide, and security model document the
-  implemented cache boundary, observability, provider retention assumptions,
-  and invalidation behavior.
-
 ## AS-28 — Measure model ROI with provider-neutral paid evaluations
 
 **Status:** candidate<br>
 **Categories:** testing, performance, operations, security<br>
 **Priority:** P2<br>
 **Effort:** L<br>
-**Dependencies:** AS-14, AS-27<br>
+**Dependencies:** AS-14<br>
 **Source:** model ROI discussion, 2026-07-13
 
 ### Problem and argument
@@ -642,6 +590,48 @@ opened the Spotlight, and never returns in a world that has been used.
   than accumulating by default.
 - The README and system specification describe the first-run behavior, and tests
   cover a fresh world, a dismissed hint, and a used world after reopening.
+
+## AS-32 — Make native dependency loading warning-free and observable
+
+**Status:** candidate<br>
+**Categories:** reliability, testing, operations<br>
+**Priority:** P1<br>
+**Effort:** M<br>
+**Dependencies:** none<br>
+**Source:** native test investigation, 2026-07-16
+
+### Problem and argument
+
+A fresh native `./test.sh` run passes, but its pinned Album/Toplo load emits
+unresolved-package and undeclared-class warnings. The production closure is
+intentionally narrow, yet those warnings make an incomplete load look normal,
+hide the silent project-package phase, and make a genuine loading failure hard
+to distinguish from ordinary noise. A passing suite does not make a warning
+stream an acceptable baseline. Every native-loader warning needs investigation
+when it appears; it must not become normal output or be bypassed with another
+runner.
+
+### Proposed outcome
+
+The native test and build loaders select a complete minimal production UI
+closure, emit clear phase boundaries, and fail loudly on a real load problem.
+
+### Acceptance criteria
+
+- A fresh native `./test.sh` load emits no unresolved-package or
+  undeclared-class warnings from the selected production closure.
+- Each warning newly emitted by the native loader is investigated in the session
+  where it appears and removed before handoff.
+- The pinned dependency selection contains every class and selector promised by
+  the production UI contract, without pulling upstream tests, examples, demos,
+  or developer tools into the normal build.
+- Deterministic coverage detects a missing selected dependency or an advertised
+  UI control before the suite reaches application behavior.
+- Loader output identifies dependency loading, project-package loading, and
+  SUnit execution so a stalled phase is evident in the native log.
+- `build.sh`, `test.sh`, and the staged update path use the same verified
+  production closure.
+- The native suite passes from a pristine image after the warnings are removed.
 
 ---
 

@@ -102,6 +102,14 @@ risk.
 graph and all project packages, then runs the suite enumerated in
 `scripts/run-tests.st`.
 
+Testing is native-only: run these commands with the repository's local Pharo
+VM. Docker and other container runners are not supported test fallbacks or
+verification gates.
+
+The native suite is expected to work. A failure or interrupted load during a
+session requires investigation and a fix before handoff; another check does not
+substitute for a passing native run.
+
 The suite is strongest for deterministic object behavior: gateway tool
 plumbing with a fake transport, sandbox results and timeouts, fact/note/context
 behavior, selection math, scheduler timing, histories, widget lifecycle, and
@@ -166,10 +174,24 @@ the first semantic failure. To run one evaluation rather than the full suite:
 ./evaluate.sh fact-widget
 ```
 
+To inspect a stable-prefix cache write followed by a read, run:
+
+```bash
+./evaluate.sh prompt-cache
+```
+
 Each paid run appends a JSON line to `logs/provider-evaluations.jsonl` with
 model, prompt revision, request rounds, latency, repair attempts, exact token
 usage, an explicit cost-unavailable marker (the provider response does not
 return billed USD), outcome, and check-specific details.
+
+`prompt-cache` makes two independent requests with the same base-prompt
+revision and an empty canvas. Its `cold` and `warm` detail records include
+latency, rounds, repairs, token usage, cache-write/read counts, and semantic
+outcome. A cache is provider-shared and may already be warm, so the first probe
+records what occurred rather than claiming it forced an empty cache; the second
+probe requires a cache read. Run it after the provider's cache TTL has expired
+when a cold write measurement matters.
 
 | script | model/API call | role |
 |---|---:|---|
@@ -178,6 +200,7 @@ return billed USD), outcome, and check-specific details.
 | `smoke-fact-retrieval.st` | yes | Tool-first exact reference and bounded broad fact-discovery gate. |
 | `smoke-fact-baseline.st` | yes | Compares tool-first retrieval with a disposable always-serialized-facts baseline; records answer quality and exact token/payload deltas without assuming either must be lower. |
 | `smoke-context-adversarial.st` | yes | Selected fact, note/import-style text, and widget-description injection gate; records one model/prompt outcome, not a security proof. |
+| `smoke-prompt-cache.st` | yes | Same-revision cold/warm stable-prefix cache evidence; warm run requires a provider cache read. |
 | `smoke-fact-widget.st` | yes | Same-request fact-backed weather widget gate. |
 | `smoke-widget.st` | yes | Counter creation and real instance increment gate. |
 | `smoke-modify.st` | yes | Live modification/state-preservation gate. |
@@ -214,8 +237,9 @@ Files under `logs/` are gitignored:
   tool results/errors, complete HTTP request/response JSON, and one
   `agent-request-metrics/v1` JSON record per provider response. The record
   includes latest/cumulative serialized payload characters, dynamic-context
-  and knowledge-result budgets, exact provider token usage, and an explicit
-  billed-USD-unavailable marker;
+  and knowledge-result budgets, stable-prefix cache identity and retention
+  mode, exact provider token usage (uncached, cache write/read, and output),
+  and an explicit billed-USD-unavailable marker;
 - `provider-evaluations.jsonl` — structured evidence from explicit paid
   evaluations; provider token usage is exact, while billed USD is marked
   unavailable because the API response does not return it;

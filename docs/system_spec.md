@@ -69,6 +69,15 @@ The bridge to the Anthropic Messages API and the owner of the agentic loop.
   cover instruction-like fact values, selected notes (including imported-style
   text), and widget descriptions: facts remain omitted and other text remains
   inside the marked JSON data envelope.
+- `AgentAnthropicTransport` marks only the preceding base-prompt text block as
+  an explicit `ephemeral` cache breakpoint. Anthropic's prefix order includes
+  the stable tool definitions before that block, so both are reusable. The
+  dynamic appendix, user text, assistant history, tool results, and generated
+  code follow the breakpoint and are sent fresh for every inference. The
+  adapter reports the serving provider, model, base-prompt and tool-schema
+  revisions, and cache-relevant generation settings with each request. A
+  transport that does not support this boundary sends the same gateway request
+  uncached instead.
 - Status callbacks (`statusBlock:`) drive the spotlight's status line:
   `thinking... / evaluating... / working (round N of 30)... / finishing...`.
   On completion it stays open with the run's request count, total serialized
@@ -84,9 +93,11 @@ The bridge to the Anthropic Messages API and the owner of the agentic loop.
   appended to `logs/gateway.log`, followed by a structured
   `agent-request-metrics/v1` record for each response. That record makes the
   latest and cumulative serialized request sizes, dynamic-context and
-  knowledge-result allowances, exact token usage, and the unavailable billed
+  knowledge-result allowances, cache identity and retention mode, uncached
+  input, cache writes, cache reads, output tokens, and the unavailable billed
   cost visible; `AgentGateway last log` gives in-image access to the most
-  recent run.
+  recent run. Malformed provider usage values are recorded as zero rather than
+  changing gateway behavior.
 - Provider-evaluation metrics: each gateway tracks request rounds, repair
   attempts, and exact API token usage. Explicit paid smoke runs write JSON
   evidence (model, prompt revision, latency, usage, transparent billed-cost
@@ -622,8 +633,9 @@ records structured evidence; it is never part of the deterministic gate.
   Running while closed requires an external daemon and is intentionally out
   of scope.
 - **Latency**: a widget takes roughly 15–60s depending on rounds; the status
-  line keeps it honest. base-prompt caching is the obvious next
-  optimization.
+  line keeps it honest. Stable prompt/tool prefixes are cacheable, but dynamic
+  context, repairs, provider queueing, and generated work still dominate many
+  runs.
 - **Log growth**: `logs/gateway.log` includes full payloads (system prompt
   every round); no rotation yet.
 - **Memory rides the prompt**: every remembered fact is sent to the

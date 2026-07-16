@@ -884,3 +884,178 @@ AgentGatewayTest >> testFinalToolResultIsReportedWhenFinishingResponseFails [
 	self assert: (result includesSubstring: 'final model response was unavailable').
 	self assert: (result includesSubstring: 'RESULT: 42')
 ]
+
+{ #category : 'tests' }
+AgentGatewayTest >> testAnthropicCachePayloadCachesOnlyTheStablePrefix [
+	| transport payload system cachedBlock dynamicBlock userMessage tools |
+	transport := AgentAnthropicTransport new.
+	tools := gateway toolDefinitions.
+	userMessage := 'USER-ONLY-4729'.
+	payload := transport
+		requestPayloadForModel: 'claude-sonnet-5'
+		maxTokens: 8192
+		stableInstructions: 'REVIEWED PLATFORM INSTRUCTIONS'
+		dynamicInstructions: 'DYNAMIC CANVAS DATA 5831'
+		messages: { ({ 'role' -> 'user'. 'content' -> userMessage } asDictionary) }
+		tools: tools.
+	system := payload at: 'system'.
+	cachedBlock := system first.
+	dynamicBlock := system second.
+	self assert: (cachedBlock at: 'text') equals: 'REVIEWED PLATFORM INSTRUCTIONS'.
+	self assert: ((cachedBlock at: 'cache_control') at: 'type') equals: 'ephemeral'.
+	self deny: ((cachedBlock at: 'text') includesSubstring: 'DYNAMIC CANVAS DATA 5831').
+	self deny: ((cachedBlock at: 'text') includesSubstring: userMessage).
+	self assert: (dynamicBlock at: 'text') equals: 'DYNAMIC CANVAS DATA 5831'.
+	self deny: (dynamicBlock includesKey: 'cache_control').
+	self assert: (((payload at: 'messages') first at: 'content')) equals: userMessage.
+	self assert: (payload at: 'tools') equals: tools
+]
+
+{ #category : 'tests' }
+AgentGatewayTest >> testCacheIdentityChangesForEveryStableInput [
+	| transport tools settings baseline changedPrompt changedTools changedModel changedSettings |
+	transport := AgentAnthropicTransport new.
+	tools := { { 'name' -> 'one'. 'input_schema' -> Dictionary new } asDictionary }.
+	settings := { 'max_tokens' -> 8192. 'tools_enabled' -> true } asDictionary.
+	baseline := transport
+		cacheConfigurationForModel: 'claude-sonnet-5'
+		stableInstructions: 'base prompt one'
+		tools: tools
+		generationSettings: settings.
+	changedPrompt := transport
+		cacheConfigurationForModel: 'claude-sonnet-5'
+		stableInstructions: 'base prompt two'
+		tools: tools
+		generationSettings: settings.
+	changedTools := transport
+		cacheConfigurationForModel: 'claude-sonnet-5'
+		stableInstructions: 'base prompt one'
+		tools: { { 'name' -> 'two'. 'input_schema' -> Dictionary new } asDictionary }
+		generationSettings: settings.
+	changedModel := transport
+		cacheConfigurationForModel: 'claude-haiku-4-5'
+		stableInstructions: 'base prompt one'
+		tools: tools
+		generationSettings: settings.
+	changedSettings := transport
+		cacheConfigurationForModel: 'claude-sonnet-5'
+		stableInstructions: 'base prompt one'
+		tools: tools
+		generationSettings: ({ 'max_tokens' -> 4096. 'tools_enabled' -> true } asDictionary).
+	self assert: (baseline at: 'provider') equals: 'anthropic-messages'.
+	self deny: ((baseline at: 'identity') at: 'base_prompt_revision')
+		equals: ((changedPrompt at: 'identity') at: 'base_prompt_revision').
+	self deny: ((baseline at: 'identity') at: 'tool_schema_revision')
+		equals: ((changedTools at: 'identity') at: 'tool_schema_revision').
+	self deny: ((baseline at: 'identity') at: 'model')
+		equals: ((changedModel at: 'identity') at: 'model').
+	self deny: ((baseline at: 'identity') at: 'generation_settings')
+		equals: ((changedSettings at: 'identity') at: 'generation_settings')
+]
+
+{ #category : 'tests' }
+AgentGatewayTest >> testGatewayCachePayloadKeepsLiveCanvasAndUserDataDynamic [
+	| transport payload cachedBlock dynamicBlock marker userText |
+	[
+		AgentCanvas reset.
+		marker := 'CANVAS-MARKER-6842: never cache this note'.
+		AgentCanvas current selectWidgets: {
+			AgentNote question: 'Selected note' answer: marker }.
+		userText := 'USER-MARKER-6842: never cache this request'.
+		transport := AgentGatewayFakeTransport responses: {
+			{ 'content' -> {
+				{ 'type' -> 'text'. 'text' -> 'done' } asDictionary
+				} } asDictionary }.
+		transport cacheEnabled: true.
+		gateway
+			transport: transport;
+			apiKey: 'test-key'.
+		gateway run: userText.
+		payload := transport payloads first.
+		cachedBlock := (payload at: 'system') first.
+		dynamicBlock := (payload at: 'system') second.
+		self assert: (cachedBlock at: 'text') equals: AgentGateway basePrompt.
+		self deny: ((cachedBlock at: 'text') includesSubstring: marker).
+		self deny: ((cachedBlock at: 'text') includesSubstring: userText).
+		self assert: ((dynamicBlock at: 'text') includesSubstring: marker).
+		self assert: (((payload at: 'messages') first at: 'content')) equals: userText ]
+		ensure: [ AgentCanvas reset ]
+]
+
+{ #category : 'tests' }
+AgentGatewayTest >> testCachedFollowUpReportsCacheReadAndKeepsDynamicDataOutOfPrefix [
+	| transport result firstPayload secondPayload firstCachedBlock secondCachedBlock usage metrics |
+	transport := AgentGatewayFakeTransport responses: {
+		{ 'content' -> {
+			{ 'type' -> 'tool_use'.
+				'id' -> 'tu_cache'.
+				'name' -> 'evaluate_smalltalk'.
+				'input' -> ({ 'code' -> '20 + 22' } asDictionary) } asDictionary
+			}. 'usage' -> ({
+				'input_tokens' -> 50.
+				'cache_creation_input_tokens' -> 40.
+				'output_tokens' -> 1 } asDictionary) } asDictionary.
+		{ 'content' -> {
+			{ 'type' -> 'text'. 'text' -> 'forty-two' } asDictionary
+			}. 'usage' -> ({
+				'input_tokens' -> 10.
+				'cache_read_input_tokens' -> 40.
+				'output_tokens' -> 2 } asDictionary) } asDictionary }.
+	transport cacheEnabled: true.
+	gateway
+		transport: transport;
+		apiKey: 'test-key';
+		maxRounds: 2.
+	result := gateway run: 'calculate twenty plus twenty-two'.
+	self assert: result equals: 'forty-two'.
+	firstPayload := transport payloads first.
+	secondPayload := transport payloads second.
+	firstCachedBlock := (firstPayload at: 'system') first.
+	secondCachedBlock := (secondPayload at: 'system') first.
+	self assert: firstCachedBlock equals: secondCachedBlock.
+	self deny: ((firstCachedBlock at: 'text') includesSubstring: 'calculate twenty plus twenty-two').
+	self deny: ((firstCachedBlock at: 'text') includesSubstring: 'RESULT: 42').
+	usage := gateway usageTotals.
+	self assert: (usage at: 'cache_creation_input_tokens') equals: 40.
+	self assert: (usage at: 'cache_read_input_tokens') equals: 40.
+	metrics := gateway requestMetrics.
+	self assert: ((metrics at: 'cache') at: 'enabled').
+	self assert: (((metrics at: 'cache') at: 'identity') at: 'model') equals: 'claude-sonnet-5'
+]
+
+{ #category : 'tests' }
+AgentGatewayTest >> testUnsupportedCacheAdapterFallsBackWithoutChangingGatewaySemantics [
+	| transport result payload metrics |
+	transport := AgentGatewayFakeTransport responses: {
+		{ 'content' -> {
+			{ 'type' -> 'text'. 'text' -> 'ordinary answer' } asDictionary
+			} } asDictionary }.
+	gateway
+		transport: transport;
+		apiKey: 'test-key'.
+	result := gateway run: 'answer without a cache-capable adapter'.
+	self assert: result equals: 'ordinary answer'.
+	payload := transport payloads first.
+	self assert: (payload at: 'system') equals: gateway systemPrompt.
+	self assert: (payload at: 'system') isString.
+	metrics := gateway requestMetrics.
+	self deny: ((metrics at: 'cache') at: 'enabled').
+	self assert: ((metrics at: 'cache') at: 'fallback')
+		equals: 'adapter does not support stable prompt caching'
+]
+
+{ #category : 'tests' }
+AgentGatewayTest >> testMalformedCacheUsageIsIgnored [
+	| usage |
+	gateway transport: AgentAnthropicTransport new.
+	gateway recordUsageFrom: ({ 'usage' -> ({
+		'input_tokens' -> 7.
+		'output_tokens' -> -3.
+		'cache_creation_input_tokens' -> 'not-a-token-count'.
+		'cache_read_input_tokens' -> 11.5 } asDictionary) } asDictionary).
+	usage := gateway usageTotals.
+	self assert: (usage at: 'input_tokens') equals: 7.
+	self assert: (usage at: 'output_tokens') equals: 0.
+	self assert: (usage at: 'cache_creation_input_tokens') equals: 0.
+	self assert: (usage at: 'cache_read_input_tokens') equals: 0
+]
