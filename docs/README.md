@@ -16,6 +16,7 @@ are triaged into it (see [CONTRIBUTING.md](../CONTRIBUTING.md)).
 | [postponed.md](postponed.md) | Ideas or designs that were seriously evaluated and consciously deferred, including what would bring them back. |
 | [security.md](security.md) | The current trust model, authority boundaries, non-guarantees, and known security risks. |
 | [operations.md](operations.md) | How to build, update, test, run, diagnose, back up, and recover the living image. |
+| [warnings.md](warnings.md) | Assessed native-loader warning exceptions and their review triggers. |
 | [STYLE.md](STYLE.md) | The writing voice for all prose and documentation, for humans and code agents alike. |
 | [adr/](adr/README.md) | Durable architectural decisions and the reasoning behind them. |
 

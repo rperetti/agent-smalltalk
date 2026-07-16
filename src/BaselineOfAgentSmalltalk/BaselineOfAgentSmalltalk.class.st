@@ -19,7 +19,7 @@ BaselineOfAgentSmalltalk >> baseline: spec [
 			baseline: 'Alexandrie'
 			with: [
 				spec
-					repository: 'github://pharo-graphics/Alexandrie:d3185a6f5e4041a2054025c24a5120fd0108b164/src';
+					repository: 'github://pharo-graphics/Alexandrie:4083bf84343b878521ebb4a26b5aa76cf28fa490/src';
 					loads: #('production') ].
 		spec
 			baseline: 'XMLParser'
@@ -43,13 +43,15 @@ BaselineOfAgentSmalltalk >> baseline: spec [
 			baseline: 'Bloc'
 			with: [
 				spec
-					repository: 'github://pharo-graphics/Bloc:a863816b9e526826d66286d871fef7042b03f546/src';
+					repository: 'github://pharo-graphics/Bloc:041defd538e3e1caf17060eb0f44062c5c4c1a8f/src';
 					loads: #(
 						'Bloc-Animation'
 						'Bloc-CommandApplier'
+						'Bloc-FocusFinder'
 						'Bloc-Overlay'
 						'Bloc-SVG'
 						'Bloc-Alexandrie'
+						'BlocHost-Morphic'
 						'BlocHost-OSWindow-SDL2') ].
 		spec
 			baseline: 'Toplo'
@@ -57,9 +59,16 @@ BaselineOfAgentSmalltalk >> baseline: spec [
 				spec
 					repository: 'github://pharo-graphics/Toplo:685e2497e6fff39682c4e66eebb7d33443c3f341/src';
 					loads: #(
+						'Toplo'
+						'Toplo-Theme'
 						'Toplo-Theme-Bee'
 						'Toplo-Widget-Album'
 						'Toplo-Widget-Button'
+						'Toplo-Widget-Circular'
+						'Toplo-Widget-InnerWindow'
+						'Toplo-Widget-Image'
+						'Toplo-Widget-List'
+						'Toplo-Widget-Pane'
 						'Toplo-Widget-ProgressBar'
 						'Toplo-Widget-Empty'
 						'Toplo-Widget-Float'
@@ -67,10 +76,11 @@ BaselineOfAgentSmalltalk >> baseline: spec [
 						'Toplo-Imported-Icons-MaterialDesign') ].
 		spec
 			package: 'AgentSmalltalk-Core';
-			package: 'AgentSmalltalk-UI' with: [ spec requires: #('AgentSmalltalk-Core' 'Bloc' 'Toplo') ];
+			package: 'AgentSmalltalk-UICompatibility' with: [ spec requires: #('Bloc') ];
+			package: 'AgentSmalltalk-UI' with: [ spec requires: #('AgentSmalltalk-Core' 'AgentSmalltalk-UICompatibility' 'Bloc' 'Toplo') ];
 			package: 'AgentSmalltalk-Tests' with: [ spec requires: #('AgentSmalltalk-Core') ];
 			package: 'AgentSmalltalk-UITests' with: [ spec requires: #('AgentSmalltalk-UI') ].
 		spec
 			group: 'Core' with: #('AgentSmalltalk-Core' 'AgentSmalltalk-Tests');
-			group: 'default' with: #('AgentSmalltalk-Core' 'AgentSmalltalk-UI' 'AgentSmalltalk-Tests' 'AgentSmalltalk-UITests') ]
+			group: 'default' with: #('AgentSmalltalk-Core' 'AgentSmalltalk-UICompatibility' 'AgentSmalltalk-UI' 'AgentSmalltalk-Tests' 'AgentSmalltalk-UITests') ]
 ]

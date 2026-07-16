@@ -43,6 +43,7 @@ AgentRemoteTest >> testStopIsIdempotent [
 { #category : 'tests' }
 AgentRemoteTest >> testUpdaterConfiguration [
 	self assert: (AgentUpdater packageNames includes: 'AgentSmalltalk-Core').
+	self assert: (AgentUpdater packageNames includes: 'AgentSmalltalk-UICompatibility').
 	self assert: AgentUpdater srcDirectory exists.
 	self deny: AgentUpdater isInteractive
 ]

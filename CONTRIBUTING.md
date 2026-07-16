@@ -18,8 +18,9 @@ lose work.
 - **Platform source — `src/`.** Hand-maintained [Tonel](https://github.com/pharo-vcs/tonel)
   packages: the gateway, sandbox, canvas, widgets, scheduler, and tests. This is
   the reproducible source of truth and the only thing under version control.
-  Packages: `AgentSmalltalk-Core`, `AgentSmalltalk-UI`, `AgentSmalltalk-Tests`,
-  `AgentSmalltalk-UITests`, and `BaselineOfAgentSmalltalk`.
+  Packages: `AgentSmalltalk-Core`, `AgentSmalltalk-UICompatibility`,
+  `AgentSmalltalk-UI`, `AgentSmalltalk-Tests`, `AgentSmalltalk-UITests`, and
+  `BaselineOfAgentSmalltalk`.
 - **Living-world state — `pharo/Agent.image`.** The generated widget/tool/
   automation classes, live instances, facts, notes, canvas positions, and user
   edits that the agent and user build up at runtime. The image is a *build
@@ -63,6 +64,11 @@ exercises the real model and is intentionally separate because it costs money;
 run it when you touch the gateway, the base prompt, or generation behavior. See
 [docs/operations.md](docs/operations.md#verification-and-evaluation-gates) for
 what each smoke script gates.
+
+When native compiler or package warnings change, assess the warning before
+committing. The native gate rejects unassessed warnings; an exceptional warning
+needs an ID, severity, impact, and review trigger in
+[docs/warnings.md](docs/warnings.md), plus a matching loader marker.
 
 The suite is strongest for deterministic object behavior and does **not** prove
 the living image's full snapshot/recovery path — exercise real runtime behavior

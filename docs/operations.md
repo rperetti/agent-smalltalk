@@ -74,7 +74,7 @@ candidate, and runs the full disposable-image SUnit suite against it. The
 preflight image must load the same manifest marker. This is the candidate the
 delivery path receives; later edits to the working tree cannot change it.
 
-`AgentUpdater` reloads the five platform packages with Tonel diff semantics,
+`AgentUpdater` reloads the platform packages with Tonel diff semantics,
 runs canvas migrations (on the UI thread when necessary), verifies the loaded
 candidate manifest, and only then posts the update message and snapshots.
 
@@ -102,6 +102,10 @@ risk.
 graph and all project packages, then runs the suite enumerated in
 `scripts/run-tests.st`.
 
+Set `AGENT_KEEP_TEST_ROOT=1` when diagnosing a native failure to retain its
+temporary image plus `dependency-load.log` and `sunit.log`; the command prints
+the retained directory. Do not retain a root containing sensitive test data.
+
 Testing is native-only: run these commands with the repository's local Pharo
 VM. Docker and other container runners are not supported test fallbacks or
 verification gates.
@@ -125,9 +129,42 @@ the full disposable preflight and needs a local living image to copy.
 The full build's production UI closure is explicit in
 `BaselineOfAgentSmalltalk` and `scripts/load-all.st`. It includes the canvas
 renderer, Bee theme, and the Toplo Album, Label, Button, TextField, Checkbox,
-and ProgressBar vocabulary promised to generated widgets. Upstream tests,
-examples, demos, and developer tools are excluded and are guarded by
+and ProgressBar vocabulary promised to generated widgets. It also includes
+Toplo's runtime-only circular and inner-window support, plus the Bloc focus
+and Morphic-host classes those packages reference. Upstream tests, examples,
+demos, and developer tools remain excluded and are guarded by
 `AgentDependencyLoadTest`.
+
+`AgentSmalltalk-UICompatibility` makes two obsolete Album hooks fail
+explicitly instead of admitting the Bloc Scripter developer package. Their
+severity assessment and review trigger are in the [warning policy](warnings.md).
+
+The native loader prints `AS_LOAD_PHASE` boundaries for dependency loading,
+dependency recompilation, project-package loading, and SUnit execution. Toplo
+and the native loader report each active exception as `AS_WARNING <id>`.
+`build.sh` and `test.sh` compare those IDs with [warnings.md](warnings.md),
+reject unknown or stale exceptions, and fail on raw compiler or package
+warnings. Toplo's first load establishes its cyclic class graph, then
+recompiles every selected package with undeclared references treated as fatal.
+A warning outside that bounded bootstrap path fails before application packages
+or SUnit can hide it.
+
+### Upstream dependency upgrades
+
+Production dependencies are pinned to immutable commits. Do not replace a pin
+with a branch name or upgrade during an unrelated application change.
+
+Review upstream default-branch heads once per calendar quarter and whenever a
+dependency bug, security advisory, Pharo upgrade, or loader warning affects the
+production closure. Fetch the pinned repositories, record which heads changed,
+and advance related dependencies together when their baselines require it.
+
+For each candidate, build a disposable full image, confirm the selected package
+closure has not acquired tests, examples, or developer tools, then run
+`./verify-all.sh`. Keep the same revisions in `BaselineOfAgentSmalltalk`,
+`scripts/load-all.st`, and `scripts/load-upstream-development.st`. Record the
+date, revisions, and any rejected candidate in this section when the decision
+changes operational behavior.
 
 ### Upstream UI development
 
@@ -150,7 +187,7 @@ build, test, and verification paths.
 On 2026-07-11, clean `build.sh --no-verify` runs from otherwise identical
 temporary workspaces and empty dependency caches produced:
 
-| metric | broad upstream defaults | production closure |
+| metric | broad upstream defaults | explicit production closure |
 |---|---:|---:|
 | build duration | 100.15 s | 93.28 s |
 | visual-stack packages in image | 146 | 71 |

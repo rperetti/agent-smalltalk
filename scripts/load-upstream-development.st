@@ -3,12 +3,12 @@ current image. This is deliberately for a disposable development image only;
 scripts/load-all.st is the production AgentSmalltalk runtime."
 Metacello new
 	baseline: 'Alexandrie';
-	repository: 'github://pharo-graphics/Alexandrie:d3185a6f5e4041a2054025c24a5120fd0108b164/src';
+	repository: 'github://pharo-graphics/Alexandrie:4083bf84343b878521ebb4a26b5aa76cf28fa490/src';
 	onConflictUseLoaded;
 	load: 'development'.
 Metacello new
 	baseline: 'Bloc';
-	repository: 'github://pharo-graphics/Bloc:a863816b9e526826d66286d871fef7042b03f546/src';
+	repository: 'github://pharo-graphics/Bloc:041defd538e3e1caf17060eb0f44062c5c4c1a8f/src';
 	onConflictUseLoaded;
 	load.
 Metacello new

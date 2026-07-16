@@ -147,6 +147,24 @@ cleanup() {
 }
 trap cleanup EXIT
 
+run_dependency_loader() {
+  local status log
+  log="$BUILD_ROOT/dependency-load.log"
+  set +e
+  HOME="$BUILD_HOME" "$VM" --headless "$BUILD_IMAGE" st "$LOAD_SCRIPT" 2>&1 | tee "$log"
+  status=${PIPESTATUS[0]}
+  set -e
+  if [ "$status" -ne 0 ]; then
+    echo "Dependency loading failed before project packages or SUnit could run."
+    return "$status"
+  fi
+  if [ "$GROUP" = "all" ]; then
+    ./scripts/check-warning-policy.sh --full "$log" | tee -a "$log"
+  else
+    ./scripts/check-warning-policy.sh "$log" | tee -a "$log"
+  fi
+}
+
 SOURCES=$(find "$(dirname "$PRISTINE")" -maxdepth 1 -name '*.sources' -print | sort | head -1)
 if [ -n "${SOURCES:-}" ]; then
   cp "$SOURCES" "$BUILD_ROOT/pharo/"
@@ -170,7 +188,7 @@ echo "  output:   $OUTPUT"
 echo "  staging:  $BUILD_ROOT"
 echo "  home:     $BUILD_HOME"
 
-HOME="$BUILD_HOME" "$VM" --headless "$BUILD_IMAGE" st "$LOAD_SCRIPT"
+run_dependency_loader
 
 if [ "$VERIFY" -eq 1 ]; then
   echo "Verifying built image with SUnit..."

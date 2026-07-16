@@ -16,7 +16,7 @@ Class {
 
 { #category : 'accessing' }
 AgentUpdater class >> packageNames [
-	^ #('AgentSmalltalk-Core' 'AgentSmalltalk-UI' 'AgentSmalltalk-Tests' 'AgentSmalltalk-UITests' 'BaselineOfAgentSmalltalk')
+	^ #('AgentSmalltalk-Core' 'AgentSmalltalk-UICompatibility' 'AgentSmalltalk-UI' 'AgentSmalltalk-Tests' 'AgentSmalltalk-UITests' 'BaselineOfAgentSmalltalk')
 ]
 
 { #category : 'accessing' }
@@ -69,16 +69,23 @@ AgentUpdater class >> updateFromSrc [
 AgentUpdater class >> updateFromSrc: src expectingManifest: expectedManifest [
 	"Load one immutable candidate, migrate it, and prove the loaded build marker
 	before the caller decides whether it may snapshot."
+	| firstPackage reader |
 	self canSaveVerifiedUpdate ifFalse: [
 		self error: 'This session is tainted by a failed update; quit without saving and restart the known-good image' ].
 	(self hasValidBuildManifest: expectedManifest) ifFalse: [
 		self error: 'Invalid update build manifest' ].
-	self packageNames do: [ :pkgName |
-		| reader |
+	"Load Core first, then ask the freshly installed AgentUpdater for the rest.
+	This lets a staged update add a platform package even when the living image
+	still has the previous package list."
+	firstPackage := self packageNames first.
+	reader := TonelReader on: src fileName: firstPackage.
+	reader loadDefinitions.
+	MCPackageLoader updatePackage: (MCPackage named: firstPackage) withSnapshot: reader snapshot.
+	self maybeInjectFailureAt: 'load'.
+	self packageNames allButFirst do: [ :pkgName |
 		reader := TonelReader on: src fileName: pkgName.
 		reader loadDefinitions.
-		MCPackageLoader updatePackage: (MCPackage named: pkgName) withSnapshot: reader snapshot.
-		pkgName = self packageNames first ifTrue: [ self maybeInjectFailureAt: 'load' ] ].
+		MCPackageLoader updatePackage: (MCPackage named: pkgName) withSnapshot: reader snapshot ].
 	self runMigrations.
 	(self verifyLoadedManifest: expectedManifest) ifFalse: [
 		self error: 'Loaded build manifest does not match the preflighted candidate' ].

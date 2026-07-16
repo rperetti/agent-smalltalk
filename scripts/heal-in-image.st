@@ -8,7 +8,7 @@ startup."
 	cls allInstancesDo: [ :s |
 		[ s instVarNamed: #handle put: nil ] on: Error do: [ :e |  ] ] ].
 src := FileLocator image asFileReference parent parent / 'src'.
-#('AgentSmalltalk-Core' 'AgentSmalltalk-UI' 'AgentSmalltalk-Tests' 'AgentSmalltalk-UITests' 'BaselineOfAgentSmalltalk')
+#('AgentSmalltalk-Core' 'AgentSmalltalk-UICompatibility' 'AgentSmalltalk-UI' 'AgentSmalltalk-Tests' 'AgentSmalltalk-UITests' 'BaselineOfAgentSmalltalk')
 	do: [ :pkgName |
 		| reader |
 		reader := TonelReader on: src fileName: pkgName.

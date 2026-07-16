@@ -188,9 +188,13 @@ understand before contributing — see [CONTRIBUTING.md](CONTRIBUTING.md) and th
 Bloc, Toplo, and their transitive dependencies are pinned to exact revisions.
 The normal full build loads only AgentSmalltalk's declared production UI
 closure; upstream tests, examples, demos, and developer tools are excluded.
-They remain available through the explicit disposable-image path documented in
-`docs/operations.md`. Testing currently runs on the user's machine via
-`./test.sh`; hosted GitHub CI is deferred.
+Native loader output marks dependency loading, dependency recompilation,
+project-package loading, and SUnit execution. The native warning-policy gate
+fails on unassessed compiler/package warnings and records each active exception
+with its severity and review trigger in [`docs/warnings.md`](docs/warnings.md).
+Those upstream packages remain available through the explicit disposable-image
+path documented in `docs/operations.md`. Testing currently runs on the user's
+machine via `./test.sh`; hosted GitHub CI is deferred.
 
 ## Contributing
 

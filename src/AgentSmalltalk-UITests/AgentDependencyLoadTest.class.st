@@ -27,6 +27,22 @@ AgentDependencyLoadTest >> testAdvertisedToploControlsAreAvailable [
 ]
 
 { #category : 'tests' }
+AgentDependencyLoadTest >> testAdvertisedToploControlSelectorsAreAvailable [
+	self assert: (ToLabel canUnderstand: #text:).
+	self assert: (ToButton canUnderstand: #labelText:).
+	self assert: (ToButton canUnderstand: #clickAction:).
+	self assert: (ToTextField canUnderstand: #placeholderText:).
+	self assert: (ToTextField canUnderstand: #text).
+	self assert: (ToCheckbox canUnderstand: #labelText:).
+	self assert: (ToCheckbox canUnderstand: #checkAction:).
+	self assert: (ToCheckbox canUnderstand: #isChecked).
+	self assert: (ToProgressBar canUnderstand: #valueInPercentage:).
+	self assert: (ToAlbum canUnderstand: #placeholderText:).
+	self assert: (ToAlbum canUnderstand: #text).
+	self assert: (ToAlbum canUnderstand: #useScrollbar:)
+]
+
+{ #category : 'tests' }
 AgentDependencyLoadTest >> testDefaultRuntimeExcludesUpstreamDevelopmentPackages [
 	#(
 		'Alexandrie-Base-Tests'
@@ -41,6 +57,7 @@ AgentDependencyLoadTest >> testDefaultRuntimeExcludesUpstreamDevelopmentPackages
 		'Alexandrie-NewTools-Tests'
 		'Bloc-Animation-Tests'
 		'Bloc-Display-Tests'
+		'Bloc-Scripter'
 		'Bloc-Tests'
 		'Bloc-Examples'
 		'Bloc-Demo'
@@ -52,6 +69,7 @@ AgentDependencyLoadTest >> testDefaultRuntimeExcludesUpstreamDevelopmentPackages
 		'Toplo-Tests'
 		'Toplo-Demo'
 		'Toplo-Examples'
+		'Toplo-IDE'
 		'Toplo-Incubator'
 		'Toplo-Theme-Examples'
 		'Toplo-Theme-Bee-Tests'
@@ -62,4 +80,39 @@ AgentDependencyLoadTest >> testDefaultRuntimeExcludesUpstreamDevelopmentPackages
 			self
 				assert: (PackageOrganizer default packageNamed: packageName ifAbsent: [ nil ]) isNil
 				description: packageName , ' belongs only in an explicit upstream-development image' ]
+]
+
+{ #category : 'tests' }
+AgentDependencyLoadTest >> testProductionRuntimeContainsTheSelectedClosure [
+	#(
+		'BlocHost-Morphic'
+		'Bloc-FocusFinder'
+		'Album'
+		'Toplo'
+		'Toplo-Theme'
+		'Toplo-Theme-Bee'
+		'Toplo-Widget-Album'
+		'Toplo-Widget-Button'
+		'Toplo-Widget-Circular'
+		'Toplo-Widget-InnerWindow'
+		'Toplo-Widget-Image'
+		'Toplo-Widget-List'
+		'Toplo-Widget-Pane'
+		'Toplo-Widget-ProgressBar'
+		'AgentSmalltalk-UICompatibility')
+		do: [ :packageName |
+			self
+			assert: (PackageOrganizer default packageNamed: packageName ifAbsent: [ nil ]) notNil
+			description: packageName , ' is required by the production UI closure' ]
+]
+
+{ #category : 'tests' }
+AgentDependencyLoadTest >> testUnsupportedAlbumHooksFailExplicitly [
+	self should: [ BlLazyElement new in: [ :element | element ] ] raise: Error.
+	self should: [ TBlDevScripterTarget new onChildFromMessage: #editor ] raise: Error
+]
+
+{ #category : 'tests' }
+AgentDependencyLoadTest >> testUpdaterReloadsTheProductionCompatibilityPackage [
+	self assert: (AgentUpdater packageNames includes: 'AgentSmalltalk-UICompatibility')
 ]

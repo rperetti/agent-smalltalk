@@ -16,16 +16,16 @@ not currently in the top ten.
 
 | rank | ID | title | categories | priority | effort |
 |---:|---|---|---|---|---|
-| 1 | [AS-32](#as-32--make-native-dependency-loading-warning-free-and-observable) | Make native dependency loading warning-free and observable | reliability, testing, operations | P1 | M |
-| 2 | [AS-14](#as-14--introduce-a-provider-neutral-inference-boundary) | Introduce a provider-neutral inference boundary | architecture, reliability | P2 | L |
-| 3 | [AS-17](#as-17--preserve-history-when-system-messages-coalesce) | Preserve history when system messages coalesce | reliability, ux | P2 | S |
-| 4 | [AS-22](#as-22--make-failed-spotlight-runs-inspectable-on-the-canvas) | Make failed Spotlight runs inspectable on the canvas | feature, ux, reliability | P1 | L |
-| 5 | [AS-28](#as-28--measure-model-roi-with-provider-neutral-paid-evaluations) | Measure model ROI with provider-neutral paid evaluations | testing, performance, operations, security | P2 | L |
-| 6 | [AS-03](#as-03--define-persistence-and-recovery-semantics) | Define persistence and recovery semantics | architecture, reliability, operations | P0 | L |
-| 7 | [AS-29](#as-29--clear-the-final-publication-gate) | Clear the final publication gate | documentation, operations, product | P0 | S |
-| 8 | [AS-05](#as-05--coordinate-all-world-mutations) | Coordinate all world mutations | architecture, reliability | P1 | L |
-| 9 | [AS-06](#as-06--decide-whether-automation-restrictions-are-policy-or-enforcement) | Decide whether automation restrictions are policy or enforcement | security, product, architecture | P1 | L |
-| 10 | [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts) | Add provenance, health, and rollback for generated artifacts | architecture, feature, reliability | P1 | L |
+| 1 | [AS-14](#as-14--introduce-a-provider-neutral-inference-boundary) | Introduce a provider-neutral inference boundary | architecture, reliability | P2 | L |
+| 2 | [AS-17](#as-17--preserve-history-when-system-messages-coalesce) | Preserve history when system messages coalesce | reliability, ux | P2 | S |
+| 3 | [AS-22](#as-22--make-failed-spotlight-runs-inspectable-on-the-canvas) | Make failed Spotlight runs inspectable on the canvas | feature, ux, reliability | P1 | L |
+| 4 | [AS-28](#as-28--measure-model-roi-with-provider-neutral-paid-evaluations) | Measure model ROI with provider-neutral paid evaluations | testing, performance, operations, security | P2 | L |
+| 5 | [AS-03](#as-03--define-persistence-and-recovery-semantics) | Define persistence and recovery semantics | architecture, reliability, operations | P0 | L |
+| 6 | [AS-29](#as-29--clear-the-final-publication-gate) | Clear the final publication gate | documentation, operations, product | P0 | S |
+| 7 | [AS-05](#as-05--coordinate-all-world-mutations) | Coordinate all world mutations | architecture, reliability | P1 | L |
+| 8 | [AS-06](#as-06--decide-whether-automation-restrictions-are-policy-or-enforcement) | Decide whether automation restrictions are policy or enforcement | security, product, architecture | P1 | L |
+| 9 | [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts) | Add provenance, health, and rollback for generated artifacts | architecture, feature, reliability | P1 | L |
+| 10 | [AS-30](#as-30--decide-when-to-move-to-pharo-14) | Decide when to move to Pharo 14 | maintenance, operations, architecture | P2 | M |
 
 ## Category views
 
@@ -38,7 +38,7 @@ include unranked candidates outside it.
 | Bugs and behavioral correctness | *(none currently)* |
 | Security and authority | [AS-01](#as-01--authenticate-or-remove-the-local-evaluator), [AS-06](#as-06--decide-whether-automation-restrictions-are-policy-or-enforcement), [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts), [AS-28](#as-28--measure-model-roi-with-provider-neutral-paid-evaluations) |
 | Reliability and persistence | [AS-03](#as-03--define-persistence-and-recovery-semantics), [AS-05](#as-05--coordinate-all-world-mutations), [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts), [AS-17](#as-17--preserve-history-when-system-messages-coalesce), [AS-22](#as-22--make-failed-spotlight-runs-inspectable-on-the-canvas) |
-| Operations and testing | [AS-01](#as-01--authenticate-or-remove-the-local-evaluator), [AS-03](#as-03--define-persistence-and-recovery-semantics), [AS-28](#as-28--measure-model-roi-with-provider-neutral-paid-evaluations), [AS-29](#as-29--clear-the-final-publication-gate), [AS-30](#as-30--decide-when-to-move-to-pharo-14), [AS-32](#as-32--make-native-dependency-loading-warning-free-and-observable) |
+| Operations and testing | [AS-01](#as-01--authenticate-or-remove-the-local-evaluator), [AS-03](#as-03--define-persistence-and-recovery-semantics), [AS-28](#as-28--measure-model-roi-with-provider-neutral-paid-evaluations), [AS-29](#as-29--clear-the-final-publication-gate), [AS-30](#as-30--decide-when-to-move-to-pharo-14) |
 | Architecture and evolution | [AS-03](#as-03--define-persistence-and-recovery-semantics), [AS-05](#as-05--coordinate-all-world-mutations), [AS-06](#as-06--decide-whether-automation-restrictions-are-policy-or-enforcement), [AS-14](#as-14--introduce-a-provider-neutral-inference-boundary), [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts), [AS-30](#as-30--decide-when-to-move-to-pharo-14) |
 | Product, feature, and UX | [AS-06](#as-06--decide-whether-automation-restrictions-are-policy-or-enforcement), [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts), [AS-16](#as-16--make-tool-card-removal-match-its-visible-meaning), [AS-17](#as-17--preserve-history-when-system-messages-coalesce), [AS-22](#as-22--make-failed-spotlight-runs-inspectable-on-the-canvas), [AS-29](#as-29--clear-the-final-publication-gate), [AS-31](#as-31--tell-a-first-time-image-how-to-start) |
 | Performance and maintenance | [AS-28](#as-28--measure-model-roi-with-provider-neutral-paid-evaluations), [AS-30](#as-30--decide-when-to-move-to-pharo-14) |
@@ -590,50 +590,6 @@ opened the Spotlight, and never returns in a world that has been used.
   than accumulating by default.
 - The README and system specification describe the first-run behavior, and tests
   cover a fresh world, a dismissed hint, and a used world after reopening.
-
-## AS-32 — Make native dependency loading warning-free and observable
-
-**Status:** candidate<br>
-**Categories:** reliability, testing, operations<br>
-**Priority:** P1<br>
-**Effort:** M<br>
-**Dependencies:** none<br>
-**Source:** native test investigation, 2026-07-16
-
-### Problem and argument
-
-A fresh native `./test.sh` run passes, but its pinned Album/Toplo load emits
-unresolved-package and undeclared-class warnings. The production closure is
-intentionally narrow, yet those warnings make an incomplete load look normal,
-hide the silent project-package phase, and make a genuine loading failure hard
-to distinguish from ordinary noise. A passing suite does not make a warning
-stream an acceptable baseline. Every native-loader warning needs investigation
-when it appears; it must not become normal output or be bypassed with another
-runner.
-
-### Proposed outcome
-
-The native test and build loaders select a complete minimal production UI
-closure, emit clear phase boundaries, and fail loudly on a real load problem.
-
-### Acceptance criteria
-
-- A fresh native `./test.sh` load emits no unresolved-package or
-  undeclared-class warnings from the selected production closure.
-- Each warning newly emitted by the native loader is investigated in the session
-  where it appears and removed before handoff.
-- The pinned dependency selection contains every class and selector promised by
-  the production UI contract, without pulling upstream tests, examples, demos,
-  or developer tools into the normal build.
-- Deterministic coverage detects a missing selected dependency or an advertised
-  UI control before the suite reaches application behavior.
-- Loader output identifies dependency loading, project-package loading, and
-  SUnit execution so a stalled phase is evident in the native log.
-- `build.sh`, `test.sh`, and the staged update path use the same verified
-  production closure.
-- The native suite passes from a pristine image after the warnings are removed.
-
----
 
 ## Conventions
 

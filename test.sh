@@ -47,8 +47,36 @@ ln -s "$PWD/pharo/pharo-local" "$TEST_ROOT/pharo/pharo-local"
 TEST_IMAGE="$TEST_ROOT/pharo/AgentTest.image"
 TEST_CHANGES="${TEST_IMAGE%.image}.changes"
 SOURCES=$(find pharo -maxdepth 1 -name '*.sources' -print -quit)
+
+run_dependency_loader() {
+  local status log
+  log="$TEST_ROOT/dependency-load.log"
+  set +e
+  env HOME="$TEST_ROOT/home" "$VM" --headless "$TEST_IMAGE" st scripts/load-all.st 2>&1 | tee "$log"
+  status=${PIPESTATUS[0]}
+  set -e
+  if [ "$status" -ne 0 ]; then
+    echo "Dependency loading failed before project packages or SUnit could run."
+    return "$status"
+  fi
+  ./scripts/check-warning-policy.sh --full "$log" | tee -a "$log"
+}
+
+run_sunit() {
+  local status
+  set +e
+  env HOME="$TEST_ROOT/home" "$VM" --headless "$TEST_IMAGE" st scripts/run-tests.st 2>&1 | tee "$TEST_ROOT/sunit.log"
+  status=${PIPESTATUS[0]}
+  set -e
+  return "$status"
+}
+
 cleanup() {
-  rm -rf "$TEST_ROOT"
+  if [ "${AGENT_KEEP_TEST_ROOT:-}" = "1" ]; then
+    echo "Retained native test root: $TEST_ROOT"
+  else
+    rm -rf "$TEST_ROOT"
+  fi
 }
 trap cleanup EXIT
 
@@ -58,8 +86,8 @@ if [ -n "${SOURCES:-}" ]; then
   cp "$SOURCES" "$TEST_ROOT/pharo/"
 fi
 
-env HOME="$TEST_ROOT/home" "$VM" --headless "$TEST_IMAGE" st scripts/load-all.st
-env HOME="$TEST_ROOT/home" "$VM" --headless "$TEST_IMAGE" st scripts/run-tests.st
+run_dependency_loader
+run_sunit
 
 if [ -n "${AGENT_UPDATE_MANIFEST:-}" ]; then
   env HOME="$TEST_ROOT/home" AGENT_UPDATE_MANIFEST="$AGENT_UPDATE_MANIFEST" \
