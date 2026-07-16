@@ -34,9 +34,10 @@ Open questions:
 
 Promotion trigger: several tested tools make specific prompt recipes
 demonstrably redundant. The actionable toolbox lifecycle foundation is tracked
-as [AS-15](backlog.md#as-15--add-provenance-health-and-rollback-for-generated-artifacts),
-[AS-16](backlog.md#as-16--make-tool-card-removal-match-its-visible-meaning),
-and [AS-19](backlog.md#as-19--make-the-base-prompt-a-tested-consistent-contract).
+as [AS-15](backlog.md#as-15--add-provenance-health-and-rollback-for-generated-artifacts)
+and [AS-16](backlog.md#as-16--make-tool-card-removal-match-its-visible-meaning).
+The implemented [base-prompt contract](system_spec.md) sets the evidence
+threshold for replacing a recipe.
 
 ## Thread-aware reply
 

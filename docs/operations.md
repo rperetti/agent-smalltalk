@@ -186,6 +186,7 @@ return billed USD), outcome, and check-specific details.
 | `smoke-tools.st` | yes | Reusable-tool creation/context/reuse gate. |
 | `smoke-selection.st` | yes | Selection-scoped live-reference gate. |
 | `smoke-reactive.st` | yes | Fact and widget reaction gate. |
+| `smoke-prompt-contract.st` | yes | Read-only image-search and separate reusable-tool-call gate. |
 
 ## Running and asking headlessly
 

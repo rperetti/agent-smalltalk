@@ -73,6 +73,26 @@ AgentUndoResizeTest >> testReactiveWidgetRestoresFactAndWidgetReactionsWithoutDu
 ]
 
 { #category : 'tests' }
+AgentUndoResizeTest >> testReactionMigrationOnlyReconnectsAttachedWidgets [
+	| canvas attached detached |
+	canvas := AgentCanvas current.
+	attached := AgentReactiveLifecycleTestWidget new.
+	detached := AgentReactiveLifecycleTestWidget new.
+	canvas addWidget: attached.
+	"The public migration entry point is idempotent for the canvas widget and
+	must leave a disposable, headless instance detached from the announcer."
+	canvas reconnectReactionsFor: AgentReactiveLifecycleTestWidget.
+	detached reconnectReactions.
+	AgentFact key: #city body: 'Tokyo'.
+	self assert: attached factReactionCount equals: 1.
+	self assert: detached factReactionCount equals: 0.
+	canvas reconnectReactionsFor: AgentReactiveLifecycleTestWidget.
+	AgentFact key: #city body: 'Lisbon'.
+	self assert: attached factReactionCount equals: 2.
+	self assert: detached factReactionCount equals: 0
+]
+
+{ #category : 'tests' }
 AgentUndoResizeTest >> testUndoOnEmptyStackIsSafe [
 	self assert: AgentCanvas current undoDeletion isNil
 ]

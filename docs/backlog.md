@@ -16,8 +16,7 @@ Important existing-system work awaiting prioritization.
 
 | rank | ID | title | categories | priority | effort |
 |---:|---|---|---|---|---|
-| 1 | [AS-19](#as-19--make-the-base-prompt-a-tested-consistent-contract) | Make the base prompt a tested, consistent contract | testing, architecture, maintenance | P1 | M |
-| 2 | [AS-27](#as-27--cache-stable-inference-context-safely) | Cache stable inference context safely | performance, architecture, security, testing | P1 | M |
+| 1 | [AS-27](#as-27--cache-stable-inference-context-safely) | Cache stable inference context safely | performance, architecture, security, testing | P1 | M |
 
 ## Later
 
@@ -25,19 +24,19 @@ Real work, but not proposed as part of the next foundation milestone.
 
 | rank | ID | title | categories | priority | effort |
 |---:|---|---|---|---|---|
-| 3 | [AS-14](#as-14--introduce-a-provider-neutral-inference-boundary) | Introduce a provider-neutral inference boundary | architecture, reliability | P2 | L |
-| 4 | [AS-17](#as-17--preserve-history-when-system-messages-coalesce) | Preserve history when system messages coalesce | reliability, ux | P2 | S |
-| 5 | [AS-22](#as-22--make-failed-spotlight-runs-inspectable-on-the-canvas) | Make failed Spotlight runs inspectable on the canvas | feature, ux, reliability | P1 | L |
-| 6 | [AS-28](#as-28--measure-model-roi-with-provider-neutral-paid-evaluations) | Measure model ROI with provider-neutral paid evaluations | testing, performance, operations, security | P2 | L |
-| 7 | [AS-03](#as-03--define-persistence-and-recovery-semantics) | Define persistence and recovery semantics | architecture, reliability, operations | P0 | L |
-| 8 | [AS-29](#as-29--clear-the-final-publication-gate) | Clear the final publication gate | documentation, operations, product | P0 | S |
-| 9 | [AS-05](#as-05--coordinate-all-world-mutations) | Coordinate all world mutations | architecture, reliability | P1 | L |
-| 10 | [AS-06](#as-06--decide-whether-automation-restrictions-are-policy-or-enforcement) | Decide whether automation restrictions are policy or enforcement | security, product, architecture | P1 | L |
-| 11 | [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts) | Add provenance, health, and rollback for generated artifacts | architecture, feature, reliability | P1 | L |
-| 12 | [AS-16](#as-16--make-tool-card-removal-match-its-visible-meaning) | Make tool-card removal match its visible meaning | ux, product, reliability | P2 | M |
-| 13 | [AS-01](#as-01--authenticate-or-remove-the-local-evaluator) | Authenticate or remove the local evaluator | security, operations | P2 | M |
-| 14 | [AS-30](#as-30--decide-when-to-move-to-pharo-14) | Decide when to move to Pharo 14 | maintenance, operations, architecture | P2 | M |
-| 15 | [AS-31](#as-31--tell-a-first-time-image-how-to-start) | Tell a first-time image how to start | ux, product, documentation | P2 | S |
+| 2 | [AS-14](#as-14--introduce-a-provider-neutral-inference-boundary) | Introduce a provider-neutral inference boundary | architecture, reliability | P2 | L |
+| 3 | [AS-17](#as-17--preserve-history-when-system-messages-coalesce) | Preserve history when system messages coalesce | reliability, ux | P2 | S |
+| 4 | [AS-22](#as-22--make-failed-spotlight-runs-inspectable-on-the-canvas) | Make failed Spotlight runs inspectable on the canvas | feature, ux, reliability | P1 | L |
+| 5 | [AS-28](#as-28--measure-model-roi-with-provider-neutral-paid-evaluations) | Measure model ROI with provider-neutral paid evaluations | testing, performance, operations, security | P2 | L |
+| 6 | [AS-03](#as-03--define-persistence-and-recovery-semantics) | Define persistence and recovery semantics | architecture, reliability, operations | P0 | L |
+| 7 | [AS-29](#as-29--clear-the-final-publication-gate) | Clear the final publication gate | documentation, operations, product | P0 | S |
+| 8 | [AS-05](#as-05--coordinate-all-world-mutations) | Coordinate all world mutations | architecture, reliability | P1 | L |
+| 9 | [AS-06](#as-06--decide-whether-automation-restrictions-are-policy-or-enforcement) | Decide whether automation restrictions are policy or enforcement | security, product, architecture | P1 | L |
+| 10 | [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts) | Add provenance, health, and rollback for generated artifacts | architecture, feature, reliability | P1 | L |
+| 11 | [AS-16](#as-16--make-tool-card-removal-match-its-visible-meaning) | Make tool-card removal match its visible meaning | ux, product, reliability | P2 | M |
+| 12 | [AS-01](#as-01--authenticate-or-remove-the-local-evaluator) | Authenticate or remove the local evaluator | security, operations | P2 | M |
+| 13 | [AS-30](#as-30--decide-when-to-move-to-pharo-14) | Decide when to move to Pharo 14 | maintenance, operations, architecture | P2 | M |
+| 14 | [AS-31](#as-31--tell-a-first-time-image-how-to-start) | Tell a first-time image how to start | ux, product, documentation | P2 | S |
 
 ## Category views
 
@@ -50,10 +49,10 @@ cross-category priority order above.
 | Bugs and behavioral correctness | *(none currently)* |
 | Security and authority | [AS-01](#as-01--authenticate-or-remove-the-local-evaluator), [AS-06](#as-06--decide-whether-automation-restrictions-are-policy-or-enforcement), [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts), [AS-27](#as-27--cache-stable-inference-context-safely), [AS-28](#as-28--measure-model-roi-with-provider-neutral-paid-evaluations) |
 | Reliability and persistence | [AS-03](#as-03--define-persistence-and-recovery-semantics), [AS-05](#as-05--coordinate-all-world-mutations), [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts), [AS-17](#as-17--preserve-history-when-system-messages-coalesce), [AS-22](#as-22--make-failed-spotlight-runs-inspectable-on-the-canvas) |
-| Operations and testing | [AS-01](#as-01--authenticate-or-remove-the-local-evaluator), [AS-03](#as-03--define-persistence-and-recovery-semantics), [AS-19](#as-19--make-the-base-prompt-a-tested-consistent-contract), [AS-27](#as-27--cache-stable-inference-context-safely), [AS-28](#as-28--measure-model-roi-with-provider-neutral-paid-evaluations), [AS-29](#as-29--clear-the-final-publication-gate), [AS-30](#as-30--decide-when-to-move-to-pharo-14) |
-| Architecture and evolution | [AS-03](#as-03--define-persistence-and-recovery-semantics), [AS-05](#as-05--coordinate-all-world-mutations), [AS-06](#as-06--decide-whether-automation-restrictions-are-policy-or-enforcement), [AS-14](#as-14--introduce-a-provider-neutral-inference-boundary), [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts), [AS-19](#as-19--make-the-base-prompt-a-tested-consistent-contract), [AS-27](#as-27--cache-stable-inference-context-safely), [AS-30](#as-30--decide-when-to-move-to-pharo-14) |
+| Operations and testing | [AS-01](#as-01--authenticate-or-remove-the-local-evaluator), [AS-03](#as-03--define-persistence-and-recovery-semantics), [AS-27](#as-27--cache-stable-inference-context-safely), [AS-28](#as-28--measure-model-roi-with-provider-neutral-paid-evaluations), [AS-29](#as-29--clear-the-final-publication-gate), [AS-30](#as-30--decide-when-to-move-to-pharo-14) |
+| Architecture and evolution | [AS-03](#as-03--define-persistence-and-recovery-semantics), [AS-05](#as-05--coordinate-all-world-mutations), [AS-06](#as-06--decide-whether-automation-restrictions-are-policy-or-enforcement), [AS-14](#as-14--introduce-a-provider-neutral-inference-boundary), [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts), [AS-27](#as-27--cache-stable-inference-context-safely), [AS-30](#as-30--decide-when-to-move-to-pharo-14) |
 | Product, feature, and UX | [AS-06](#as-06--decide-whether-automation-restrictions-are-policy-or-enforcement), [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts), [AS-16](#as-16--make-tool-card-removal-match-its-visible-meaning), [AS-17](#as-17--preserve-history-when-system-messages-coalesce), [AS-22](#as-22--make-failed-spotlight-runs-inspectable-on-the-canvas), [AS-29](#as-29--clear-the-final-publication-gate), [AS-31](#as-31--tell-a-first-time-image-how-to-start) |
-| Performance and maintenance | [AS-19](#as-19--make-the-base-prompt-a-tested-consistent-contract), [AS-27](#as-27--cache-stable-inference-context-safely), [AS-28](#as-28--measure-model-roi-with-provider-neutral-paid-evaluations), [AS-30](#as-30--decide-when-to-move-to-pharo-14) |
+| Performance and maintenance | [AS-27](#as-27--cache-stable-inference-context-safely), [AS-28](#as-28--measure-model-roi-with-provider-neutral-paid-evaluations), [AS-30](#as-30--decide-when-to-move-to-pharo-14) |
 
 ---
 
@@ -221,7 +220,7 @@ Choose and consistently communicate one model:
 **Categories:** architecture, reliability<br>
 **Priority:** P2<br>
 **Effort:** L<br>
-**Dependencies:** AS-19<br>
+**Dependencies:** none<br>
 **Source:** repository review, 2026-07-09
 
 ### Problem and argument
@@ -335,41 +334,6 @@ history required to understand repeated failures.
 - Gateway async-failure reporting does not miss a newly recreated occurrence.
 - Tests cover identical and differing repeated messages.
 
-## AS-19 — Make the base prompt a tested, consistent contract
-
-**Status:** candidate<br>
-**Categories:** testing, architecture, maintenance<br>
-**Priority:** P1<br>
-**Effort:** M<br>
-**Dependencies:** none<br>
-**Source:** repository review, 2026-07-09
-
-### Problem and argument
-
-The base prompt is a large load-bearing program, but most prompt tests assert
-only that phrases are present. It says `evaluate_smalltalk` is the only action
-tool despite also teaching `search_image`, and its tool example visually places
-class definition and class use in one code block despite requiring separate
-calls. The reactive retrofit recipe can also touch off-canvas instances and
-lose live state.
-
-### Proposed outcome
-
-The prompt has one consistent operational contract, smaller reusable sections,
-and behavioral evaluations for common workflows and failure cases.
-
-### Acceptance criteria
-
-- Inspection and mutation tools are described without contradiction.
-- Every multi-call example labels its call boundaries explicitly.
-- Live-instance modification recipes preserve state, position, subscriptions,
-  and undo semantics.
-- Reactive headless construction cannot leave ghost subscribers.
-- Tests validate model/tool behavior through scripted scenarios rather than
-  phrase presence alone.
-- Reusable, tested tools replace prompt recipes only when evidence shows the
-  replacement is more reliable.
-
 ## AS-22 — Make failed Spotlight runs inspectable on the canvas
 
 **Status:** ready<br>
@@ -450,7 +414,7 @@ metrics, and debuggers.
 **Categories:** performance, architecture, security, testing<br>
 **Priority:** P1<br>
 **Effort:** M<br>
-**Dependencies:** AS-19; coordinate adapter-specific cache semantics with AS-14<br>
+**Dependencies:** coordinate adapter-specific cache semantics with AS-14<br>
 **Source:** model ROI discussion and repository measurement, 2026-07-13
 
 ### Problem and argument
@@ -502,7 +466,7 @@ behavior.
 **Categories:** testing, performance, operations, security<br>
 **Priority:** P2<br>
 **Effort:** L<br>
-**Dependencies:** AS-14, AS-19, AS-27<br>
+**Dependencies:** AS-14, AS-27<br>
 **Source:** model ROI discussion, 2026-07-13
 
 ### Problem and argument

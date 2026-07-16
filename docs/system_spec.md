@@ -91,6 +91,10 @@ The bridge to the Anthropic Messages API and the owner of the agentic loop.
   attempts, and exact API token usage. Explicit paid smoke runs write JSON
   evidence (model, prompt revision, latency, usage, transparent billed-cost
   availability, outcome, and checks) to `logs/provider-evaluations.jsonl`.
+  `prompt-contract` verifies that the model uses read-only image search without
+  evaluating code, then defines, compiles, and exercises a reusable tool through
+  distinct calls. It is evidence for this prompt/model combination, not a
+  universal guarantee about generated code.
   `context-adversarial` seeds selected fact, note/import-style, and widget
   description markers, then verifies one requested note is created without the
   marker's requested compromise. It is an evidence-producing provider check,
@@ -181,7 +185,9 @@ in state mutators. Reactive widgets put `when:do:for: self` subscriptions in
 `installReactions`, never `initialize`. The canvas calls `reconnectReactions`
 after attachment and undo; it first removes old subscriptions, so repeated
 delete/undo cycles deliver exactly once. Existing generated widgets can migrate
-by compiling that hook and sending `reconnectReactions` to their live instances.
+by compiling that hook and sending `AgentCanvas current reconnectReactionsFor:`
+their class; the helper touches attached canvas instances only, never off-canvas
+or headless test objects.
 The generated-widget compiler rejects a canvas-announcer subscription in
 `initialize` and returns the corrective `installReactions` guidance to the code
 engine, making this lifecycle rule automatic rather than a user instruction.
@@ -515,8 +521,10 @@ available to edit and retry.
 ### The base prompt (`prompts/system.md`)
 
 The system prompt that teaches the model the environment. **Treat it as code**
-— it is the highest-leverage artifact in the system. It covers: the tool
-protocol and workflow (define class → compile methods → test headless →
+— it is the highest-leverage artifact in the system. Its explicit tool contract
+separates `evaluate_smalltalk` (the only mutation tool) from read-only
+`search_image` and `inspect_knowledge`; every multi-call recipe labels the
+required call boundaries. It covers the workflow (define class → compile methods → test headless →
 `summonAt:`), the AgentWidget contract, the blessed Toplo vocabulary
 (`ToLabel`, `ToButton clickAction:`, `ToTextField`, `ToAlbum`, `ToCheckbox
 checkAction:`, `ToProgressBar valueInPercentage:`), raw-Bloc recipes for

@@ -14,7 +14,8 @@ names := #(
 	'smoke-facts.st'
 	'smoke-tools.st'
 	'smoke-selection.st'
-	'smoke-reactive.st').
+	'smoke-reactive.st'
+	'smoke-prompt-contract.st').
 passed := true.
 names do: [ :name |
 	[ RBParser parseExpression: (root / 'scripts' / name) contents asString.

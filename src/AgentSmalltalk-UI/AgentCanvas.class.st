@@ -683,6 +683,15 @@ AgentCanvas >> widgets [
 ]
 
 { #category : 'widgets' }
+AgentCanvas >> reconnectReactionsFor: aWidgetClass [
+	"Reconnect only attached widgets. Headless construction and discarded test
+	instances must never acquire a canvas-announcer subscription. This is the
+	safe migration entry point after a generated class gains #installReactions."
+	self widgets do: [ :each |
+		(each isKindOf: aWidgetClass) ifTrue: [ each reconnectReactions ] ]
+]
+
+{ #category : 'widgets' }
 AgentCanvas >> facts [
 	| attached |
 	attached := self widgets select: [ :w | w isKindOf: AgentFact ].
