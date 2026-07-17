@@ -24,8 +24,8 @@ unresolved idea.
 NNNN-short-kebab-case-title.md
 ```
 
-Numbers are assigned sequentially and never reused. Superseded ADRs remain in
-the index and link to their replacement.
+Numbers are assigned sequentially and never reused. Superseded ADRs remain
+and link to their replacement.
 
 ## Template
 
@@ -58,10 +58,6 @@ What becomes easier, harder, required, or deliberately unsupported?
 What evidence or change would justify reopening the decision?
 ```
 
-## Index
-
-- [0001 — Inference runs outside the image, behind the gateway](0001-external-inference-boundary.md)
-
 Strong candidates not yet extracted include:
 
 - image-closed automation semantics: record one miss, never catch up;
@@ -69,7 +65,6 @@ Strong candidates not yet extracted include:
   detection;
 - generated tools living in image-only packages rather than `src/`;
 - the decision to postpone visible wiring while global reactions are adequate;
-- the provider-neutral boundary proposed in backlog item AS-14.
 
 Create ADRs when one of these decisions is next changed or materially relied
 upon; avoid a mechanical history-writing exercise with no active use.

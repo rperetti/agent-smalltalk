@@ -24,7 +24,7 @@ BEGIN {
   inPlanningSurface = 0
 }
 
-/^## Top 10 priorities/ {
+/^## Current priorities/ {
   inPlanningSurface = 1
 }
 
@@ -75,8 +75,8 @@ END {
     valid = 0
   }
 
-  if (foundRows != 10) {
-    printf "Backlog order error: expected 10 planning rows, found %d.\n", foundRows > "/dev/stderr"
+  if (foundRows > 10) {
+    printf "Backlog order error: expected at most 10 planning rows, found %d.\n", foundRows > "/dev/stderr"
     valid = 0
   }
 
@@ -96,4 +96,4 @@ END {
 }
 ' docs/backlog.md
 
-echo "BACKLOG_ORDER_OK: top-ten ranks are contiguous, bug categories agree, and all bugs precede non-bugs."
+echo "BACKLOG_ORDER_OK: current ranks are contiguous, bug categories agree, and all bugs precede non-bugs."

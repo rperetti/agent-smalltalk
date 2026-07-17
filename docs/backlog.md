@@ -1,36 +1,35 @@
 # Backlog
 
 The ordered register of actionable work for Agent Smalltalk. The table below is
-the current top-ten planning view; the detailed entries retain lower-priority
+the current-priority planning view; the detailed entries retain lower-priority
 work so it is not lost. The order is an initial proposal, not a frozen roadmap.
 The field schema, category vocabulary, and ordering rules are defined in the
 [Conventions](#conventions) section at the end of this file; see
 [README.md](README.md) for the work-item lifecycle and how the backlog relates
 to the other documents.
 
-## Top 10 priorities
+## Current priorities
 
-These are the ten items we should address first, in agreed order. Detailed
+These are the items we should address first, in agreed order. Detailed
 entries below the category views include additional backlog candidates that are
 not currently in the top ten.
 
 | rank | ID | title | categories | priority | effort |
 |---:|---|---|---|---|---|
-| 1 | [AS-14](#as-14--introduce-a-provider-neutral-inference-boundary) | Introduce a provider-neutral inference boundary | architecture, reliability | P2 | L |
-| 2 | [AS-17](#as-17--preserve-history-when-system-messages-coalesce) | Preserve history when system messages coalesce | reliability, ux | P2 | S |
-| 3 | [AS-22](#as-22--make-failed-spotlight-runs-inspectable-on-the-canvas) | Make failed Spotlight runs inspectable on the canvas | feature, ux, reliability | P1 | L |
-| 4 | [AS-28](#as-28--measure-model-roi-with-provider-neutral-paid-evaluations) | Measure model ROI with provider-neutral paid evaluations | testing, performance, operations, security | P2 | L |
-| 5 | [AS-03](#as-03--define-persistence-and-recovery-semantics) | Define persistence and recovery semantics | architecture, reliability, operations | P0 | L |
-| 6 | [AS-29](#as-29--clear-the-final-publication-gate) | Clear the final publication gate | documentation, operations, product | P0 | S |
-| 7 | [AS-05](#as-05--coordinate-all-world-mutations) | Coordinate all world mutations | architecture, reliability | P1 | L |
-| 8 | [AS-06](#as-06--decide-whether-automation-restrictions-are-policy-or-enforcement) | Decide whether automation restrictions are policy or enforcement | security, product, architecture | P1 | L |
-| 9 | [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts) | Add provenance, health, and rollback for generated artifacts | architecture, feature, reliability | P1 | L |
-| 10 | [AS-30](#as-30--decide-when-to-move-to-pharo-14) | Decide when to move to Pharo 14 | maintenance, operations, architecture | P2 | M |
+| 1 | [AS-17](#as-17--preserve-history-when-system-messages-coalesce) | Preserve history when system messages coalesce | reliability, ux | P2 | S |
+| 2 | [AS-22](#as-22--make-failed-spotlight-runs-inspectable-on-the-canvas) | Make failed Spotlight runs inspectable on the canvas | feature, ux, reliability | P1 | L |
+| 3 | [AS-28](#as-28--measure-model-roi-with-provider-neutral-paid-evaluations) | Measure model ROI with provider-neutral paid evaluations | testing, performance, operations, security | P2 | L |
+| 4 | [AS-03](#as-03--define-persistence-and-recovery-semantics) | Define persistence and recovery semantics | architecture, reliability, operations | P0 | L |
+| 5 | [AS-29](#as-29--clear-the-final-publication-gate) | Clear the final publication gate | documentation, operations, product | P0 | S |
+| 6 | [AS-05](#as-05--coordinate-all-world-mutations) | Coordinate all world mutations | architecture, reliability | P1 | L |
+| 7 | [AS-06](#as-06--decide-whether-automation-restrictions-are-policy-or-enforcement) | Decide whether automation restrictions are policy or enforcement | security, product, architecture | P1 | L |
+| 8 | [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts) | Add provenance, health, and rollback for generated artifacts | architecture, feature, reliability | P1 | L |
+| 9 | [AS-30](#as-30--decide-when-to-move-to-pharo-14) | Decide when to move to Pharo 14 | maintenance, operations, architecture | P2 | M |
 
 ## Category views
 
 These are alternate indexes over the full detailed backlog, not independent
-queues. The top-ten table is the ranked planning surface; these views also
+queues. The current-priority table is the ranked planning surface; these views also
 include unranked candidates outside it.
 
 | lens | items |
@@ -39,7 +38,7 @@ include unranked candidates outside it.
 | Security and authority | [AS-01](#as-01--authenticate-or-remove-the-local-evaluator), [AS-06](#as-06--decide-whether-automation-restrictions-are-policy-or-enforcement), [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts), [AS-28](#as-28--measure-model-roi-with-provider-neutral-paid-evaluations) |
 | Reliability and persistence | [AS-03](#as-03--define-persistence-and-recovery-semantics), [AS-05](#as-05--coordinate-all-world-mutations), [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts), [AS-17](#as-17--preserve-history-when-system-messages-coalesce), [AS-22](#as-22--make-failed-spotlight-runs-inspectable-on-the-canvas) |
 | Operations and testing | [AS-01](#as-01--authenticate-or-remove-the-local-evaluator), [AS-03](#as-03--define-persistence-and-recovery-semantics), [AS-28](#as-28--measure-model-roi-with-provider-neutral-paid-evaluations), [AS-29](#as-29--clear-the-final-publication-gate), [AS-30](#as-30--decide-when-to-move-to-pharo-14) |
-| Architecture and evolution | [AS-03](#as-03--define-persistence-and-recovery-semantics), [AS-05](#as-05--coordinate-all-world-mutations), [AS-06](#as-06--decide-whether-automation-restrictions-are-policy-or-enforcement), [AS-14](#as-14--introduce-a-provider-neutral-inference-boundary), [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts), [AS-30](#as-30--decide-when-to-move-to-pharo-14) |
+| Architecture and evolution | [AS-03](#as-03--define-persistence-and-recovery-semantics), [AS-05](#as-05--coordinate-all-world-mutations), [AS-06](#as-06--decide-whether-automation-restrictions-are-policy-or-enforcement), [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts), [AS-30](#as-30--decide-when-to-move-to-pharo-14) |
 | Product, feature, and UX | [AS-06](#as-06--decide-whether-automation-restrictions-are-policy-or-enforcement), [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts), [AS-16](#as-16--make-tool-card-removal-match-its-visible-meaning), [AS-17](#as-17--preserve-history-when-system-messages-coalesce), [AS-22](#as-22--make-failed-spotlight-runs-inspectable-on-the-canvas), [AS-29](#as-29--clear-the-final-publication-gate), [AS-31](#as-31--tell-a-first-time-image-how-to-start) |
 | Performance and maintenance | [AS-28](#as-28--measure-model-roi-with-provider-neutral-paid-evaluations), [AS-30](#as-30--decide-when-to-move-to-pharo-14) |
 
@@ -202,36 +201,6 @@ Choose and consistently communicate one model:
   covered by tests.
 - Any externally visible or irreversible capability has an explicit approval
   model.
-
-## AS-14 — Introduce a provider-neutral inference boundary
-
-**Status:** candidate<br>
-**Categories:** architecture, reliability<br>
-**Priority:** P2<br>
-**Effort:** L<br>
-**Dependencies:** none<br>
-**Source:** repository review, 2026-07-09
-
-### Problem and argument
-
-`AgentAnthropicTransport` abstracts HTTP for tests, but `AgentGateway` still
-owns Anthropic payload structure and a hard-coded model. The implementation
-therefore does not yet support the vision's provider-neutral wording.
-
-### Proposed outcome
-
-The core loop speaks a provider-neutral turn/tool protocol. Provider adapters
-translate that protocol to Anthropic, OpenAI, or another service.
-
-### Acceptance criteria
-
-- Provider, model, token limit, and timeouts are externally configurable.
-- Provider adapters own request/response translation and validation.
-- HTTP clients close resources reliably.
-- Retry/backoff is limited to safe, retryable provider failures and cannot
-  duplicate local tool mutations.
-- Fake adapters exercise malformed responses, rate limits, timeouts, and final
-  text/tool sequences.
 
 ## AS-15 — Add provenance, health, and rollback for generated artifacts
 
@@ -403,7 +372,7 @@ metrics, and debuggers.
 **Categories:** testing, performance, operations, security<br>
 **Priority:** P2<br>
 **Effort:** L<br>
-**Dependencies:** AS-14<br>
+**Dependencies:** none<br>
 **Source:** model ROI discussion, 2026-07-13
 
 ### Problem and argument
@@ -631,11 +600,11 @@ non-bug, regardless of priority.
 
 ### Ordering
 
-The `Top 10 priorities` table at the top of this file is the planning surface.
+The `Current priorities` table at the top of this file is the planning surface.
 Reordering those rows should be a small, explicit change; detailed entries do
-not need to move or be rewritten. Items outside the top ten remain available
-for promotion when the order changes, but do not receive a planning rank until
-they enter the table.
+not need to move or be rewritten. Items outside the current priorities remain
+available for promotion when the order changes, but do not receive a planning
+rank until they enter the table.
 
 When ordering work, use these default decision drivers:
 

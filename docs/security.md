@@ -23,8 +23,10 @@ The system can affect or disclose:
 - the host account's files, processes, network identity, and credentials
   reachable from Pharo;
 - the mutable image and its `.changes` source history;
+- non-secret inference profiles selected from the image;
 - facts, notes, widget state, selections, tools, and automations;
-- the Anthropic API key available through the process environment;
+- the selected inference provider's API key available through the process
+  environment;
 - gateway transcripts and failure logs;
 - generated code and reusable capabilities that may execute again later;
 - external systems reached by generated tools or automations.
@@ -35,7 +37,7 @@ The system can affect or disclose:
 |---|---|---|
 | User request → model | User text is sent to the configured cloud model. | The provider receives the request and dynamic context. |
 | Canvas → model | A frozen `agent-prompt-context/v1` JSON appendix carries bounded widget, selection, capability, automation, and projection-failure data. It is marked `untrusted-data`, limited to 32,768 characters, and reports omissions/truncation. Persistent fact values are omitted even when selected and returned only through a model-requested, bounded `inspect_knowledge` result. | Canvas content can still influence model behavior. The envelope and prompt guidance make that data boundary explicit and limit routine disclosure, but neither is access control. |
-| Model → image | `evaluate_smalltalk` executes generated source immediately. | Model output has the authority of the Pharo process. |
+| Model → image | `evaluate_smalltalk` executes generated source immediately. | Model output has the authority of the Pharo process, including inspectable and mutable non-secret inference profiles. |
 | Generated automation → later execution | Saved Smalltalk runs on its schedule without another model call. | Prompt restrictions are policy, not runtime enforcement. |
 | Localhost → image | `AgentRemote` currently exposes `/update` and arbitrary `/eval` on port 8807 without authentication. | Any caller able to reach the listener may obtain image authority. |
 | Image → disk | Snapshots, `.changes`, backups, and logs persist local state. | Local filesystem access exposes history and user data. |
@@ -46,8 +48,11 @@ The system can affect or disclose:
 These mechanisms improve reliability or limit accidental exposure, but do not
 form a capability sandbox:
 
-- The API key is read from `ANTHROPIC_API_KEY` and is not intentionally written
-  to gateway logs.
+- The selected provider's API key is read from `ANTHROPIC_API_KEY` or
+  `OPENAI_API_KEY` and is not intentionally written to gateway logs.
+- Provider adapters translate and validate their own HTTP request/response
+  formats. The gateway retries only retryable provider failures before it has
+  admitted a response, so a retry cannot replay a local tool mutation.
 - The remote listener binds to the loopback interface and is enabled only by
   the interactive canvas-open path.
 - Gateway requests are serialized with a class-wide mutex.
@@ -124,21 +129,23 @@ Smalltalk. These accepted limits return for review before publication.
 
 ## Data handling
 
-- Persistent fact values are omitted from the initial Anthropic request. A fact
-  value is sent when the model requests it through `inspect_knowledge`; facts
-  stated in the current user request are already part of that request.
+- Persistent fact values are omitted from the initial request to the selected
+  provider. A fact value is sent when the model requests it through
+  `inspect_knowledge`; facts stated in the current user request are already
+  part of that request.
 - Notes and system messages are excluded from ordinary context but enter the
   bounded appendix when selected. Selected fact values remain omitted.
 - Widget descriptions, selected slot/selector metadata, tool purposes and
   selectors, and automation descriptions are copied into the bounded JSON
   appendix, where every field is labelled untrusted data.
-- Anthropic prompt caching marks only the reviewed base prompt after the stable
-  tool definitions. The dynamic canvas appendix, user text, conversation
+- With Anthropic, prompt caching marks only the reviewed base prompt after the
+  stable tool definitions. The dynamic canvas appendix, user text, conversation
   history, tool results, and generated code follow that breakpoint and are not
   part of a reusable prefix. The provider labels the cache `ephemeral` with its
   default five-minute TTL; this project does not establish a Zero Data
   Retention agreement or otherwise turn provider caching into a local retention
-  control.
+  control. OpenAI caching is provider-managed; the gateway does not claim an
+  equivalent explicit boundary.
 - `logs/gateway.log` records user requests, evaluated code, tool results,
   errors, complete HTTP request/response JSON, and one compact structured
   request-metrics record after each response. Those records expose serialized

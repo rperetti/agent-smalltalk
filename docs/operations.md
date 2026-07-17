@@ -26,11 +26,43 @@ The currently documented local setup is Pharo 13 on macOS/Apple Silicon:
    `pharo-vm-Darwin-arm64-stable.zip` from
    `https://files.pharo.org/get-files/130/`.
 2. Unzip the image under `pharo/` and the VM under `pharo/vm/`.
-3. Export `ANTHROPIC_API_KEY` for real gateway requests.
+3. Export the credential required by the profile selected for real gateway
+   requests. Credentials remain outside the image.
 
 `build.sh`, `test.sh`, and `update.sh` accept `PHARO_VM`; `build.sh` and the
 preflight inside `update.sh` also accept `PHARO_PRISTINE`. `run.sh` still uses
 the macOS bundle path directly.
+
+### Inference profiles
+
+An `AgentInferenceProfile` is an ordinary, inspectable image object. It holds
+the provider, model, output limit, HTTP timeout, and retry policy; it never
+holds a credential. The image provides a default profile for every installed
+provider. Creating a named profile supplies complete provider defaults; every
+configuration setter is optional.
+
+Create and select a second profile in a workspace or inspector:
+
+```smalltalk
+openAI := AgentInferenceProfile
+  named: 'OpenAI fast'
+  provider: 'openai'.
+AgentInferenceProfile current: openAI.
+```
+
+`AgentInferenceProfile all` lists registered profiles and
+`AgentInferenceProfile profileNamed: 'OpenAI fast'` retrieves one by name. A
+specific request can use a profile without changing the selection:
+
+```smalltalk
+(AgentGateway new profile: openAI) run: 'Explain the selected canvas item'.
+```
+
+Gateway configuration follows the profile object while adapters resolve their
+credentials from the process environment. Profiles persist with the working
+image, so `./update.sh` preserves them while rebuilding from a pristine image
+replaces them. A retry occurs only before the gateway receives a provider
+response, so it cannot replay a local `evaluate_smalltalk` mutation.
 
 ## Command summary
 
@@ -203,9 +235,10 @@ temporary workspaces and empty dependency caches produced:
 automation vertical smoke, and parses every paid smoke script without sending a
 provider request. It never opens or mutates `Agent.image`.
 
-`./evaluate.sh` is intentionally separate. It requires `ANTHROPIC_API_KEY`,
-runs each named provider evaluation in a fresh disposable image, and fails on
-the first semantic failure. To run one evaluation rather than the full suite:
+`./evaluate.sh` is intentionally separate. It requires the credential for its
+selected profile, runs each named provider evaluation in a fresh disposable
+image, and fails on the first semantic failure. To run one evaluation rather
+than the full suite:
 
 ```bash
 ./evaluate.sh fact-widget
@@ -264,7 +297,7 @@ with:
   eval "AgentGateway ask: 'make me a counter widget'"
 ```
 
-Real requests require `ANTHROPIC_API_KEY` and incur provider cost.
+Real requests require the selected provider's API key and incur provider cost.
 
 ## Logs and diagnostics
 
@@ -288,7 +321,7 @@ In the image, `AgentGateway last log` returns the in-memory transcript and
 `AgentGateway last requestMetrics` returns the latest structured growth summary.
 The spotlight closes after a successful request; the provider does not return
 billed USD, so metrics record it as unavailable rather than estimating a price.
-The API key is sent as an HTTP header and is not
+The selected provider's API key is sent as an HTTP header and is not
 intentionally logged. Canvas facts and request content do appear in full HTTP
 payload logs. `gateway.log` currently has no rotation.
 

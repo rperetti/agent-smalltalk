@@ -235,12 +235,10 @@ could pick the model per request — by task type, estimated difficulty,
 cost/latency budget, or explicit user preference — so the system spends
 capability where it matters.
 
-This sits on top of a provider-neutral inference boundary: once the gateway can
-reach more than one backend
-([AS-14](backlog.md#as-14--introduce-a-provider-neutral-inference-boundary),
-building on the external-inference decision in
-[ADR-0001](adr/0001-external-inference-boundary.md)), the router decides which
-one a given request uses.
+This sits on top of the provider-neutral boundary in
+[ADR-0002](adr/0002-provider-neutral-inference-boundary.md): the gateway can
+reach Anthropic or OpenAI today, while the router would decide which configured
+backend a given request uses.
 
 Open questions:
 
@@ -253,9 +251,8 @@ Open questions:
 - How does routing interact with the tool-use loop — can the model change
   mid-run?
 
-Promotion trigger: more than one backend is actually available (AS-14 lands) and
-real usage shows a cost or capability mismatch from routing everything to one
-model.
+Promotion trigger: real usage shows a cost or capability mismatch from routing
+everything to one configured model.
 
 ## Promote living-world code from the image to the platform source
 

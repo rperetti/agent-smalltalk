@@ -23,7 +23,7 @@ agent can read and edit, interactive **widgets** it compiled on the spot, a
 green **service** it saved to reuse, and a purple **automation** running on a
 pausable schedule. For a hands-on demonstration, the quickest is a headless
 one-shot that has the agent write and place a widget (after [Setup](#setup),
-with `ANTHROPIC_API_KEY` exported):
+with a provider API key exported):
 
 ```bash
 ./pharo/vm/Pharo.app/Contents/MacOS/Pharo --headless pharo/Agent.image \
@@ -91,9 +91,9 @@ an unconstrained living environment, so:
   it, your machine. Run it somewhere you're comfortable handing a coding agent
   the keys.
 - Everything on the canvas — including any facts you tell it — is **sent to the
-  Anthropic API on every request**. Don't put secrets or sensitive personal
-  data in it.
-- It calls the Anthropic API, so **it costs money** per request.
+  configured cloud provider on every request**. Don't put secrets or sensitive
+  personal data in it.
+- It calls a cloud inference provider, so **it costs money** per request.
 
 Treat it as a toy to explore, not a tool to depend on. No warranty; use at your
 own risk — and have fun with it. The current authority boundaries, data flows,
@@ -120,7 +120,11 @@ checkout including the downloaded VM. (Measured 2026-07-11; see the
    download `pharoImage-arm64.zip` and `pharo-vm-Darwin-arm64-stable.zip`
    from https://files.pharo.org/get-files/130/ and unzip into `pharo/`
    (VM into `pharo/vm/`).
-2. `export ANTHROPIC_API_KEY=sk-ant-...` (needs API credits).
+2. Export the credential for the selected profile's provider. A new image uses
+   the built-in Anthropic profile, so start with
+   `export ANTHROPIC_API_KEY=sk-ant-...`. To use OpenAI, export
+   `OPENAI_API_KEY` and select an OpenAI profile in the image (see
+   [operations](docs/operations.md#inference-profiles)).
 
 ## Commands
 
@@ -130,7 +134,7 @@ checkout including the downloaded VM. (Measured 2026-07-11; see the
 | `./update.sh` | preflight and reload tooling from `src/` into the LIVING image — world preserved; use this one |
 | `./test.sh` | build a disposable clean image and run SUnit; never opens `Agent.image` |
 | `./verify-all.sh` | run every deterministic release gate: SUnit, automation smoke, and paid-smoke syntax checks |
-| `./evaluate.sh` | explicitly run paid model evaluations in fresh images; requires `ANTHROPIC_API_KEY` and writes JSON evidence |
+| `./evaluate.sh` | explicitly run paid model evaluations in fresh images; requires the selected provider's key and writes JSON evidence |
 | `./run.sh` | open the Agent canvas (Cmd/Ctrl+Enter summons the Spotlight bar) |
 
 `build.sh` accepts `core`/`all`, `--output PATH`, `--no-verify`,
@@ -149,10 +153,14 @@ A single request flows through a small number of parts:
 - **Spotlight** — the input bar (summoned with Cmd/Ctrl+Enter) where you type a
   request to the agent.
 - **Gateway** (`AgentGateway`) — sends your request, plus everything currently
-  on the canvas, to the Anthropic API, and runs the model's tool-use loop. The
-  model runs outside the image by design — the purist ideal would run it in-image,
-  but no capable model does yet; see
-  [ADR-0001](docs/adr/0001-external-inference-boundary.md).
+  on the canvas, through a provider-neutral turn/tool protocol and runs the
+  model's tool-use loop. It uses the selected image-resident
+  `AgentInferenceProfile`; the built-in default is Anthropic, and OpenAI is
+  also supported.
+  The model runs outside the image by design — the purist ideal would run it
+  in-image, but no capable model does yet; see
+  [ADR-0001](docs/adr/0001-external-inference-boundary.md) and
+  [ADR-0002](docs/adr/0002-provider-neutral-inference-boundary.md).
 - **Sandbox** (`AgentSandbox`) — compiles the Smalltalk the model writes and
   executes it *live* in the running image. There is no isolation boundary; this
   is the "no guardrails" part.

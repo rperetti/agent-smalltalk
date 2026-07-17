@@ -1,15 +1,19 @@
 "
-I am the production HTTP transport for AgentGateway. Keeping network I/O
-behind this small protocol makes the agentic loop deterministic in tests:
-tests substitute a transport that answers recorded Messages API responses,
-while the gateway continues to exercise its real message/tool orchestration.
+I translate AgentGateway's canonical inference protocol to the Anthropic
+Messages API. I own its payload, headers, response validation, and HTTP
+resource lifetime; the gateway never needs to interpret Messages API fields.
 "
 Class {
 	#name : 'AgentAnthropicTransport',
-	#superclass : 'Object',
+	#superclass : 'AgentInferenceProvider',
 	#category : 'AgentSmalltalk-Core',
 	#package : 'AgentSmalltalk-Core'
 }
+
+{ #category : 'accessing' }
+AgentAnthropicTransport >> apiKeyEnvironmentVariable [
+	^ 'ANTHROPIC_API_KEY'
+]
 
 { #category : 'prompt caching' }
 AgentAnthropicTransport >> cacheConfigurationForModel: aModel stableInstructions: stableInstructions tools: tools generationSettings: generationSettings [
@@ -38,6 +42,130 @@ AgentAnthropicTransport >> cacheConfigurationForModel: aModel stableInstructions
 		asDictionary
 ]
 
+{ #category : 'validation' }
+AgentAnthropicTransport >> canonicalResponseFrom: rawResponse [
+	| content canonicalContent response |
+	(rawResponse respondsTo: #at:ifAbsent:) ifFalse: [
+		^ self malformedResponse: 'response must be an object' ].
+	content := rawResponse at: 'content' ifAbsent: [
+		^ self malformedResponse: 'response has no content' ].
+	(content isArray or: [ content isKindOf: OrderedCollection ]) ifFalse: [
+		^ self malformedResponse: 'content must be an array' ].
+	canonicalContent := (content collect: [ :block |
+		self canonicalBlockFrom: block ]) reject: [ :block | block isNil ].
+	response := self
+		validatedCanonicalResponseWithContent: canonicalContent
+		usage: (rawResponse at: 'usage' ifAbsent: [ Dictionary new ]).
+	"The gateway must not interpret provider reasoning, but the Messages API
+	requires its assistant content to survive the following tool-result turn.
+	Keep the original response as opaque continuation state for this adapter."
+	response at: 'continuation_state' put: ({
+		'provider' -> self providerName.
+		'assistant_content' -> content asArray } asDictionary).
+	^ response
+]
+
+{ #category : 'validation' }
+AgentAnthropicTransport >> canonicalBlockFrom: block [
+	| type |
+	(block respondsTo: #at:ifAbsent:) ifFalse: [
+		^ self malformedResponse: 'content blocks must be objects' ].
+	type := block at: 'type' ifAbsent: [
+		^ self malformedResponse: 'content block has no type' ].
+	type = 'text' ifTrue: [
+		^ {
+			'type' -> 'text'.
+			'text' -> (block at: 'text' ifAbsent: [
+				self malformedResponse: 'text block has no text' ]) } asDictionary ].
+	type = 'tool_use' ifTrue: [
+		^ {
+			'type' -> 'tool_use'.
+			'id' -> (block at: 'id' ifAbsent: [
+				self malformedResponse: 'tool_use block has no id' ]).
+			'name' -> (block at: 'name' ifAbsent: [
+				self malformedResponse: 'tool_use block has no name' ]).
+			'input' -> (block at: 'input' ifAbsent: [
+				self malformedResponse: 'tool_use block has no input' ]) } asDictionary ].
+	(type = 'thinking' or: [ type = 'redacted_thinking' ]) ifTrue: [
+		"Opaque provider continuation state. It is deliberately absent from the
+		canonical agent loop, but retained verbatim in continuation_state."
+		^ nil ].
+	self malformedResponse: 'unsupported content block type ' , type printString
+]
+
+{ #category : 'translation' }
+AgentAnthropicTransport >> anthropicMessageFromCanonical: message [
+	| role continuationState assistantContent translated |
+	(message respondsTo: #at:ifAbsent:) ifFalse: [
+		^ self malformedResponse: 'canonical request message must be an object' ].
+	role := message at: 'role' ifAbsent: [
+		^ self malformedResponse: 'canonical request message has no role' ].
+	translated := message copy.
+	continuationState := translated
+		removeKey: 'continuation_state'
+		ifAbsent: [ ^ translated ].
+	role = 'assistant' ifFalse: [
+		^ self malformedResponse: 'continuation state belongs only on an assistant message' ].
+	(continuationState respondsTo: #at:ifAbsent:) ifFalse: [
+		^ self malformedResponse: 'continuation state must be an object' ].
+	(continuationState at: 'provider' ifAbsent: [ nil ]) = self providerName
+		ifFalse: [ ^ self malformedResponse: 'continuation state belongs to another provider' ].
+	assistantContent := continuationState at: 'assistant_content' ifAbsent: [
+		^ self malformedResponse: 'continuation state has no assistant content' ].
+	(assistantContent isArray or: [ assistantContent isKindOf: OrderedCollection ])
+		ifFalse: [ ^ self malformedResponse: 'continuation assistant content must be an array' ].
+	translated at: 'content' put: assistantContent asArray.
+	^ translated
+]
+
+{ #category : 'translation' }
+AgentAnthropicTransport >> anthropicMessagesFromCanonical: messages [
+	^ messages collect: [ :message |
+		self anthropicMessageFromCanonical: message ]
+]
+
+{ #category : 'accessing' }
+AgentAnthropicTransport >> defaultModel [
+	^ 'claude-sonnet-5'
+]
+
+{ #category : 'inference' }
+AgentAnthropicTransport >> exchangeFor: aCanonicalRequest apiKey: apiKey [
+	| payload rawResponse |
+	payload := self
+		requestPayloadForModel: (aCanonicalRequest at: 'model')
+		maxTokens: (aCanonicalRequest at: 'max_output_tokens')
+		stableInstructions: ((aCanonicalRequest at: 'system') at: 'stable')
+		dynamicInstructions: ((aCanonicalRequest at: 'system') at: 'dynamic')
+		messages: (aCanonicalRequest at: 'messages')
+		tools: (aCanonicalRequest at: 'tools').
+	rawResponse := self
+		postPayload: payload
+		apiKey: apiKey
+		timeoutSeconds: (aCanonicalRequest at: 'timeout_seconds').
+	^ {
+		'request_payload' -> payload.
+		'raw_response' -> rawResponse.
+		'response' -> (self canonicalResponseFrom: rawResponse) }
+		asDictionary
+]
+
+{ #category : 'posting' }
+AgentAnthropicTransport >> postPayload: payload apiKey: apiKey [
+	^ self postPayload: payload apiKey: apiKey timeoutSeconds: 180
+]
+
+{ #category : 'posting' }
+AgentAnthropicTransport >> postPayload: payload apiKey: apiKey timeoutSeconds: timeoutSeconds [
+	^ self
+		postJSONPayload: payload
+		to: 'https://api.anthropic.com/v1/messages'
+		headers: ({
+			'x-api-key' -> apiKey.
+			'anthropic-version' -> '2023-06-01' } asDictionary)
+		timeoutSeconds: timeoutSeconds
+]
+
 { #category : 'prompt caching' }
 AgentAnthropicTransport >> providerName [
 	^ 'anthropic-messages'
@@ -61,7 +189,7 @@ AgentAnthropicTransport >> requestPayloadForModel: aModel maxTokens: maxTokens s
 			{
 				'type' -> 'text'.
 				'text' -> dynamicInstructions } asDictionary }.
-		'messages' -> messages } asDictionary.
+		'messages' -> (self anthropicMessagesFromCanonical: messages) } asDictionary.
 	tools ifNotNil: [ payload at: 'tools' put: tools ].
 	^ payload
 ]
@@ -77,47 +205,4 @@ AgentAnthropicTransport >> revisionFor: source [
 { #category : 'prompt caching' }
 AgentAnthropicTransport >> stablePromptCacheControl [
 	^ { 'type' -> 'ephemeral' } asDictionary
-]
-
-{ #category : 'usage' }
-AgentAnthropicTransport >> usageFromResponse: response [
-	"Translate only valid, non-negative integer usage values. A malformed
-	provider usage envelope must not break a successful model response or turn
-	metrics into arbitrary objects."
-	| usage translated |
-	translated := Dictionary new.
-	#(input_tokens output_tokens cache_creation_input_tokens cache_read_input_tokens)
-		do: [ :key | translated at: key put: 0 ].
-	(response respondsTo: #at:ifAbsent:) ifFalse: [ ^ translated ].
-	usage := response at: 'usage' ifAbsent: [ ^ translated ].
-	(usage respondsTo: #at:ifAbsent:) ifFalse: [ ^ translated ].
-	translated keysAndValuesDo: [ :key :ignored |
-		translated at: key put: (self usageValueAt: key in: usage) ].
-	^ translated
-]
-
-{ #category : 'usage' }
-AgentAnthropicTransport >> usageValueAt: key in: usage [
-	| value |
-	value := usage at: key ifAbsent: [ 0 ].
-	^ (value isInteger and: [ value >= 0 ])
-		ifTrue: [ value ]
-		ifFalse: [ 0 ]
-]
-
-{ #category : 'posting' }
-AgentAnthropicTransport >> postPayload: payload apiKey: apiKey [
-	| client body |
-	client := ZnClient new.
-	client
-		url: 'https://api.anthropic.com/v1/messages';
-		headerAt: 'x-api-key' put: apiKey;
-		headerAt: 'anthropic-version' put: '2023-06-01';
-		entity: (ZnEntity with: (STONJSON toString: payload) type: ZnMimeType applicationJson);
-		timeout: 180.
-	body := client post.
-	client isSuccess ifFalse: [
-		self error: 'Anthropic API error: ' , client response statusLine printString
-			, ' — ' , (body ifNil: [ '<no body>' ]) printString ].
-	^ STONJSON fromString: body
 ]

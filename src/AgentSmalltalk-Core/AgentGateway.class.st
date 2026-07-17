@@ -1,5 +1,5 @@
 "
-I am the bridge between the live image and the Anthropic Messages API.
+I am the bridge between the live image and a configured inference provider.
 I run the agentic tool-use loop: the model calls the evaluate_smalltalk tool,
 I evaluate the code via AgentSandbox and feed the result (or error report) back,
 and the model iterates until it succeeds or the tool-round cap is reached. At
@@ -10,7 +10,7 @@ Class {
 	#superclass : 'Object',
 	#instVars : [
 		'apiKey',
-		'model',
+		'profile',
 		'maxRounds',
 		'sandbox',
 		'log',
@@ -104,12 +104,11 @@ AgentGateway class >> basePrompt [
 { #category : 'initialization' }
 AgentGateway >> initialize [
 	super initialize.
-	model := 'claude-sonnet-5'.
+	self profile: AgentInferenceProfile current.
 	maxRounds := 30.
 	sandbox := AgentSandbox new.
 	log := OrderedCollection new.
 	statusBlock := [ :msg |  ].
-	transport := AgentAnthropicTransport new.
 	knowledgeResultBudgetCharacters := self class defaultKnowledgeResultBudgetCharacters.
 	self
 		resetEvaluationMetrics;
@@ -135,8 +134,9 @@ AgentGateway >> resetEvaluationMetrics [
 AgentGateway >> apiKey [
 	^ apiKey ifNil: [
 		apiKey := Smalltalk os environment
-			at: 'ANTHROPIC_API_KEY'
-			ifAbsent: [ self error: 'ANTHROPIC_API_KEY is not set in the environment' ] ]
+			at: transport apiKeyEnvironmentVariable
+			ifAbsent: [ self error: transport apiKeyEnvironmentVariable
+				, ' is not set in the environment' ] ]
 ]
 
 { #category : 'accessing' }
@@ -147,12 +147,57 @@ AgentGateway >> apiKey: aString [
 
 { #category : 'accessing' }
 AgentGateway >> model [
-	^ model
+	^ profile model
 ]
 
 { #category : 'accessing' }
 AgentGateway >> model: aString [
-	model := aString
+	profile model: aString
+]
+
+{ #category : 'accessing' }
+AgentGateway >> maxOutputTokens [
+	^ profile maxOutputTokens
+]
+
+{ #category : 'accessing' }
+AgentGateway >> maxOutputTokens: aPositiveInteger [
+	profile maxOutputTokens: aPositiveInteger
+]
+
+{ #category : 'accessing' }
+AgentGateway >> maximumRetries [
+	^ profile maximumRetries
+]
+
+{ #category : 'accessing' }
+AgentGateway >> maximumRetries: aNonNegativeInteger [
+	profile maximumRetries: aNonNegativeInteger
+]
+
+{ #category : 'accessing' }
+AgentGateway >> providerName [
+	^ profile provider
+]
+
+{ #category : 'accessing' }
+AgentGateway >> retryBackoffMilliseconds [
+	^ profile retryBackoffMilliseconds
+]
+
+{ #category : 'accessing' }
+AgentGateway >> retryBackoffMilliseconds: aPositiveInteger [
+	profile retryBackoffMilliseconds: aPositiveInteger
+]
+
+{ #category : 'accessing' }
+AgentGateway >> timeoutSeconds [
+	^ profile timeoutSeconds
+]
+
+{ #category : 'accessing' }
+AgentGateway >> timeoutSeconds: aPositiveInteger [
+	profile timeoutSeconds: aPositiveInteger
 ]
 
 { #category : 'accessing' }
@@ -176,6 +221,22 @@ AgentGateway >> statusBlock: aBlock [
 ]
 
 { #category : 'accessing' }
+AgentGateway >> profile [
+	^ profile
+]
+
+{ #category : 'accessing' }
+AgentGateway >> profile: anInferenceProfile [
+	(anInferenceProfile isKindOf: AgentInferenceProfile) ifFalse: [
+		self error: 'Gateway profile must be an AgentInferenceProfile' ].
+	anInferenceProfile validate.
+	profile := anInferenceProfile.
+	transport := AgentInferenceProvider named: profile provider.
+	apiKey := nil.
+	^ self
+]
+
+{ #category : 'accessing' }
 AgentGateway >> transport [
 	^ transport
 ]
@@ -192,7 +253,7 @@ AgentGateway >> requestCount [
 
 { #category : 'evaluation metrics' }
 AgentGateway >> requestPayloadCharacters [
-	"The sum of serialized Messages API payloads in the current gateway run.
+	"The sum of serialized provider payloads in the current gateway run.
 	It measures what leaves this image, rather than estimating tokens locally."
 	^ requestPayloadCharacters ifNil: [ 0 ]
 ]
@@ -246,7 +307,7 @@ AgentGateway >> cacheConfigurationForIncludeTools: includeTools [
 	| tools |
 	tools := includeTools ifTrue: [ self toolDefinitions ] ifFalse: [ nil ].
 	^ transport
-		cacheConfigurationForModel: model
+		cacheConfigurationForModel: self model
 		stableInstructions: self stableSystemPrompt
 		tools: tools
 		generationSettings: (self generationSettingsForIncludeTools: includeTools)
@@ -255,7 +316,7 @@ AgentGateway >> cacheConfigurationForIncludeTools: includeTools [
 { #category : 'prompt caching' }
 AgentGateway >> generationSettingsForIncludeTools: includeTools [
 	^ {
-		'max_tokens' -> 8192.
+		'max_output_tokens' -> self maxOutputTokens.
 		'tools_enabled' -> includeTools } asDictionary
 ]
 
@@ -318,7 +379,7 @@ AgentGateway >> runUnlocked: userText [
 		| response content toolUses |
 		response := self post: messages.
 		content := response at: 'content'.
-		messages add: { 'role' -> 'assistant'. 'content' -> content } asDictionary.
+		messages add: (self assistantMessageWithContent: content response: response).
 		toolUses := content select: [ :block | (block at: 'type') = 'tool_use' ].
 		toolUses isEmpty ifTrue: [
 			^ self noteIfPureAnswer: (self finalTextFrom: content)
@@ -346,6 +407,18 @@ AgentGateway >> backupImage [
 ]
 
 { #category : 'running' }
+AgentGateway >> assistantMessageWithContent: content response: response [
+	"Continuation state is opaque to the agentic loop. A provider adapter may
+	attach it to retain wire-level context needed after a tool result."
+	| message continuationState |
+	message := { 'role' -> 'assistant'. 'content' -> content } asDictionary.
+	continuationState := response at: 'continuation_state' ifAbsent: [ nil ].
+	continuationState ifNotNil: [
+		message at: 'continuation_state' put: continuationState ].
+	^ message
+]
+
+{ #category : 'running' }
 AgentGateway >> finishAfterRoundCapWith: messages for: userText since: widgetsBefore lastToolResults: toolResults [
 	"The tool budget and the inference budget are deliberately separate. Once
 	the final permitted mutation has run, give the model one tools-disabled
@@ -361,7 +434,7 @@ AgentGateway >> finishAfterRoundCapWith: messages for: userText since: widgetsBe
 				for: userText
 				since: widgetsBefore ].
 	content := response at: 'content' ifAbsent: [ #() ].
-	messages add: { 'role' -> 'assistant'. 'content' -> content } asDictionary.
+	messages add: (self assistantMessageWithContent: content response: response).
 	answer := self finalTextFrom: content.
 	answer trimBoth isEmpty ifTrue: [
 		^ self
@@ -613,37 +686,64 @@ AgentGateway >> post: messages [
 
 { #category : 'running' }
 AgentGateway >> post: messages includeTools: includeTools [
-	| payload payloadJson response tools stableInstructions dynamicInstructions |
+	| request exchange payload payloadJson response tools stableInstructions dynamicInstructions |
 	tools := includeTools ifTrue: [ self toolDefinitions ] ifFalse: [ nil ].
 	stableInstructions := self stableSystemPrompt.
 	dynamicInstructions := self dynamicSystemPrompt.
 	lastCacheConfiguration := transport
-		cacheConfigurationForModel: model
+		cacheConfigurationForModel: self model
 		stableInstructions: stableInstructions
 		tools: tools
 		generationSettings: (self generationSettingsForIncludeTools: includeTools).
-	payload := transport
-		requestPayloadForModel: model
-		maxTokens: 8192
+	request := self
+		inferenceRequestForMessages: messages
 		stableInstructions: stableInstructions
 		dynamicInstructions: dynamicInstructions
-		messages: messages asArray
 		tools: tools.
+	exchange := self exchangeFor: request.
+	payload := exchange at: 'request_payload'.
 	payloadJson := STONJSON toString: payload.
 	lastRequestPayloadCharacters := payloadJson size.
 	requestPayloadCharacters := self requestPayloadCharacters
 		+ self lastRequestPayloadCharacters.
 	self logAdd: 'HTTP REQUEST: ' , payloadJson.
-	[ response := transport postPayload: payload apiKey: self apiKey ]
-		on: Error
-			do: [ :error |
-				self logAdd: 'HTTP ERROR: ' , error messageText.
-				error pass ].
+	response := exchange at: 'response'.
 	requestCount := self requestCount + 1.
 	self recordUsageFrom: response.
-	self logAdd: 'HTTP RESPONSE: ' , (STONJSON toString: response).
+	self logAdd: 'HTTP RESPONSE: ' , (STONJSON toString: (exchange at: 'raw_response')).
 	self logRequestMetrics.
 	^ response
+]
+
+{ #category : 'inference' }
+AgentGateway >> exchangeFor: request [
+	1 to: self maximumRetries + 1 do: [ :attempt |
+		[ ^ transport exchangeFor: request apiKey: self apiKey ]
+			on: AgentInferenceProviderError
+			do: [ :error |
+				self logAdd: 'HTTP ERROR: ' , error messageText.
+				(error retryable and: [ attempt <= self maximumRetries ])
+					ifTrue: [
+						self status: 'retrying provider request (' , attempt printString
+							, ' of ' , self maximumRetries printString , ')...'.
+						(self retryBackoffMilliseconds * attempt) milliSeconds wait ]
+					ifFalse: [ error pass ] ] ].
+	self error: 'Inference retry loop ended unexpectedly'
+]
+
+{ #category : 'inference' }
+AgentGateway >> inferenceRequestForMessages: messages stableInstructions: stableInstructions dynamicInstructions: dynamicInstructions tools: tools [
+	^ {
+		'schema' -> 'agent-inference-request/v1'.
+		'model' -> self model.
+		'max_output_tokens' -> self maxOutputTokens.
+		'timeout_seconds' -> self timeoutSeconds.
+		'system' -> ({
+			'stable' -> stableInstructions.
+			'dynamic' -> dynamicInstructions } asDictionary).
+		'messages' -> messages asArray.
+		'tools' -> tools }
+		asDictionary
 ]
 
 { #category : 'evaluation metrics' }

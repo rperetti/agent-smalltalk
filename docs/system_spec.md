@@ -12,7 +12,8 @@ to explain behavior but is not the canonical planning queue or runbook.
 
 ## One-paragraph summary
 
-A Pharo 13 image where an LLM (Anthropic `claude-sonnet-5`) writes Smalltalk
+A Pharo 13 image where a configured cloud LLM (Anthropic `claude-sonnet-5` by
+default) writes Smalltalk
 that is compiled **live** into the running system. The user summons a floating
 prompt bar over a spatial canvas, types a request in English, and a working,
 stateful widget appears — built, tested, and repaired by the model through an
@@ -35,15 +36,29 @@ pharo-graphics on GitHub.
 
 ### AgentGateway (Core)
 
-The bridge to the Anthropic Messages API and the owner of the agentic loop.
+The bridge to a configured inference provider and the owner of the agentic
+loop.
 
-- Model `claude-sonnet-5`, max 8192 output tokens, up to **30 tool rounds**
-  per request; when ≤3 rounds remain, a note is appended to the tool result
+- The provider-neutral request protocol carries canonical text, `tool_use`, and
+  `tool_result` turns. `AgentAnthropicTransport` translates it to the Messages
+  API; `AgentOpenAITransport` translates it to Chat Completions function calls.
+  An image-resident `AgentInferenceProfile` selects `anthropic` (the built-in
+  default) or `openai` and holds the model, output limit (8,192 by default),
+  HTTP timeout (180 seconds), and retry policy. `AgentGateway` can also point
+  directly at a profile for one request. Provider credentials come only from
+  `ANTHROPIC_API_KEY` or `OPENAI_API_KEY` respectively and are never logged or
+  stored in a profile.
+- Up to **30 tool rounds** per request; when ≤3 rounds remain, a note is
+  appended to the tool result
   telling the model to ship instead of polishing. After the final permitted
   tool execution, one tools-disabled inference consumes its result and returns
   the final answer. If that inference fails or has no text, the gateway reports
   the final tool results directly so an already-executed mutation is not hidden.
-  API key from `ANTHROPIC_API_KEY` (never logged, never stored).
+- Provider adapters validate response envelopes before the loop sees them.
+  The active profile's retry count (two by default) and retry-backoff period
+  (250 milliseconds by default) configure retryable request failures. Only
+  provider failures before a response is admitted are retried, so a local tool
+  execution is never duplicated.
 - Declares three tools to the model:
   - **`evaluate_smalltalk`** — code is evaluated by `AgentSandbox`; the tool
     result is `RESULT: <printString>` or `ERROR: <report>`, and the model
@@ -78,9 +93,9 @@ The bridge to the Anthropic Messages API and the owner of the agentic loop.
   dynamic appendix, user text, assistant history, tool results, and generated
   code follow the breakpoint and are sent fresh for every inference. The
   adapter reports the serving provider, model, base-prompt and tool-schema
-  revisions, and cache-relevant generation settings with each request. A
-  transport that does not support this boundary sends the same gateway request
-  uncached instead.
+  revisions, and cache-relevant generation settings with each request.
+  `AgentOpenAITransport` does not claim that explicit cache-boundary contract:
+  provider-managed caching remains opaque to the gateway.
 - Status callbacks (`statusBlock:`) drive the spotlight's status line:
   `thinking... / evaluating... / working (round N of 30)... / finishing...`.
   On completion it stays open with the run's request count, total serialized
@@ -89,9 +104,9 @@ The bridge to the Anthropic Messages API and the owner of the agentic loop.
   it.
 - A class-wide mutex makes the gateway the image's **single writer**:
   concurrent asks wait rather than interleaving tool calls and class changes.
-- HTTP lives behind `AgentAnthropicTransport`; tests substitute a scripted
-  transport and exercise the complete loop without network, credentials,
-  latency, or API cost.
+- HTTP lives behind `AgentInferenceProvider`; tests substitute scripted
+  adapters and exercise final text/tool sequences, malformed responses, rate
+  limits, and timeouts without network, credentials, latency, or API cost.
 - Transcript: every event and the **full HTTP request/response JSON** are
   appended to `logs/gateway.log`, followed by a structured
   `agent-request-metrics/v1` record for each response. That record makes the
@@ -641,8 +656,8 @@ records structured evidence; it is never part of the deterministic gate.
   runs.
 - **Log growth**: `logs/gateway.log` includes full payloads (system prompt
   every round); no rotation yet.
-- **Memory rides the prompt**: every remembered fact is sent to the
-  Anthropic API on every request — inherent to the architecture.
+- **Memory rides the prompt**: every remembered fact reaches the configured
+  cloud provider on every request — inherent to the architecture.
 - **One writer at a time, automated**: a running GUI session holds tooling
   in memory; saving it would overwrite a file-level update. `update.sh`
   therefore updates a running session *through* it: `AgentRemote`, a

@@ -39,7 +39,7 @@ Enough evidence and a proposed outcome
 Backlog candidate
         |
         v
-Ordered into the Top 10 priorities
+Ordered into the current priorities
         |
         v
 Implemented and verified
@@ -68,5 +68,5 @@ backlog live in `backlog.md` itself, under its `Conventions` section.
 - Ideas are not promises. They become backlog items only when there is enough
   evidence to state an outcome and acceptance criteria.
 - Create `docs/backlog/AS-NN-short-title.md` only when an item grows too large
-  for the central register. Keep its summary and top-ten rank, if applicable,
+  for the central register. Keep its summary and current rank, if applicable,
   in `backlog.md`.

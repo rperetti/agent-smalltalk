@@ -912,6 +912,46 @@ AgentGatewayTest >> testAnthropicCachePayloadCachesOnlyTheStablePrefix [
 ]
 
 { #category : 'tests' }
+AgentGatewayTest >> testAnthropicAdapterPreservesThinkingForToolContinuation [
+	| transport rawContent response continuation messages request payload assistantMessage |
+	transport := AgentAnthropicTransport new.
+	rawContent := {
+		{ 'type' -> 'thinking'. 'thinking' -> 'opaque reasoning'. 'signature' -> 'signed-state' }
+			asDictionary.
+		{ 'type' -> 'tool_use'. 'id' -> 'tool_42'. 'name' -> 'evaluate_smalltalk'.
+			'input' -> ({ 'code' -> '6 * 7' } asDictionary) } asDictionary }.
+	response := transport canonicalResponseFrom: ({
+		'content' -> rawContent.
+		'usage' -> Dictionary new } asDictionary).
+	self assert: (response at: 'content') size equals: 1.
+	self assert: ((response at: 'content') first at: 'type') equals: 'tool_use'.
+	continuation := response at: 'continuation_state'.
+	self assert: (continuation at: 'provider') equals: 'anthropic-messages'.
+	self assert: (continuation at: 'assistant_content') equals: rawContent.
+	messages := OrderedCollection withAll: {
+		{ 'role' -> 'user'. 'content' -> 'calculate six times seven' } asDictionary.
+		(gateway assistantMessageWithContent: (response at: 'content') response: response).
+		{ 'role' -> 'user'. 'content' -> {
+			{ 'type' -> 'tool_result'. 'tool_use_id' -> 'tool_42'. 'content' -> 'RESULT: 42' }
+				asDictionary } } asDictionary }.
+	request := gateway
+		inferenceRequestForMessages: messages
+		stableInstructions: 'STABLE'
+		dynamicInstructions: 'DYNAMIC'
+		tools: gateway toolDefinitions.
+	payload := transport
+		requestPayloadForModel: 'claude-sonnet-5'
+		maxTokens: 8192
+		stableInstructions: 'STABLE'
+		dynamicInstructions: 'DYNAMIC'
+		messages: (request at: 'messages')
+		tools: (request at: 'tools').
+	assistantMessage := (payload at: 'messages') second.
+	self assert: (assistantMessage at: 'content') equals: rawContent.
+	self deny: (assistantMessage includesKey: 'continuation_state')
+]
+
+{ #category : 'tests' }
 AgentGatewayTest >> testCacheIdentityChangesForEveryStableInput [
 	| transport tools settings baseline changedPrompt changedTools changedModel changedSettings |
 	transport := AgentAnthropicTransport new.
@@ -1058,4 +1098,208 @@ AgentGatewayTest >> testMalformedCacheUsageIsIgnored [
 	self assert: (usage at: 'output_tokens') equals: 0.
 	self assert: (usage at: 'cache_creation_input_tokens') equals: 0.
 	self assert: (usage at: 'cache_read_input_tokens') equals: 0
+]
+
+{ #category : 'tests' }
+AgentGatewayTest >> testFakeAdapterRejectsMalformedProviderResponse [
+	| transport |
+	transport := AgentGatewayFakeTransport responses: {
+		{ 'content' -> 'not an array' } asDictionary }.
+	gateway
+		transport: transport;
+		apiKey: 'test-key'.
+	self
+		should: [ gateway run: 'exercise malformed provider response handling' ]
+		raise: AgentInferenceProviderError
+]
+
+{ #category : 'tests' }
+AgentGatewayTest >> testFakeAdapterRetriesRateLimitBeforeOneToolExecution [
+	| transport rateLimit result evaluations profile |
+	rateLimit := AgentInferenceProviderError new
+		messageText: 'rate limited';
+		retryable: true;
+		statusCode: 429;
+		yourself.
+	transport := AgentGatewayFakeTransport responses: {
+		rateLimit.
+		{ 'content' -> {
+			{ 'type' -> 'tool_use'.
+				'id' -> 'tu_retry'.
+				'name' -> 'evaluate_smalltalk'.
+				'input' -> ({ 'code' -> '3 + 4' } asDictionary) } asDictionary
+			} } asDictionary.
+		{ 'content' -> {
+			{ 'type' -> 'text'. 'text' -> 'seven after retry' } asDictionary
+			} } asDictionary }.
+	profile := AgentInferenceProfile named: 'Rate-limit retry test' provider: 'anthropic'.
+	profile
+		maximumRetries: 1;
+		retryBackoffMilliseconds: 1.
+	gateway
+		profile: profile;
+		transport: transport;
+		apiKey: 'test-key'.
+	result := gateway run: 'calculate three plus four'.
+	self assert: result equals: 'seven after retry'.
+	self assert: transport payloads size equals: 3.
+	evaluations := gateway log select: [ :line | line = '>>> 3 + 4' ].
+	self assert: evaluations size equals: 1
+]
+
+{ #category : 'tests' }
+AgentGatewayTest >> testFakeAdapterRetriesTimeout [
+	| transport timeout result profile |
+	timeout := AgentInferenceProviderError new
+		messageText: 'connection timed out';
+		retryable: true;
+		statusCode: nil;
+		yourself.
+	transport := AgentGatewayFakeTransport responses: {
+		timeout.
+		{ 'content' -> {
+			{ 'type' -> 'text'. 'text' -> 'recovered after timeout' } asDictionary
+			} } asDictionary }.
+	profile := AgentInferenceProfile named: 'Timeout retry test' provider: 'anthropic'.
+	profile
+		maximumRetries: 1;
+		retryBackoffMilliseconds: 1.
+	gateway
+		profile: profile;
+		transport: transport;
+		apiKey: 'test-key'.
+	result := gateway run: 'exercise timeout recovery'.
+	self assert: result equals: 'recovered after timeout'.
+	self assert: transport payloads size equals: 2
+]
+
+{ #category : 'tests' }
+AgentGatewayTest >> testOpenAIAdapterMapsCanonicalToolConversation [
+	| transport messages request payload translated assistant toolResult |
+	transport := AgentOpenAITransport new.
+	messages := OrderedCollection withAll: {
+		{ 'role' -> 'user'. 'content' -> 'calculate three plus four' } asDictionary.
+		{ 'role' -> 'assistant'. 'content' -> {
+			{ 'type' -> 'tool_use'.
+				'id' -> 'call_42'.
+				'name' -> 'evaluate_smalltalk'.
+				'input' -> ({ 'code' -> '3 + 4' } asDictionary) } asDictionary
+			} } asDictionary.
+		{ 'role' -> 'user'. 'content' -> {
+			{ 'type' -> 'tool_result'.
+				'tool_use_id' -> 'call_42'.
+				'content' -> 'RESULT: 7' } asDictionary
+			} } asDictionary }.
+	request := gateway
+		inferenceRequestForMessages: messages
+		stableInstructions: 'STABLE'
+		dynamicInstructions: 'DYNAMIC'
+		tools: gateway toolDefinitions.
+	payload := transport requestPayloadFor: request.
+	self assert: (payload at: 'model') equals: gateway model.
+	self assert: (payload at: 'max_completion_tokens') equals: gateway maxOutputTokens.
+	translated := payload at: 'messages'.
+	self assert: translated size equals: 4.
+	self assert: ((translated first at: 'role') = 'system').
+	self assert: ((translated first at: 'content') includesSubstring: 'STABLEDYNAMIC').
+	assistant := translated third.
+	self assert: (assistant at: 'role') equals: 'assistant'.
+	self assert: ((assistant at: 'tool_calls') first at: 'id') equals: 'call_42'.
+	toolResult := translated fourth.
+	self assert: (toolResult at: 'role') equals: 'tool'.
+	self assert: (toolResult at: 'tool_call_id') equals: 'call_42'.
+	self assert: (toolResult at: 'content') equals: 'RESULT: 7'.
+	self assert: ((payload at: 'tools') first at: 'type') equals: 'function'
+]
+
+{ #category : 'tests' }
+AgentGatewayTest >> testOpenAIAdapterValidatesAndNormalizesToolUseResponse [
+	| transport response content usage |
+	transport := AgentOpenAITransport new.
+	response := transport canonicalResponseFrom: ({
+		'choices' -> {
+			{ 'message' -> ({
+				'content' -> nil.
+				'tool_calls' -> {
+					{ 'id' -> 'call_7'.
+						'type' -> 'function'.
+						'function' -> ({
+							'name' -> 'evaluate_smalltalk'.
+							'arguments' -> '{"code":"6 * 7"}' } asDictionary) }
+						asDictionary } } asDictionary) } asDictionary
+			}.
+		'usage' -> ({
+			'prompt_tokens' -> 12.
+			'completion_tokens' -> 3.
+			'prompt_tokens_details' -> ({ 'cached_tokens' -> 5 } asDictionary) }
+			asDictionary) } asDictionary).
+	content := response at: 'content'.
+	self assert: content size equals: 1.
+	self assert: (content first at: 'type') equals: 'tool_use'.
+	self assert: (content first at: 'id') equals: 'call_7'.
+	self assert: ((content first at: 'input') at: 'code') equals: '6 * 7'.
+	usage := response at: 'usage'.
+	self assert: (usage at: 'input_tokens') equals: 12.
+	self assert: (usage at: 'output_tokens') equals: 3.
+	self assert: (usage at: 'cache_read_input_tokens') equals: 5
+]
+
+{ #category : 'tests' }
+AgentGatewayTest >> testProviderFactoryHasConfiguredAdapters [
+	self assert: (AgentInferenceProvider named: 'anthropic') class equals: AgentAnthropicTransport.
+	self assert: (AgentInferenceProvider named: 'openai') class equals: AgentOpenAITransport.
+	self assert: (AgentInferenceProvider providerNames includes: 'anthropic').
+	self assert: (AgentInferenceProvider providerNames includes: 'openai')
+]
+
+{ #category : 'tests' }
+AgentGatewayTest >> testInferenceProfilesProvideCompleteProviderDefaults [
+	| anthropic openAI freshOpenAI |
+	anthropic := AgentInferenceProfile profileNamed: 'Default Anthropic'.
+	openAI := AgentInferenceProfile profileNamed: 'Default OpenAI'.
+	freshOpenAI := AgentInferenceProfile new provider: 'openai'.
+	self assert: anthropic provider equals: 'anthropic'.
+	self assert: anthropic model equals: AgentAnthropicTransport new defaultModel.
+	self assert: openAI provider equals: 'openai'.
+	self assert: openAI model equals: AgentOpenAITransport new defaultModel.
+	self assert: freshOpenAI model equals: AgentOpenAITransport new defaultModel.
+	{ anthropic. openAI. freshOpenAI } do: [ :profile |
+		self assert: profile maxOutputTokens > 0.
+		self assert: profile timeoutSeconds > 0.
+		self assert: profile maximumRetries >= 0.
+		self assert: profile retryBackoffMilliseconds > 0 ]
+]
+
+{ #category : 'tests' }
+AgentGatewayTest >> testGatewayUsesAnInjectedInferenceProfile [
+	| profile |
+	profile := AgentInferenceProfile named: 'OpenAI test' provider: 'openai'.
+	profile
+		model: 'gpt-test';
+		maxOutputTokens: 4096;
+		timeoutSeconds: 90;
+		maximumRetries: 3;
+		retryBackoffMilliseconds: 125.
+	self assert: (gateway profile: profile) identicalTo: gateway.
+	self assert: gateway profile identicalTo: profile.
+	self assert: gateway providerName equals: 'openai'.
+	self assert: gateway transport class equals: AgentOpenAITransport.
+	self assert: gateway model equals: 'gpt-test'.
+	self assert: gateway maxOutputTokens equals: 4096.
+	self assert: gateway timeoutSeconds equals: 90.
+	self assert: gateway maximumRetries equals: 3.
+	self assert: gateway retryBackoffMilliseconds equals: 125
+]
+
+{ #category : 'tests' }
+AgentGatewayTest >> testSelectingCurrentInferenceProfileConfiguresNewGateways [
+	| previous selected fresh |
+	previous := AgentInferenceProfile current.
+	selected := AgentInferenceProfile named: 'OpenAI selected test' provider: 'openai'.
+	[
+		AgentInferenceProfile current: selected.
+		fresh := AgentGateway new.
+		self assert: fresh profile identicalTo: selected.
+		self assert: fresh transport class equals: AgentOpenAITransport ]
+		ensure: [ AgentInferenceProfile current: previous ]
 ]

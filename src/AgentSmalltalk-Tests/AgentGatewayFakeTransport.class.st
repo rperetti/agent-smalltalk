@@ -1,7 +1,8 @@
 "
-Deterministic Messages API transport used by AgentGatewayTest. I record every
-payload and answer a scripted response sequence, so tests exercise the complete
-gateway/tool loop without credentials, network access, latency, or cost.
+Deterministic Anthropic-compatible adapter used by AgentGatewayTest. I record
+every payload and answer a scripted response sequence, so tests exercise the
+complete gateway/tool loop without credentials, network access, latency, or
+cost. AgentInferenceProviderError fixtures model retryable provider failures.
 "
 Class {
 	#name : 'AgentGatewayFakeTransport',
@@ -26,6 +27,11 @@ AgentGatewayFakeTransport >> initialize [
 	responses := OrderedCollection new.
 	payloads := OrderedCollection new.
 	cacheEnabled := false
+]
+
+{ #category : 'accessing' }
+AgentGatewayFakeTransport >> apiKeyEnvironmentVariable [
+	^ 'TEST_INFERENCE_API_KEY'
 ]
 
 { #category : 'prompt caching' }
@@ -53,6 +59,29 @@ AgentGatewayFakeTransport >> cacheEnabled: aBoolean [
 	cacheEnabled := aBoolean
 ]
 
+{ #category : 'accessing' }
+AgentGatewayFakeTransport >> defaultModel [
+	^ 'scripted-test-model'
+]
+
+{ #category : 'inference' }
+AgentGatewayFakeTransport >> exchangeFor: aCanonicalRequest apiKey: apiKey [
+	| payload rawResponse |
+	payload := self
+		requestPayloadForModel: (aCanonicalRequest at: 'model')
+		maxTokens: (aCanonicalRequest at: 'max_output_tokens')
+		stableInstructions: ((aCanonicalRequest at: 'system') at: 'stable')
+		dynamicInstructions: ((aCanonicalRequest at: 'system') at: 'dynamic')
+		messages: (aCanonicalRequest at: 'messages')
+		tools: (aCanonicalRequest at: 'tools').
+	rawResponse := self postPayload: payload apiKey: apiKey.
+	^ {
+		'request_payload' -> payload.
+		'raw_response' -> rawResponse.
+		'response' -> (AgentAnthropicTransport new canonicalResponseFrom: rawResponse) }
+		asDictionary
+]
+
 { #category : 'prompt caching' }
 AgentGatewayFakeTransport >> requestPayloadForModel: aModel maxTokens: maxTokens stableInstructions: stableInstructions dynamicInstructions: dynamicInstructions messages: messages tools: tools [
 	| payload |
@@ -69,7 +98,8 @@ AgentGatewayFakeTransport >> requestPayloadForModel: aModel maxTokens: maxTokens
 					'type' -> 'text'.
 					'text' -> dynamicInstructions } asDictionary } ]
 			ifFalse: [ stableInstructions , dynamicInstructions ]).
-		'messages' -> messages } asDictionary.
+		'messages' -> (AgentAnthropicTransport new anthropicMessagesFromCanonical: messages) }
+		asDictionary.
 	tools ifNotNil: [ payload at: 'tools' put: tools ].
 	^ payload
 ]
@@ -86,9 +116,17 @@ AgentGatewayFakeTransport >> payloads [
 
 { #category : 'posting' }
 AgentGatewayFakeTransport >> postPayload: payload apiKey: apiKey [
+	| response |
 	payloads add: payload.
 	responses ifEmpty: [ self error: 'No scripted gateway response remains' ].
-	^ responses removeFirst
+	response := responses removeFirst.
+	(response isKindOf: AgentInferenceProviderError) ifTrue: [ response signal ].
+	^ response
+]
+
+{ #category : 'accessing' }
+AgentGatewayFakeTransport >> providerName [
+	^ 'scripted-fake'
 ]
 
 { #category : 'usage' }

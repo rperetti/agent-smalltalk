@@ -3,7 +3,7 @@
 **Status:** accepted
 **Date:** 2026-07-13
 **Deciders:** Rodrigo Peretti
-**Related backlog:** AS-14
+**Related ADR:** [0002 — Provider-neutral inference boundary](0002-provider-neutral-inference-boundary.md)
 
 ## Context
 
@@ -21,9 +21,9 @@ out to a remote model over HTTP.
 ## Decision
 
 Inference lives outside the image, behind `AgentGateway`. The gateway owns the
-HTTP bridge to the provider (the Anthropic Messages API today), serializes canvas
-context into a text prompt, runs the tool-use loop, and turns responses back into
-live objects. The image remains the substrate for everything else — code,
+bridge to a configured provider, serializes canvas context into a text prompt,
+runs the tool-use loop, and turns responses back into live objects. The image
+remains the substrate for everything else — code,
 knowledge, widgets, automations, and state — but the model itself is a remote
 service reached through one seam.
 
@@ -37,7 +37,8 @@ service reached through one seam.
   same gateway boundary but runs the model on the same machine. Compatible with
   this decision and not precluded — it slots in behind the gateway — but current
   local models are below frontier capability for code generation, so it is not
-  the default. AS-14 generalizes this into a provider-neutral boundary.
+  the default. The provider-neutral boundary in ADR-0002 keeps this option
+  available without putting sidecar details in the agent loop.
 - **Embedding a small model directly in the image.** Rejected on capability
   grounds; it would bound the experience to whatever fits in-process.
 
@@ -63,5 +64,4 @@ service reached through one seam.
   sidecar — within acceptable latency and resource budgets.
 - Privacy, offline operation, or cost requirements come to outweigh frontier
   capability.
-- AS-14 formalizes the provider-neutral boundary and a local backend is added
-  behind the gateway.
+- A local backend is added behind the provider-neutral gateway boundary.
