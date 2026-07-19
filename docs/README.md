@@ -10,6 +10,7 @@ are triaged into it (see [CONTRIBUTING.md](../CONTRIBUTING.md)).
 | document | canonical responsibility |
 |---|---|
 | [vision.md](vision.md) | The north star: why the project exists and the future it is exploring. Aspirational unless a capability is also in the system specification. |
+| [experiments.md](experiments.md) | Research questions, prior evidence, protocols, observations, limits, and the decisions they produced. |
 | [system_spec.md](system_spec.md) | What is implemented and expected to work today. Change it in the same commit as behavior changes. |
 | [backlog.md](backlog.md) | The single ordered register of actionable bugs, reliability work, security work, operations, architecture, and sufficiently understood features. |
 | [ideas.md](ideas.md) | Product and feature possibilities that are not understood or validated well enough to order for implementation. |
@@ -32,21 +33,22 @@ should be reviewed and tested like code.
 ```text
 Observation or idea
         |
-        v
-Enough evidence and a proposed outcome
+        +-- known defect or understood outcome --> backlog candidate
         |
-        v
-Backlog candidate
-        |
-        v
-Ordered into the current priorities
-        |
-        v
-Implemented and verified
-        |
-        v
-System spec, operations, security, or ADR updated
+        `-- uncertain product hypothesis --------> experiment record
+                                                     |
+                                            prior evidence + protocol
+                                                     |
+                                              observation + decision
+                                                     |
+                                  backlog / ideas / postponed / direction
 ```
+
+An evidence-backed platform technique still enters the backlog before it
+changes behavior. Its item records the supporting result and the local
+comparison required before the new behavior becomes the baseline for later
+experiments. Implementation and verification then update the system
+specification, operations, security reference, or an ADR as usual.
 
 An idea can instead move to `postponed.md` when it has been evaluated but there
 is a deliberate reason not to pursue it. When a backlog item is implemented and
@@ -60,6 +62,8 @@ backlog live in `backlog.md` itself, under its `Conventions` section.
 ## Avoiding duplicated truth
 
 - Current behavior belongs in `system_spec.md`, not the backlog.
+- Hypotheses, protocols, observations, and research decisions belong in
+  `experiments.md`.
 - A desired behavior belongs in the backlog until it is implemented.
 - Operating instructions belong in `operations.md`; backlog items describe how
   those instructions or mechanisms need to improve.

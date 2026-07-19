@@ -6,9 +6,11 @@ code; when behavior changes, change this file in the same commit.
 
 Document boundaries: planned changes belong in the [backlog](backlog.md),
 feature possibilities in [ideas.md](ideas.md), authority and data-flow details
-in [security.md](security.md), and command/recovery procedures in
+in [security.md](security.md), research questions and evidence in
+[experiments.md](experiments.md), and command/recovery procedures in
 [operations.md](operations.md). This specification keeps enough summary context
-to explain behavior but is not the canonical planning queue or runbook.
+to explain behavior but is not the canonical planning queue, experiment record,
+or runbook.
 
 ## One-paragraph summary
 

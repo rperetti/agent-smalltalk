@@ -8,23 +8,26 @@ The field schema, category vocabulary, and ordering rules are defined in the
 [README.md](README.md) for the work-item lifecycle and how the backlog relates
 to the other documents.
 
+This is an experiment, not a production roadmap. Current rank favors work that
+answers the living-environment hypothesis, makes the evidence trustworthy, or
+incorporates a relevant technique supported by prior research. Publication,
+hardening, and polish remain recorded but unranked until they block an
+experiment or meet their stated return trigger. The durable research record
+lives in [experiments.md](experiments.md).
+
 ## Current priorities
 
 These are the items we should address first, in agreed order. Detailed
 entries below the category views include additional backlog candidates that are
-not currently in the top ten.
+not currently ranked.
 
 | rank | ID | title | categories | priority | effort |
 |---:|---|---|---|---|---|
-| 1 | [AS-17](#as-17--preserve-history-when-system-messages-coalesce) | Preserve history when system messages coalesce | reliability, ux | P2 | S |
-| 2 | [AS-22](#as-22--make-failed-spotlight-runs-inspectable-on-the-canvas) | Make failed Spotlight runs inspectable on the canvas | feature, ux, reliability | P1 | L |
-| 3 | [AS-28](#as-28--measure-model-roi-with-provider-neutral-paid-evaluations) | Measure model ROI with provider-neutral paid evaluations | testing, performance, operations, security | P2 | L |
-| 4 | [AS-03](#as-03--define-persistence-and-recovery-semantics) | Define persistence and recovery semantics | architecture, reliability, operations | P0 | L |
-| 5 | [AS-29](#as-29--clear-the-final-publication-gate) | Clear the final publication gate | documentation, operations, product | P0 | S |
-| 6 | [AS-05](#as-05--coordinate-all-world-mutations) | Coordinate all world mutations | architecture, reliability | P1 | L |
-| 7 | [AS-06](#as-06--decide-whether-automation-restrictions-are-policy-or-enforcement) | Decide whether automation restrictions are policy or enforcement | security, product, architecture | P1 | L |
-| 8 | [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts) | Add provenance, health, and rollback for generated artifacts | architecture, feature, reliability | P1 | L |
-| 9 | [AS-30](#as-30--decide-when-to-move-to-pharo-14) | Decide when to move to Pharo 14 | maintenance, operations, architecture | P2 | M |
+| 1 | [AS-32](#as-32--add-longitudinal-state-checked-experiment-fixtures) | Add longitudinal, state-checked experiment fixtures | testing, operations | P1 | M |
+| 2 | [AS-33](#as-33--qualify-and-retire-accumulated-capabilities) | Qualify and retire accumulated capabilities | architecture, feature, reliability | P1 | M |
+| 3 | [AS-34](#as-34--make-capability-discovery-scale-with-the-toolbox) | Make capability discovery scale with the toolbox | feature, performance, testing | P1 | M |
+| 4 | [AS-35](#as-35--preserve-fact-revisions-and-currentness) | Preserve fact revisions and currentness | feature, reliability, testing | P1 | M |
+| 5 | [AS-28](#as-28--measure-model-roi-with-provider-neutral-paid-evaluations) | Measure model ROI with provider-neutral paid evaluations | testing, performance, operations | P2 | M |
 
 ## Category views
 
@@ -35,12 +38,12 @@ include unranked candidates outside it.
 | lens | items |
 |---|---|
 | Bugs and behavioral correctness | *(none currently)* |
-| Security and authority | [AS-01](#as-01--authenticate-or-remove-the-local-evaluator), [AS-06](#as-06--decide-whether-automation-restrictions-are-policy-or-enforcement), [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts), [AS-28](#as-28--measure-model-roi-with-provider-neutral-paid-evaluations) |
-| Reliability and persistence | [AS-03](#as-03--define-persistence-and-recovery-semantics), [AS-05](#as-05--coordinate-all-world-mutations), [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts), [AS-17](#as-17--preserve-history-when-system-messages-coalesce), [AS-22](#as-22--make-failed-spotlight-runs-inspectable-on-the-canvas) |
-| Operations and testing | [AS-01](#as-01--authenticate-or-remove-the-local-evaluator), [AS-03](#as-03--define-persistence-and-recovery-semantics), [AS-28](#as-28--measure-model-roi-with-provider-neutral-paid-evaluations), [AS-29](#as-29--clear-the-final-publication-gate), [AS-30](#as-30--decide-when-to-move-to-pharo-14) |
-| Architecture and evolution | [AS-03](#as-03--define-persistence-and-recovery-semantics), [AS-05](#as-05--coordinate-all-world-mutations), [AS-06](#as-06--decide-whether-automation-restrictions-are-policy-or-enforcement), [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts), [AS-30](#as-30--decide-when-to-move-to-pharo-14) |
-| Product, feature, and UX | [AS-06](#as-06--decide-whether-automation-restrictions-are-policy-or-enforcement), [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts), [AS-16](#as-16--make-tool-card-removal-match-its-visible-meaning), [AS-17](#as-17--preserve-history-when-system-messages-coalesce), [AS-22](#as-22--make-failed-spotlight-runs-inspectable-on-the-canvas), [AS-29](#as-29--clear-the-final-publication-gate), [AS-31](#as-31--tell-a-first-time-image-how-to-start) |
-| Performance and maintenance | [AS-28](#as-28--measure-model-roi-with-provider-neutral-paid-evaluations), [AS-30](#as-30--decide-when-to-move-to-pharo-14) |
+| Security and authority | [AS-01](#as-01--authenticate-or-remove-the-local-evaluator), [AS-06](#as-06--decide-whether-automation-restrictions-are-policy-or-enforcement), [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts) |
+| Reliability and persistence | [AS-03](#as-03--define-persistence-and-recovery-semantics), [AS-05](#as-05--coordinate-all-world-mutations), [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts), [AS-17](#as-17--preserve-history-when-system-messages-coalesce), [AS-22](#as-22--make-failed-spotlight-runs-inspectable-on-the-canvas), [AS-33](#as-33--qualify-and-retire-accumulated-capabilities), [AS-35](#as-35--preserve-fact-revisions-and-currentness) |
+| Operations and testing | [AS-01](#as-01--authenticate-or-remove-the-local-evaluator), [AS-03](#as-03--define-persistence-and-recovery-semantics), [AS-28](#as-28--measure-model-roi-with-provider-neutral-paid-evaluations), [AS-29](#as-29--clear-the-final-publication-gate), [AS-30](#as-30--decide-when-to-move-to-pharo-14), [AS-32](#as-32--add-longitudinal-state-checked-experiment-fixtures), [AS-34](#as-34--make-capability-discovery-scale-with-the-toolbox), [AS-35](#as-35--preserve-fact-revisions-and-currentness) |
+| Architecture and evolution | [AS-03](#as-03--define-persistence-and-recovery-semantics), [AS-05](#as-05--coordinate-all-world-mutations), [AS-06](#as-06--decide-whether-automation-restrictions-are-policy-or-enforcement), [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts), [AS-30](#as-30--decide-when-to-move-to-pharo-14), [AS-33](#as-33--qualify-and-retire-accumulated-capabilities) |
+| Product, feature, and UX | [AS-06](#as-06--decide-whether-automation-restrictions-are-policy-or-enforcement), [AS-15](#as-15--add-provenance-health-and-rollback-for-generated-artifacts), [AS-17](#as-17--preserve-history-when-system-messages-coalesce), [AS-22](#as-22--make-failed-spotlight-runs-inspectable-on-the-canvas), [AS-29](#as-29--clear-the-final-publication-gate), [AS-31](#as-31--tell-a-first-time-image-how-to-start), [AS-33](#as-33--qualify-and-retire-accumulated-capabilities), [AS-34](#as-34--make-capability-discovery-scale-with-the-toolbox), [AS-35](#as-35--preserve-fact-revisions-and-currentness) |
+| Performance and maintenance | [AS-28](#as-28--measure-model-roi-with-provider-neutral-paid-evaluations), [AS-30](#as-30--decide-when-to-move-to-pharo-14), [AS-34](#as-34--make-capability-discovery-scale-with-the-toolbox) |
 
 ---
 
@@ -168,12 +171,12 @@ and package changes, and gives snapshots a stable boundary.
 
 ## AS-06 — Decide whether automation restrictions are policy or enforcement
 
-**Status:** candidate<br>
+**Status:** postponed<br>
 **Categories:** security, product, architecture<br>
 **Priority:** P1<br>
 **Effort:** L<br>
-**Dependencies:** AS-05<br>
-**Source:** repository review, 2026-07-09
+**Dependencies:** constrained mode would require AS-05<br>
+**Source:** repository review, 2026-07-09; research-mode decision 2026-07-18
 
 ### Problem and argument
 
@@ -182,6 +185,14 @@ The base prompt forbids destructive or irreversible unattended behavior, but an
 a runtime capability boundary, especially after a human or later agent edits
 the routine. Current language sometimes makes the scheduled slice sound safer
 than the implementation enforces.
+
+### Decision
+
+Keep research mode for the current experiment. Automations are visibly
+full-authority unattended Smalltalk; prompt restrictions are policy, not a
+runtime boundary. Do not build a capability sandbox unless the experiment moves
+into externally visible or irreversible unattended work, or the project intends
+to promise constrained execution.
 
 ### Proposed outcome
 
@@ -204,12 +215,12 @@ Choose and consistently communicate one model:
 
 ## AS-15 — Add provenance, health, and rollback for generated artifacts
 
-**Status:** candidate<br>
+**Status:** postponed<br>
 **Categories:** architecture, feature, reliability<br>
 **Priority:** P1<br>
 **Effort:** L<br>
 **Dependencies:** AS-03, AS-05<br>
-**Source:** repository review, 2026-07-09
+**Source:** repository review, 2026-07-09; experiment-scope review 2026-07-18
 
 ### Problem and argument
 
@@ -218,6 +229,13 @@ instances, cards, tools, processes, or subscriptions behind. Generated source
 has no run provenance, health state, portable history, or run-level undo. As
 the toolbox grows, invisible technical debt will undermine the promise that the
 environment improves through use.
+
+### Decision
+
+Postpone the full provenance, dependency, export, and rollback architecture
+until accumulated artifacts create a concrete recovery or cleanup need. AS-33
+extracts the smaller qualification and retirement lifecycle required to test
+whether a toolbox compounds value; it does not depend on AS-03 or AS-05.
 
 ### Proposed outcome
 
@@ -237,12 +255,13 @@ what depends on it, and how to export, supersede, or roll it back.
 
 ## AS-16 — Make tool-card removal match its visible meaning
 
-**Status:** candidate<br>
+**Status:** superseded<br>
 **Categories:** ux, product, reliability<br>
 **Priority:** P2<br>
 **Effort:** M<br>
-**Dependencies:** AS-15<br>
-**Source:** completed self-built-tools work and repository review
+**Dependencies:** superseded by AS-33<br>
+**Source:** completed self-built-tools work and repository review; superseded
+2026-07-18
 
 ### Problem and argument
 
@@ -250,6 +269,13 @@ A tool card has the same visible `x` as cards that are actually deleted, but
 removing it leaves the executable tool discoverable in every future prompt.
 Automation-card deletion really unregisters its routine. Identical controls
 therefore have materially different authority semantics.
+
+### Decision
+
+AS-33 now owns the narrower, experiment-relevant distinction among hiding a
+card, retiring a capability, and deleting source. Its qualification lifecycle
+can be evaluated without waiting for AS-15's full provenance and rollback
+design. Keep this entry as the record of the original UI finding.
 
 ### Proposed outcome
 
@@ -294,12 +320,13 @@ history required to understand repeated failures.
 
 ## AS-22 — Make failed Spotlight runs inspectable on the canvas
 
-**Status:** ready<br>
+**Status:** postponed<br>
 **Categories:** feature, ux, reliability<br>
 **Priority:** P1<br>
 **Effort:** L<br>
 **Dependencies:** AS-15, for stable run identity and provenance<br>
-**Source:** shared human/agent debugging brainstorm, 2026-07-11
+**Source:** shared human/agent debugging brainstorm, 2026-07-11; experiment-scope
+review 2026-07-18
 
 ### Problem and argument
 
@@ -310,6 +337,14 @@ user manually retrieves and supplies diagnostics. Projecting every successful
 run, performance statistic, or log event onto the canvas would instead create
 noise and mix failure diagnosis with a separate observability/optimization
 problem.
+
+### Decision
+
+Do not build the full canvas observability surface before an experiment needs
+it. If missing diagnostics block the research, split out a bounded
+`inspect/debug last failed run` capsule that reuses existing logs and does not
+wait for AS-15. Keep the design below as the larger follow-up rather than
+treating it as current work.
 
 ### Proposed outcome
 
@@ -369,56 +404,54 @@ metrics, and debuggers.
 ## AS-28 — Measure model ROI with provider-neutral paid evaluations
 
 **Status:** candidate<br>
-**Categories:** testing, performance, operations, security<br>
+**Categories:** testing, performance, operations<br>
 **Priority:** P2<br>
-**Effort:** L<br>
-**Dependencies:** none<br>
-**Source:** model ROI discussion, 2026-07-13
+**Effort:** M<br>
+**Dependencies:** AS-32; run after EXP-01 establishes the state comparison<br>
+**Source:** model ROI discussion, 2026-07-13; experiment review, 2026-07-18
 
 ### Problem and argument
 
-The paid smoke scripts exercise useful behavior, but the gateway and runner are
-tied to one provider and model, each scenario normally runs once, and recorded
-usage is not converted into dated cost. Public coding benchmarks do not test
-Pharo/Bloc generation, live compilation, state preservation, or repair through
-this project's tool loop. Nominal token prices also hide tokenizer differences,
-reasoning-token billing, cache behavior, failed runs, and additional rounds.
-A cheap model that needs repeated repairs can cost more per successful request.
+The paid smoke scripts exercise useful behavior, but each scenario normally
+runs once and the evidence does not yet compare model choices across the same
+fresh and evolved worlds. Public coding benchmarks do not test Pharo/Bloc
+generation, live compilation, state preservation, accumulated capabilities, or
+repair through this project's tool loop. Nominal token prices also hide
+tokenizer differences, reasoning-token billing, cache behavior, failed runs,
+and additional rounds. A cheap model that needs repeated repairs can cost more
+per accepted artifact.
 
 ### Proposed outcome
 
-An explicit, budgeted bake-off runs pinned candidates through the same semantic
-scenarios in fresh disposable images. It ranks models by cost per successful
-evaluation while reporting pass rate, latency, repairs, and operational limits
-separately. Candidate selection also records where inference runs and which
-company serves it, rather than treating a model name as the whole trust
-boundary.
+An explicit, budgeted exploratory bake-off runs a baseline and one or two
+challengers through the same state-checked scenarios. It first reports semantic
+success and consistency, then cost per accepted artifact, latency, repairs, and
+operational limits. Fresh and evolved conditions remain separate so model
+capability is not confused with the ability to exploit accumulated state. A
+larger comparison follows only if the first result is useful but ambiguous.
 
 ### Acceptance criteria
 
-- A versioned candidate manifest records model publisher, pinned model ID,
-  serving provider, API and endpoint region, reasoning settings, context and
-  output limits, data-retention/training terms with dated source links, and
-  prices with their retrieval date.
-- Models published by organizations outside the United States are evaluated
-  only through a US-based serving provider, not the publisher's own non-US
-  service. A US processing region is selected when the serving provider offers
-  regional control, and the actual region or lack of a guarantee is reported.
-- The current production model is the baseline. Screening includes at least
-  three challengers from at least two model families, subject to the serving
-  policy above.
+- A versioned candidate manifest records the pinned model ID, publisher,
+  serving provider, reasoning settings, context and output limits, relevant
+  retention terms, and prices with their retrieval date.
+- The configured default model is the baseline. The first paid comparison uses
+  one or two challengers; candidate breadth is not a goal by itself.
 - Candidates first pass request/response and tool-call contract tests. The paid
-  stage uses a declared budget and sample count; finalists run the full semantic
-  suite at least five times per scenario and prompt revision.
+  stage declares its budget and repetition count before running; the
+  exploratory comparison repeats each condition enough to expose obvious
+  inconsistency without claiming statistical certainty.
 - Every run uses the same base-prompt and tool-schema revisions, fresh image
-  setup, round cap, output limit, and declared reasoning policy. Cached and
-  uncached results are separated rather than silently mixed.
+  source, round cap, output limit, and declared reasoning policy. AS-32 builds
+  fresh and evolved fixtures deterministically. Cached and uncached results are
+  separated rather than silently mixed.
 - Evidence records semantic outcome, input/cache/reasoning/output usage,
   calculated USD cost, latency, rounds, repair attempts, malformed tool calls,
-  and asynchronous failures that appear after an apparent success.
-- The primary comparison is cost per semantic pass. Pass rate, p50/p95 latency,
-  repair distribution, and sample count remain visible so one cheap outlier
-  cannot become the recommendation.
+  artifact reuse, human correction, and asynchronous failures that appear after
+  an apparent success.
+- Semantic pass and repeated-run consistency are primary. Cost per accepted
+  artifact, latency, repairs, and sample count remain visible so one cheap
+  outlier cannot become the recommendation.
 - A failed candidate cannot hand the partially mutated image to another model;
   every retry or fallback begins from the scenario's fresh state.
 - Results are written as machine-readable evidence plus a dated summary that
@@ -560,6 +593,215 @@ opened the Spotlight, and never returns in a world that has been used.
 - The README and system specification describe the first-run behavior, and tests
   cover a fresh world, a dismissed hint, and a used world after reopening.
 
+## AS-32 — Add longitudinal, state-checked experiment fixtures
+
+**Status:** ready<br>
+**Categories:** testing, operations<br>
+**Priority:** P1<br>
+**Effort:** M<br>
+**Dependencies:** none<br>
+**Source:** experiment-method discussion and EXP-01, 2026-07-18<br>
+**Evidence:** LifelongAgentBench, Mem2ActBench, AgentMemoryBench, and tau-bench
+evaluate interdependent tasks, memory-driven action, or repeated final state<br>
+**Local validation:** reproduce one current paid scenario through the new
+fixture contract before using it to compare world conditions
+
+### Problem and argument
+
+The paid evaluations isolate useful behaviors in fresh disposable images. They
+do not yet measure a sequence in one evolving world, compare factual and
+procedural state independently, or check whether accumulated objects help later
+work. A persuasive answer or one successful run is not evidence that the final
+world is correct or that the behavior is consistent.
+
+### Proposed outcome
+
+Versioned fixture and scenario contracts can construct controlled world states,
+run related tasks in sequence, check the resulting live system, and record
+comparable evidence, including human interventions, without touching
+`pharo/Agent.image`.
+
+### Acceptance criteria
+
+- Deterministic scripts construct fresh, factual-only, procedural-only, and
+  combined fixtures from versioned source in disposable images.
+- A scenario can run multiple related requests in one condition while every
+  independent repetition starts from the same fixture.
+- Semantic checks inspect the resulting objects, source, state, subscriptions,
+  and behavior instead of grading response prose alone.
+- Evidence identifies the repository and prompt revisions, fixture, provider,
+  pinned model, generation settings, task step, latency, rounds, repairs, token
+  use, and semantic outcome.
+- The evidence schema is versioned. Each scenario declares its
+  human-intervention policy, and each meaningful intervention records the run,
+  condition, task step, category, trigger, action, affected state, agent
+  visibility, result, and approximate effort; a run with no intervention
+  records zero explicitly.
+- Intervention records distinguish protocol-required action, discretionary
+  rescue or correction, and post-run curation. They exclude private content and
+  routine pointer activity; post-run curation cannot change the measured result.
+- Repeated runs report their sample count and consistency without presenting a
+  small exploratory sample as statistical certainty.
+- Failure attribution distinguishes retrieval misses, retrieved-but-unused
+  state, wrong-tool reuse, duplicate artifacts, stale state, repair failure, and
+  harness failure.
+- Deterministic verification parses and checks every scenario without a
+  provider request; paid runs remain explicit and never enter `verify-all.sh`.
+- The experiment log documents how a scenario's safe evidence and aggregate
+  result are retained while raw private gateway logs remain ignored.
+
+## AS-33 — Qualify and retire accumulated capabilities
+
+**Status:** candidate<br>
+**Categories:** architecture, feature, reliability<br>
+**Priority:** P1<br>
+**Effort:** M<br>
+**Dependencies:** AS-32 for the local before/after comparison<br>
+**Source:** EXP-01 literature review, 2026-07-18<br>
+**Evidence:** Voyager, Large Language Models as Tool Makers, Agent Workflow
+Memory, and SkillCraft support reusable executable skills; SkillCraft also
+shows that low-quality saved skills can increase work<br>
+**Local validation:** compare reuse, duplicate creation, repairs, and semantic
+success with and without qualification before making it the experiment baseline
+
+### Problem and argument
+
+Every `AgentTool` subclass is currently advertised as a capability. The model
+usually verifies a new tool while building it, but that result is not durable
+artifact state. A broken, incomplete, obsolete, or experimentally poor tool
+therefore remains as discoverable as a healthy one. Hiding its card does not
+retire its executable capability.
+
+The full provenance, export, dependency, and rollback design in AS-15 is not a
+prerequisite for learning whether a qualified toolbox compounds value. This
+item takes only the lifecycle slice needed for that experiment and absorbs the
+visible removal ambiguity described by AS-16.
+
+### Proposed outcome
+
+Generated capabilities have a small explicit lifecycle. A new capability can
+be checked and promoted in the same request; ordinary discovery offers active,
+verified capabilities, while failed, superseded, and retired source remains
+inspectable without silently steering later work.
+
+### Acceptance criteria
+
+- A new capability starts as `draft` and can become `verified`, `failing`,
+  `superseded`, or `retired` without deleting its source.
+- Verification records the deterministic check, outcome, time, and source
+  revision needed to tell whether a later edit made the evidence stale.
+- A generated tool can be compiled, exercised, promoted, and reused within one
+  request without advertising an unchecked intermediate version to an
+  unrelated request.
+- Ordinary prompt discovery includes only active, verified capabilities.
+  Explicit inspection can still find every state and explain why a capability
+  is excluded.
+- A tool card shows lifecycle state and last verification. Retire and supersede
+  are distinct from hiding the card; irreversible source deletion is outside
+  this slice.
+- Editing a verified capability invalidates or visibly stales its verification
+  until it is checked again.
+- Tests cover creation, promotion, edit invalidation, failure, supersession,
+  retirement, inspection, save/reopen, and prompt inclusion.
+- AS-15 continues to own run-level provenance, dependency analysis, export,
+  and rollback beyond this minimal lifecycle.
+
+## AS-34 — Make capability discovery scale with the toolbox
+
+**Status:** candidate<br>
+**Categories:** feature, performance, testing<br>
+**Priority:** P1<br>
+**Effort:** M<br>
+**Dependencies:** AS-32, AS-33<br>
+**Source:** EXP-01 literature review and current context inspection, 2026-07-18<br>
+**Evidence:** Agent Workflow Memory selects relevant procedures;
+LifelongAgentBench reports interference from irrelevant replay; Mem2ActBench
+identifies retrieval as a dominant memory-application failure<br>
+**Local validation:** seed increasing numbers of irrelevant and similar tools,
+then compare discovery and needless recreation against the eager-list baseline
+
+### Problem and argument
+
+`AgentPromptContext` currently takes capability projections in name order and
+admits them into a bounded section. That is simple for a small toolbox, but
+accumulation can make alphabetical position decide which tools remain visible.
+Irrelevant tools consume stable prompt space while a relevant omitted tool may
+be rebuilt. The knowledge catalog already searches capability projections, so
+the first scalable boundary does not require a vector database.
+
+### Proposed outcome
+
+The prompt tells the truth about the toolbox and gives the model a cheap,
+bounded path to retrieve relevant active capabilities. Discovery remains useful
+as the library grows without sending every tool or silently privileging its
+name.
+
+### Acceptance criteria
+
+- The initial context reports total, returned, and omitted active capabilities
+  and tells the model how to search the omitted set.
+- Exact-name and deterministic text search can retrieve active, verified
+  capabilities through the existing read-only knowledge boundary.
+- Relevant tools remain discoverable behind many irrelevant and alphabetically
+  earlier tools; omitted tools are never indistinguishable from nonexistent
+  tools.
+- Semantically similar distractors exercise wrong selection separately from a
+  retrieval miss.
+- The first slice uses deterministic local metadata search. Embeddings or an
+  external index require evidence that this baseline is insufficient.
+- Tests cover empty, small, over-budget, exact-match, distractor, omitted, and
+  retired/failing tool sets.
+- AS-32 evidence can report discovery miss, retrieved-but-unused capability,
+  wrong reuse, and unnecessary new-tool creation.
+
+## AS-35 — Preserve fact revisions and currentness
+
+**Status:** candidate<br>
+**Categories:** feature, reliability, testing<br>
+**Priority:** P1<br>
+**Effort:** M<br>
+**Dependencies:** AS-32 for the local before/after comparison<br>
+**Source:** EXP-01 literature review, 2026-07-18<br>
+**Evidence:** LongMemEval evaluates knowledge updates and abstention;
+Mem2ActBench separates recall from action; STALE exposes failures to act on the
+current state after earlier information becomes invalid<br>
+**Local validation:** compare correction, stale-premise, and reactive-use
+scenarios before making revision history part of the experiment baseline
+
+### Problem and argument
+
+A keyed `AgentFact` keeps one useful current value by overwriting its body. The
+world loses when the value changed, what it replaced, and whether the user,
+agent, or a migration supplied it. That makes correction and stale-state
+failures hard to distinguish from retrieval or reasoning failures. Sending all
+old values in normal context would create the ambiguity this item is meant to
+measure.
+
+### Proposed outcome
+
+A fact retains a small inspectable revision history while exposing one
+unambiguous current value to ordinary readers and reactions. Currentness is
+explicit; superseded values are evidence, not competing facts.
+
+### Acceptance criteria
+
+- A keyed fact update records the prior value, replacement value, time, and
+  origin while preserving one stable fact identity.
+- `AgentKnowledge` and ordinary `inspect_knowledge get_fact` reads return only
+  the current value, with bounded currentness metadata.
+- Revision history is available through an explicit bounded inspection action
+  and is never appended to routine prompt context.
+- Manual edits, authorized agent updates, and migrations identify their origin
+  without storing a secret or full private prompt.
+- Reactive consumers observe one committed current-value change and never react
+  to replayed history.
+- Save/reopen preserves the current value and revision order.
+- Deterministic tests cover creation, repeated update, current lookup, bounded
+  history, ordering, origin, reactions, and deletion. Paid scenarios cover
+  stale premises and downstream action separately through AS-32.
+- Typed fact values, cross-key implication inference, and general event sourcing
+  remain experiments or later designs rather than entering this slice.
+
 ## Conventions
 
 ### Fields
@@ -576,6 +818,12 @@ Each actionable item has a stable `AS-NN` identifier and records:
 - **proposed outcome** — the intended result without over-prescribing the
   implementation;
 - **acceptance criteria** — observable evidence that the work is complete.
+
+Evidence-derived items also record:
+
+- **evidence** — the external or internal result supporting the technique;
+- **local validation** — the comparison required before the technique becomes
+  the baseline for later experiments.
 
 The initial category vocabulary is deliberately small:
 
@@ -609,12 +857,15 @@ rank until they enter the table.
 When ordering work, use these default decision drivers:
 
 1. Put all bugs before all non-bugs, independently of priority.
-2. Prevent unauthorized execution or loss of the living world.
-3. Make existing promises reliable before widening them.
-4. Improve observability and verification.
-5. Strengthen the system's ability to evolve without accumulating invisible
-   damage.
-6. Add new product surface when it tests an important product hypothesis.
+2. Prefer work that answers the central living-environment question or makes
+   its evidence trustworthy.
+3. Incorporate a relevant technique supported by prior evidence only through a
+   local comparison against the preserved baseline.
+4. Fix loss, corruption, or ambiguity that invalidates an active experiment.
+5. Add product surface only when it tests an important hypothesis or removes an
+   observed barrier to the research.
+6. Keep publication, production hardening, maintenance, and polish unranked
+   until they meet a stated trigger.
 
 Bug-first ordering is invariant. The remaining drivers are defaults, not a
 permanent scoring formula; new evidence can justify a different order within

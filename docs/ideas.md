@@ -4,6 +4,8 @@ Product opportunities and feature possibilities that should not evaporate, but
 are not yet understood or validated well enough to order in the
 [backlog](backlog.md). An idea becomes backlog work when there is enough
 evidence to state a proposed outcome and observable acceptance criteria.
+Research questions with a protocol and durable evidence belong in the
+[experiment log](experiments.md), not in this incubator.
 
 This file is intentionally not a bug list, security register, or operations
 queue. Known defects and actionable maintenance belong in `backlog.md`. Ideas
@@ -33,9 +35,11 @@ Open questions:
 - What is the minimum bootstrap vocabulary that must always remain available?
 
 Promotion trigger: several tested tools make specific prompt recipes
-demonstrably redundant. The actionable toolbox lifecycle foundation is tracked
-as [AS-15](backlog.md#as-15--add-provenance-health-and-rollback-for-generated-artifacts)
-and [AS-16](backlog.md#as-16--make-tool-card-removal-match-its-visible-meaning).
+demonstrably redundant. The experiment question is recorded under
+[candidate follow-ups](experiments.md#candidate-follow-up-experiments). The
+actionable toolbox baseline is tracked as
+[AS-33](backlog.md#as-33--qualify-and-retire-accumulated-capabilities) and
+[AS-34](backlog.md#as-34--make-capability-discovery-scale-with-the-toolbox).
 The implemented [base-prompt contract](system_spec.md) sets the evidence
 threshold for replacing a recipe.
 
@@ -240,6 +244,12 @@ This sits on top of the provider-neutral boundary in
 reach Anthropic or OpenAI today, while the router would decide which configured
 backend a given request uses.
 
+Prior work on tool making and acquired skills suggests a narrower first test:
+use a capable model to create and verify a reusable capability, then measure
+whether a cheaper model can reuse it without losing semantic success. That is a
+candidate experiment, not yet evidence that a general router belongs in the
+platform.
+
 Open questions:
 
 - What signal decides the model — task type, a difficulty estimate, a
@@ -251,8 +261,9 @@ Open questions:
 - How does routing interact with the tool-use loop — can the model change
   mid-run?
 
-Promotion trigger: real usage shows a cost or capability mismatch from routing
-everything to one configured model.
+Promotion trigger: [AS-28](backlog.md#as-28--measure-model-roi-with-provider-neutral-paid-evaluations)
+finds a cost or capability mismatch, and the phase-specific creator/user
+experiment shows that routing improves the result in this environment.
 
 ## Promote living-world code from the image to the platform source
 

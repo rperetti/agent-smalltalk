@@ -4,6 +4,8 @@ This document is the project's aspirational north star, not a claim that every
 capability below exists today. See the [system specification](system_spec.md)
 for current behavior, the [backlog](backlog.md) for actionable work, and the
 [ideas incubator](ideas.md) for possibilities that are not yet ready to order.
+The [experiment log](experiments.md) records the questions used to test this
+direction and the evidence that changes it.
 
 ## Philosophy
 

@@ -5,7 +5,9 @@ live into a running image, materializing widgets on a spatial canvas.
 Start with the [documentation map](docs/README.md): the
 [vision](docs/vision.md) describes the north star, the
 [system specification](docs/system_spec.md) records what works today, and the
-[backlog](docs/backlog.md) is the ordered register of actionable work.
+[experiment log](docs/experiments.md) records what the project is trying to
+learn. The [backlog](docs/backlog.md) is the ordered register of actionable
+work.
 
 Project planning is file-based and lives under `docs/`, not tracked in GitHub
 Issues. Issues and discussions are still welcome — for bug reports, feature
@@ -182,9 +184,9 @@ understand before contributing — see [CONTRIBUTING.md](CONTRIBUTING.md) and th
 - `src/` — Tonel packages (Core: gateway, sandbox, tools, automation scheduler;
   UI: canvas, widgets, and the *routines shelf* — the bottom-center tray of
   pausable automations; Tests)
-- `docs/` — vision, as-built specification, ordered backlog, ideas incubator,
-  security/trust model, operations guide, postponed designs, and architectural
-  decisions
+- `docs/` — vision, experiment log, as-built specification, ordered backlog,
+  ideas incubator, security/trust model, operations guide, postponed designs,
+  and architectural decisions
 - `prompts/system.md` — the base prompt that teaches the model
   Pharo/Bloc and the AgentWidget contract. Treat it as code.
 - `scripts/` — image build/test scripts run by the shell wrappers
